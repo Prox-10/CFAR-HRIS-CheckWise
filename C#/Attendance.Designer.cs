@@ -29,11 +29,13 @@ namespace HRIS_CheckWise_ATMS_
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel12;
+            Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel13;
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel12;
-            Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel13;
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Attendance));
             this.MessageDb = new System.Windows.Forms.Label();
             this.Registration = new Guna.UI2.WinForms.Guna2Button();
@@ -64,10 +66,15 @@ namespace HRIS_CheckWise_ATMS_
             this.guna2HtmlLabel4 = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.guna2HtmlLabel5 = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.timer3 = new System.Windows.Forms.Timer(this.components);
+            this.timer4 = new System.Windows.Forms.Timer(this.components);
+            this.color_indicator = new Guna.UI2.WinForms.Guna2Shapes();
+            this.device_status = new System.Windows.Forms.Label();
+            this.guna2Panel2 = new Guna.UI2.WinForms.Guna2Panel();
             this.fullname = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.TimeIn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.TimeOut = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.status = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.session_name = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.date = new System.Windows.Forms.DataGridViewTextBoxColumn();
             guna2HtmlLabel12 = new Guna.UI2.WinForms.Guna2HtmlLabel();
             guna2HtmlLabel13 = new Guna.UI2.WinForms.Guna2HtmlLabel();
@@ -75,12 +82,37 @@ namespace HRIS_CheckWise_ATMS_
             ((System.ComponentModel.ISupportInitialize)(this.guna2PictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.fImage)).BeginInit();
             this.guna2Panel1.SuspendLayout();
+            this.guna2Panel2.SuspendLayout();
             this.SuspendLayout();
+            // 
+            // guna2HtmlLabel12
+            // 
+            guna2HtmlLabel12.AccessibleRole = System.Windows.Forms.AccessibleRole.StaticText;
+            guna2HtmlLabel12.BackColor = System.Drawing.Color.Transparent;
+            guna2HtmlLabel12.Font = new System.Drawing.Font("Leelawadee", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            guna2HtmlLabel12.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            guna2HtmlLabel12.Location = new System.Drawing.Point(514, 107);
+            guna2HtmlLabel12.Name = "guna2HtmlLabel12";
+            guna2HtmlLabel12.Size = new System.Drawing.Size(287, 21);
+            guna2HtmlLabel12.TabIndex = 46;
+            guna2HtmlLabel12.Text = "Human   Resource   Information   System";
+            // 
+            // guna2HtmlLabel13
+            // 
+            guna2HtmlLabel13.BackColor = System.Drawing.Color.Transparent;
+            guna2HtmlLabel13.Font = new System.Drawing.Font("Leelawadee", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            guna2HtmlLabel13.ForeColor = System.Drawing.Color.White;
+            guna2HtmlLabel13.Location = new System.Drawing.Point(338, 157);
+            guna2HtmlLabel13.Name = "guna2HtmlLabel13";
+            guna2HtmlLabel13.Size = new System.Drawing.Size(757, 21);
+            guna2HtmlLabel13.TabIndex = 47;
+            guna2HtmlLabel13.Text = "Remember to place your right index finger on Biometric device for LOGIN and LOGOU" +
+    "T. Thank you!";
             // 
             // MessageDb
             // 
             this.MessageDb.AutoSize = true;
-            this.MessageDb.Location = new System.Drawing.Point(9, 9);
+            this.MessageDb.Location = new System.Drawing.Point(13, 36);
             this.MessageDb.Name = "MessageDb";
             this.MessageDb.Size = new System.Drawing.Size(59, 13);
             this.MessageDb.TabIndex = 26;
@@ -108,20 +140,22 @@ namespace HRIS_CheckWise_ATMS_
             // 
             this.attendanceTable.AllowUserToDeleteRows = false;
             this.attendanceTable.AllowUserToOrderColumns = true;
+            this.attendanceTable.AllowUserToResizeRows = false;
             dataGridViewCellStyle1.BackColor = System.Drawing.Color.White;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.PaleGreen;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
             this.attendanceTable.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            this.attendanceTable.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.None;
             this.attendanceTable.BackgroundColor = System.Drawing.Color.Honeydew;
+            this.attendanceTable.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.attendanceTable.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            this.attendanceTable.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.PaleGreen;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle2.Padding = new System.Windows.Forms.Padding(2);
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.LightGreen;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.MediumSeaGreen;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.LimeGreen;
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.attendanceTable.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.attendanceTable.ColumnHeadersHeight = 30;
             this.attendanceTable.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
@@ -130,23 +164,43 @@ namespace HRIS_CheckWise_ATMS_
             this.TimeIn,
             this.TimeOut,
             this.status,
+            this.session_name,
             this.date});
             this.attendanceTable.Cursor = System.Windows.Forms.Cursors.Hand;
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.Color.White;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.MintCream;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             dataGridViewCellStyle3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle3.NullValue = null;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.PaleGreen;
             dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
             dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.attendanceTable.DefaultCellStyle = dataGridViewCellStyle3;
             this.attendanceTable.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.attendanceTable.Location = new System.Drawing.Point(340, 200);
+            this.attendanceTable.Location = new System.Drawing.Point(9, 7);
             this.attendanceTable.Name = "attendanceTable";
             this.attendanceTable.ReadOnly = true;
             this.attendanceTable.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
+            dataGridViewCellStyle4.BackColor = System.Drawing.Color.Honeydew;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.PaleGreen;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.attendanceTable.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.attendanceTable.RowHeadersVisible = false;
-            this.attendanceTable.Size = new System.Drawing.Size(1010, 339);
+            dataGridViewCellStyle5.BackColor = System.Drawing.Color.Honeydew;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle5.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle5.NullValue = "tesst";
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.Color.PaleGreen;
+            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.Color.Black;
+            this.attendanceTable.RowsDefaultCellStyle = dataGridViewCellStyle5;
+            this.attendanceTable.RowTemplate.DefaultCellStyle.NullValue = null;
+            this.attendanceTable.RowTemplate.Height = 30;
+            this.attendanceTable.RowTemplate.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.attendanceTable.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.attendanceTable.Size = new System.Drawing.Size(982, 325);
             this.attendanceTable.TabIndex = 31;
             this.attendanceTable.ThemeStyle.AlternatingRowsStyle.BackColor = System.Drawing.Color.White;
             this.attendanceTable.ThemeStyle.AlternatingRowsStyle.Font = new System.Drawing.Font("Heading Now Trial 55 Medium", 8.999999F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -156,7 +210,7 @@ namespace HRIS_CheckWise_ATMS_
             this.attendanceTable.ThemeStyle.BackColor = System.Drawing.Color.Honeydew;
             this.attendanceTable.ThemeStyle.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.attendanceTable.ThemeStyle.HeaderStyle.BackColor = System.Drawing.Color.PaleGreen;
-            this.attendanceTable.ThemeStyle.HeaderStyle.BorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
+            this.attendanceTable.ThemeStyle.HeaderStyle.BorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.attendanceTable.ThemeStyle.HeaderStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.attendanceTable.ThemeStyle.HeaderStyle.ForeColor = System.Drawing.Color.White;
             this.attendanceTable.ThemeStyle.HeaderStyle.HeaightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
@@ -166,10 +220,15 @@ namespace HRIS_CheckWise_ATMS_
             this.attendanceTable.ThemeStyle.RowsStyle.BorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.attendanceTable.ThemeStyle.RowsStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.attendanceTable.ThemeStyle.RowsStyle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
-            this.attendanceTable.ThemeStyle.RowsStyle.Height = 22;
+            this.attendanceTable.ThemeStyle.RowsStyle.Height = 30;
             this.attendanceTable.ThemeStyle.RowsStyle.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
             this.attendanceTable.ThemeStyle.RowsStyle.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
+            this.attendanceTable.DataMemberChanged += new System.EventHandler(this.attendanceTable_DataMemberChanged);
+            this.attendanceTable.DataSourceChanged += new System.EventHandler(this.attendanceTable_DataSourceChanged);
+            this.attendanceTable.DefaultCellStyleChanged += new System.EventHandler(this.attendanceTable_DefaultCellStyleChanged);
             this.attendanceTable.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.attendanceTable_CellContentClick);
+            this.attendanceTable.DataBindingComplete += new System.Windows.Forms.DataGridViewBindingCompleteEventHandler(this.attendanceTable_DataBindingComplete);
+            this.attendanceTable.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.attendanceTable_DataError);
             // 
             // employeeIDoptional
             // 
@@ -500,31 +559,42 @@ namespace HRIS_CheckWise_ATMS_
             // 
             this.timer3.Tick += new System.EventHandler(this.timer3_Tick_1);
             // 
-            // guna2HtmlLabel12
+            // color_indicator
             // 
-            guna2HtmlLabel12.BackColor = System.Drawing.Color.Transparent;
-            guna2HtmlLabel12.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            guna2HtmlLabel12.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            guna2HtmlLabel12.Location = new System.Drawing.Point(514, 107);
-            guna2HtmlLabel12.Name = "guna2HtmlLabel12";
-            guna2HtmlLabel12.Size = new System.Drawing.Size(372, 27);
-            guna2HtmlLabel12.TabIndex = 46;
-            guna2HtmlLabel12.Text = "Human   Resource   Information   System";
+            this.color_indicator.BorderColor = System.Drawing.Color.Transparent;
+            this.color_indicator.FillColor = System.Drawing.Color.White;
+            this.color_indicator.Location = new System.Drawing.Point(1308, 12);
+            this.color_indicator.Name = "color_indicator";
+            this.color_indicator.PolygonSkip = 1;
+            this.color_indicator.Rotate = 0F;
+            this.color_indicator.Shape = Guna.UI2.WinForms.Enums.ShapeType.Ellipse;
+            this.color_indicator.Size = new System.Drawing.Size(30, 30);
+            this.color_indicator.TabIndex = 48;
+            this.color_indicator.Text = "guna2Shapes1";
+            this.color_indicator.Zoom = 80;
             // 
-            // guna2HtmlLabel13
+            // device_status
             // 
-            guna2HtmlLabel13.BackColor = System.Drawing.Color.Transparent;
-            guna2HtmlLabel13.Font = new System.Drawing.Font("Leelawadee", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            guna2HtmlLabel13.ForeColor = System.Drawing.Color.White;
-            guna2HtmlLabel13.Location = new System.Drawing.Point(338, 169);
-            guna2HtmlLabel13.Name = "guna2HtmlLabel13";
-            guna2HtmlLabel13.Size = new System.Drawing.Size(757, 21);
-            guna2HtmlLabel13.TabIndex = 47;
-            guna2HtmlLabel13.Text = "Remember to place your right index finger on Biometric device for LOGIN and LOGOU" +
-    "T. Thank you!";
+            this.device_status.AutoSize = true;
+            this.device_status.Location = new System.Drawing.Point(13, 6);
+            this.device_status.Name = "device_status";
+            this.device_status.Size = new System.Drawing.Size(59, 13);
+            this.device_status.TabIndex = 49;
+            this.device_status.Text = "Initialize.....";
+            // 
+            // guna2Panel2
+            // 
+            this.guna2Panel2.BackColor = System.Drawing.Color.Honeydew;
+            this.guna2Panel2.BorderRadius = 50;
+            this.guna2Panel2.Controls.Add(this.attendanceTable);
+            this.guna2Panel2.Location = new System.Drawing.Point(334, 196);
+            this.guna2Panel2.Name = "guna2Panel2";
+            this.guna2Panel2.Size = new System.Drawing.Size(1004, 339);
+            this.guna2Panel2.TabIndex = 50;
             // 
             // fullname
             // 
+            this.fullname.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
             this.fullname.DataPropertyName = "fullname";
             this.fullname.HeaderText = "Full Name";
             this.fullname.Name = "fullname";
@@ -537,6 +607,7 @@ namespace HRIS_CheckWise_ATMS_
             this.TimeIn.HeaderText = "Time In";
             this.TimeIn.Name = "TimeIn";
             this.TimeIn.ReadOnly = true;
+            this.TimeIn.Width = 163;
             // 
             // TimeOut
             // 
@@ -544,13 +615,23 @@ namespace HRIS_CheckWise_ATMS_
             this.TimeOut.HeaderText = "Time Out";
             this.TimeOut.Name = "TimeOut";
             this.TimeOut.ReadOnly = true;
+            this.TimeOut.Width = 164;
             // 
             // status
             // 
-            this.status.DataPropertyName = "attendance_status";
+            this.status.DataPropertyName = "actual_attendance_status";
             this.status.HeaderText = "Status";
             this.status.Name = "status";
             this.status.ReadOnly = true;
+            this.status.Width = 164;
+            // 
+            // session_name
+            // 
+            this.session_name.DataPropertyName = "session";
+            this.session_name.HeaderText = "Session";
+            this.session_name.Name = "session_name";
+            this.session_name.ReadOnly = true;
+            this.session_name.Width = 163;
             // 
             // date
             // 
@@ -558,13 +639,17 @@ namespace HRIS_CheckWise_ATMS_
             this.date.HeaderText = "Date";
             this.date.Name = "date";
             this.date.ReadOnly = true;
+            this.date.Width = 164;
             // 
             // Attendance
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.MediumSeaGreen;
+            this.BackColor = System.Drawing.Color.SeaGreen;
             this.ClientSize = new System.Drawing.Size(1350, 749);
+            this.Controls.Add(this.guna2Panel2);
+            this.Controls.Add(this.device_status);
+            this.Controls.Add(this.color_indicator);
             this.Controls.Add(guna2HtmlLabel13);
             this.Controls.Add(guna2HtmlLabel12);
             this.Controls.Add(this.lblDate);
@@ -576,7 +661,6 @@ namespace HRIS_CheckWise_ATMS_
             this.Controls.Add(this.employeeIDoptional);
             this.Controls.Add(this.guna2HtmlLabel6);
             this.Controls.Add(this.guna2Panel1);
-            this.Controls.Add(this.attendanceTable);
             this.Controls.Add(this.Registration);
             this.Controls.Add(this.MessageDb);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -590,6 +674,7 @@ namespace HRIS_CheckWise_ATMS_
             ((System.ComponentModel.ISupportInitialize)(this.fImage)).EndInit();
             this.guna2Panel1.ResumeLayout(false);
             this.guna2Panel1.PerformLayout();
+            this.guna2Panel2.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -625,10 +710,15 @@ namespace HRIS_CheckWise_ATMS_
         private Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel10;
         private Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel9;
         private System.Windows.Forms.Timer timer3;
+        private System.Windows.Forms.Timer timer4;
+        private Guna.UI2.WinForms.Guna2Shapes color_indicator;
+        private System.Windows.Forms.Label device_status;
+        private Guna.UI2.WinForms.Guna2Panel guna2Panel2;
         private System.Windows.Forms.DataGridViewTextBoxColumn fullname;
         private System.Windows.Forms.DataGridViewTextBoxColumn TimeIn;
         private System.Windows.Forms.DataGridViewTextBoxColumn TimeOut;
         private System.Windows.Forms.DataGridViewTextBoxColumn status;
+        private System.Windows.Forms.DataGridViewTextBoxColumn session_name;
         private System.Windows.Forms.DataGridViewTextBoxColumn date;
     }
 }

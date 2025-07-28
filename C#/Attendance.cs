@@ -26,7 +26,6 @@ namespace HRIS_CheckWise_ATMS_
         protected Verification Verificator;
         protected Dictionary<string, Template> LocalTemplates = new Dictionary<string, Template>();
         private bool IsDbVerifying = false;
-        private WebSocket ws;
         private bool isDeviceConnected = false;
 
 
@@ -36,7 +35,7 @@ namespace HRIS_CheckWise_ATMS_
             dbConn = new db_connection();
             Init();
             this.WindowState = FormWindowState.Maximized;
-            InitWebSocket();
+           
         }
 
         private bool IsDeviceConnected()
@@ -45,6 +44,7 @@ namespace HRIS_CheckWise_ATMS_
             {
                 ReadersCollection readers = new ReadersCollection();
                 readers.Refresh();
+                //color_indicator.FillColor = readers.Count > 0 ? Color.LightGreen : Color.Red;
 
                 if (readers.Count == 0)
                 {
@@ -99,12 +99,12 @@ namespace HRIS_CheckWise_ATMS_
 
         protected void SetStatus(string message)
         {
-            // Implement status update for your UI
+            //device_status.Text = message;
         }
 
         protected void MakeReport(string message)
         {
-            // Implement report update for your UI
+            //make_report.Text = message;
         }
 
         protected FeatureSet ExtractFeatures(Sample Sample, DPFP.Processing.DataPurpose Purpose)
@@ -135,21 +135,25 @@ namespace HRIS_CheckWise_ATMS_
         public void OnReaderConnect(object Capture, string ReaderSerialNumber)
         {
             SetStatus("Reader Connected.");
+            color_indicator.FillColor = Color.LightGreen; // Change color to indicate reader connected
         }
 
         public void OnReaderDisconnect(object Capture, string ReaderSerialNumber)
         {
             SetStatus("Reader Disconnected.");
+            color_indicator.FillColor = Color.Red; // Change color to indicate reader disconnected
         }
 
         public void OnFingerTouch(object Capture, string ReaderSerialNumber)
         {
             MakeReport("Finger touched.");
+           
         }
 
         public void OnFingerGone(object Capture, string ReaderSerialNumber)
         {
             MakeReport("Finger removed.");
+           
         }
 
         public void OnSampleQuality(object Capture, string ReaderSerialNumber, CaptureFeedback CaptureFeedback)
@@ -320,11 +324,11 @@ namespace HRIS_CheckWise_ATMS_
         {
             int hour = timeIn.Hour;
             if (hour >= 6 && hour < 12)
-                return "morning";
+                return "Morning";
             else if (hour >= 12 && hour < 18)
-                return "afternoon";
+                return "Afternoon";
             else
-                return "night";
+                return "Night";
         }
 
         // Check if employee is late based on session times
@@ -380,7 +384,7 @@ namespace HRIS_CheckWise_ATMS_
                 if (!isAttendanceAllowed)
                 {
                     string currentSession = await GetCurrentSessionNameAsync(now);
-                    string message = $"Attendance not allowed at this time. Current time: {now.ToString("HH:mm:ss")}. Active session: {currentSession}";
+                    string message = $"Attendance not allowed at this time. Current time: {now.ToString("hh:mm:ss tt")}. Active session: {currentSession}";
                     
                     // Play error sound
                     System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"C:\C#\HRIS-CheckWise(ATMS)\Sound\error.wav");
@@ -388,7 +392,6 @@ namespace HRIS_CheckWise_ATMS_
                     
                     // Show error message
                     new Toast(ToastType.Error, "Attendance Restricted", message).Show();
-                    MessageDb.Text = "Attendance not allowed outside session hours.";
                     return;
                 }
 
@@ -404,15 +407,20 @@ namespace HRIS_CheckWise_ATMS_
 
                     if (result == null)
                     {
+                        string message = $"Employee ID not found!";
                         SystemSounds.Exclamation.Play();
-                        MessageDb.Text = "Employee ID not found.";
+                        new Toast(ToastType.Error," ", message).Show();
                         return;
                     }
                     numericId = Convert.ToInt32(result);
                 }
 
-                // Step 2: Check for existing attendance today
-                string checkQuery = "SELECT id, time_in FROM attendances WHERE employee_id = @id AND attendance_date = CURDATE()";
+                // Step 2: Determine if we're in time-in or time-out period
+                string session = await DetermineSessionAsync(now);
+                bool isInTimeOutPeriod = await AttendanceSessionApiHelper.IsInTimeOutPeriodAsync(now, session, ApiConfig.ApiBaseUrl);
+
+                // Step 3: Check for existing attendance today
+                string checkQuery = "SELECT id, time_in, time_out, actual_attendance_status, session FROM attendances WHERE employee_id = @id AND attendance_date = CURDATE()";
                 using (var checkCmd = new MySqlCommand(checkQuery, dbConn.Connection))
                 {
                     checkCmd.Parameters.AddWithValue("@id", numericId);
@@ -422,58 +430,135 @@ namespace HRIS_CheckWise_ATMS_
                         {
                             int attendanceId = reader.GetInt32("id");
                             TimeSpan timeIn = reader.GetTimeSpan("time_in");
+                            bool hasTimeOut = !reader.IsDBNull(reader.GetOrdinal("time_out"));
+                            string actualStatus = reader.IsDBNull(reader.GetOrdinal("actual_attendance_status")) ? "" : reader.GetString("actual_attendance_status");
                             reader.Close();
 
-                            // Use the already declared 'now' variable
-                            TimeSpan breakDuration = now.TimeOfDay - timeIn;
-                            string session = await DetermineSessionAsync(now);
-                            bool isLate = await IsLateAsync(now, session);
-                            string attendanceStatus = isLate ? "Late" : "Completed";
-                            
-                            // Format time_out in 24-hour format for MySQL TIME column
-                            string timeOut24 = now.ToString("HH:mm:ss");
-                            string break12 = breakDuration.ToString(); // break is duration, keep as is
-
-                            string updateQuery = @"UPDATE attendances 
-                        SET time_out = @out, break_time = @break, attendance_status = @status, session = @session 
-                        WHERE id = @aid";
-
-                            using (var updateCmd = new MySqlCommand(updateQuery, dbConn.Connection))
+                            // Check if already has Logout Successfully (prevent multiple)
+                            if (actualStatus == "Logout Successfully")
                             {
-                                updateCmd.Parameters.AddWithValue("@out", timeOut24); // 24-hour format
-                                updateCmd.Parameters.AddWithValue("@break", break12); // duration
-                                updateCmd.Parameters.AddWithValue("@status", attendanceStatus);
-                                updateCmd.Parameters.AddWithValue("@session", session);
-                                updateCmd.Parameters.AddWithValue("@aid", attendanceId);
-                                updateCmd.ExecuteNonQuery();
+                                SystemSounds.Exclamation.Play();
+                                new Toast(ToastType.Warning, "Already Logged Out", "You have already logged out for today.").Show();
+                                return;
                             }
 
-                            SystemSounds.Asterisk.Play();
-                            MessageDb.Text = "Time-out recorded.";
+                            if (hasTimeOut)
+                            {
+                                // Already has both time-in and time-out, show message
+                                SystemSounds.Exclamation.Play();
+                                new Toast(ToastType.Warning, "Already Completed", "You have already completed your attendance for today.").Show();
+                                return;
+                            }
+
+                            // Has time-in but no time-out - check double scan logic
+                            if (!isInTimeOutPeriod)
+                            {
+                                // Still in time-in period - check double scan window
+                                TimeSpan timeSinceFirstScan = now.TimeOfDay - timeIn;
+                                int doubleScanWindow = await GetDoubleScanWindowAsync(session, ApiConfig.ApiBaseUrl);
+                                
+                                if (timeSinceFirstScan.TotalMinutes <= doubleScanWindow)
+                                {
+                                    // Within double scan window - still Login Successfully
+                                    SystemSounds.Asterisk.Play();
+                                    new Toast(ToastType.Info, "Already Logged In", "You are already logged in for this session.").Show();
+                                    return;
+                                }
+                                else
+                                {
+                                    // After double scan window - Logout Successfully (emergency)
+                                    TimeSpan breakDuration = now.TimeOfDay - timeIn;
+                                    string timeOut24 = now.ToString("HH:mm:ss");
+                                    string break12 = breakDuration.ToString();
+
+                                    string updateQuery = @"UPDATE attendances 
+                                SET time_out = @out, break_time = @break, attendance_status = @status, actual_attendance_status = @actual_status, session = @session 
+                                WHERE id = @aid";
+
+                                    using (var updateCmd = new MySqlCommand(updateQuery, dbConn.Connection))
+                                    {
+                                        updateCmd.Parameters.AddWithValue("@out", timeOut24);
+                                        updateCmd.Parameters.AddWithValue("@break", break12);
+                                        updateCmd.Parameters.AddWithValue("@status", "Attendance Complete");
+                                        updateCmd.Parameters.AddWithValue("@actual_status", "Logout Successfully");
+                                        updateCmd.Parameters.AddWithValue("@session", session);
+                                        updateCmd.Parameters.AddWithValue("@aid", attendanceId);
+                                        updateCmd.ExecuteNonQuery();
+                                    }
+
+                                    SystemSounds.Asterisk.Play();
+                                    new Toast(ToastType.Success, "Logout Successfully", "Emergency logout recorded successfully!").Show();
+                                }
+                            }
+                            else
+                            {
+                                // In time-out period - record normal time-out
+                                bool isTimeOutConfigured = await AttendanceSessionApiHelper.IsTimeOutConfiguredAsync(session, ApiConfig.ApiBaseUrl);
+                                
+                                if (!isTimeOutConfigured)
+                                {
+                                    SystemSounds.Exclamation.Play();
+                                    new Toast(ToastType.Warning, "Time-out Not Configured", "Time-out period is not set for this session.").Show();
+                                    return;
+                                }
+
+                                // Record time-out
+                                TimeSpan breakDuration = now.TimeOfDay - timeIn;
+                                string timeOut24 = now.ToString("HH:mm:ss");
+                                string break12 = breakDuration.ToString();
+
+                                string updateQuery = @"UPDATE attendances 
+                            SET time_out = @out, break_time = @break, attendance_status = @status, actual_attendance_status = @actual_status, session = @session 
+                            WHERE id = @aid";
+
+                                using (var updateCmd = new MySqlCommand(updateQuery, dbConn.Connection))
+                                {
+                                    updateCmd.Parameters.AddWithValue("@out", timeOut24);
+                                    updateCmd.Parameters.AddWithValue("@break", break12);
+                                    updateCmd.Parameters.AddWithValue("@status", "Attendance Complete");
+                                    updateCmd.Parameters.AddWithValue("@actual_status", "Logout Successfully");
+                                    updateCmd.Parameters.AddWithValue("@session", session);
+                                    updateCmd.Parameters.AddWithValue("@aid", attendanceId);
+                                    updateCmd.ExecuteNonQuery();
+                                }
+
+                                SystemSounds.Asterisk.Play();
+                                new Toast(ToastType.Success, "Time-Out Recorded", "Time-out recorded successfully!").Show();
+                            }
                         }
                         else
                         {
                             reader.Close();
 
-                            // Use the already declared 'now' variable
-                            string session = await DetermineSessionAsync(now);
-                            bool isLate = await IsLateAsync(now, session);
-                            string attendanceStatus = isLate ? "Late" : "Present";
-                            
-                            // Format time_in in 24-hour format for MySQL TIME column
-                            string timeIn24 = now.ToString("HH:mm:ss");
-                            string insertQuery = "INSERT INTO attendances (employee_id, time_in, attendance_date, attendance_status, session) VALUES (@id, @in, CURDATE(), @status, @session)";
-                            using (var insertCmd = new MySqlCommand(insertQuery, dbConn.Connection))
+                            // No existing attendance - record time-in
+                            if (!isInTimeOutPeriod)
                             {
-                                insertCmd.Parameters.AddWithValue("@id", numericId);
-                                insertCmd.Parameters.AddWithValue("@in", timeIn24); // 24-hour format
-                                insertCmd.Parameters.AddWithValue("@status", attendanceStatus);
-                                insertCmd.Parameters.AddWithValue("@session", session);
-                                insertCmd.ExecuteNonQuery();
-                            }
+                                // In time-in period - record time-in
+                                bool isLate = await IsLateAsync(now, session);
+                                string attendanceStatus = isLate ? "Late" : "Login Successfully";
+                                string actualStatus = isLate ? "Late" : "Login Successfully";
+                                string timeIn24 = now.ToString("HH:mm:ss");
+                                
+                                string insertQuery = "INSERT INTO attendances (employee_id, time_in, attendance_date, attendance_status, actual_attendance_status, session) VALUES (@id, @in, CURDATE(), @status, @actual_status, @session)";
+                                using (var insertCmd = new MySqlCommand(insertQuery, dbConn.Connection))
+                                {
+                                    insertCmd.Parameters.AddWithValue("@id", numericId);
+                                    insertCmd.Parameters.AddWithValue("@in", timeIn24);
+                                    insertCmd.Parameters.AddWithValue("@status", attendanceStatus);
+                                    insertCmd.Parameters.AddWithValue("@actual_status", actualStatus);
+                                    insertCmd.Parameters.AddWithValue("@session", session);
+                                    insertCmd.ExecuteNonQuery();
+                                }
 
-                            SystemSounds.Asterisk.Play();
-                            MessageDb.Text = "Time-in recorded.";
+                                SystemSounds.Asterisk.Play();
+                                new Toast(ToastType.Success, "Time-In Recorded", "Time-in recorded successfully!").Show();
+                            }
+                            else
+                            {
+                                // In time-out period but no time-in recorded
+                                SystemSounds.Exclamation.Play();
+                                new Toast(ToastType.Error, "No Time-In", "You must record time-in before recording time-out.").Show();
+                            }
                         }
                     }
                 }
@@ -483,7 +568,13 @@ namespace HRIS_CheckWise_ATMS_
             catch (Exception ex)
             {
                 SystemSounds.Hand.Play();
-                MessageBox.Show("Attendance error: " + ex.Message);
+                string errorMessage = $"Attendance error: {ex.Message}";
+                if (ex.InnerException != null)
+                {
+                    errorMessage += $"\nInner error: {ex.InnerException.Message}";
+                }
+                MessageBox.Show(errorMessage, "Attendance Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Console.WriteLine($"Attendance error details: {ex}");
             }
             finally
             {
@@ -502,10 +593,17 @@ namespace HRIS_CheckWise_ATMS_
             return time24;
         }
 
-
-        private void InitWebSocket()
+        private async Task<int> GetDoubleScanWindowAsync(string session, string apiBaseUrl)
         {
-            // If you want to trigger verification from React, implement WebSocket logic here
+            try
+            {
+                return await AttendanceSessionApiHelper.GetDoubleScanWindowAsync(session, apiBaseUrl);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting double scan window: {ex.Message}");
+                return 30; // Default to 30 minutes if API fails
+            }
         }
 
         private async void Attendance_Load(object sender, EventArgs e)
@@ -515,10 +613,11 @@ namespace HRIS_CheckWise_ATMS_
             LoadAttendanceData(); // 👈 Load table on form load
             timer1.Start();
             lblDate.Text = DateTime.Now.ToString("dddd, MMMM dd, yyyy");
-
+            AutoDetectDeviceConnection();
             isDeviceConnected = IsDeviceConnected();
             timer2.Start();
             timer3.Start(); // Start session status update timer
+            timer4.Start(); // Start automatic attendance data refresh timer
 
             // Test API connection and update status
             await UpdateSessionStatus();
@@ -583,7 +682,7 @@ namespace HRIS_CheckWise_ATMS_
                 e.employee_name AS fullname, 
                 a.time_in, 
                 a.time_out, 
-                a.attendance_status, 
+                a.actual_attendance_status, 
                 a.attendance_date, 
                 a.session
             FROM 
@@ -624,7 +723,7 @@ namespace HRIS_CheckWise_ATMS_
         private void AttendanceTable_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             var dgv = sender as DataGridView;
-            if (dgv.Columns[e.ColumnIndex].Name == "time_in" || dgv.Columns[e.ColumnIndex].Name == "time_out")
+            if (dgv.Columns[e.ColumnIndex].Name == "TimeIn" || dgv.Columns[e.ColumnIndex].Name == "TimeOut")
             {
                 if (e.Value != null && e.Value is TimeSpan)
                 {
@@ -659,14 +758,14 @@ namespace HRIS_CheckWise_ATMS_
             {
                 // Device just connected
                 isDeviceConnected = true;
-                MessageDb.Text = "Device connected. Initializing...";
+                //device_status.Text = "Device connected.";
                 StartCapture(); // Reinitialize capture
             }
             else if (!currentlyConnected && isDeviceConnected)
             {
                 // Device just disconnected
                 isDeviceConnected = false;
-                MessageDb.Text = "Device disconnected. Waiting...";
+                //device_status.Text = "Device disconnected.";
                 StopCapture(); // Optional: stop to avoid errors
             }
             // No need to update UI if status hasn't changed - keep it simple
@@ -703,6 +802,36 @@ namespace HRIS_CheckWise_ATMS_
         private async void timer3_Tick_1(object sender, EventArgs e)
         {
             await UpdateSessionStatus();
+        }
+
+        private void timer4_Tick(object sender, EventArgs e)
+        {
+            LoadAttendanceData();
+        }
+
+        private void attendanceTable_DefaultCellStyleChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void attendanceTable_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+
+        }
+
+        private void attendanceTable_DataSourceChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void attendanceTable_DataMemberChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void attendanceTable_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+
         }
     }
 }

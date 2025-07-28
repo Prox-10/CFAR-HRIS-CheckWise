@@ -98,10 +98,10 @@ export function DataTable<TData, TValue>({ columns, data, employees, employees_a
                         </Button> */}
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
-                    <Button variant="main" className="ml-auto" onClick={() => setIsModelOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Rating
-                    </Button>
+                    {/* <Button variant="main" className="ml-auto" onClick={() => setIsModelOpen(true)}> */}
+                        {/* <Plus className="mr-2 h-4 w-4" /> */}
+                        {/* Add Rating */}
+                    {/* </Button> */}
                     <DropdownMenuContent align="end">
                         {table
                             .getAllColumns()

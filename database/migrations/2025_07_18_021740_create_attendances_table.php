@@ -18,6 +18,7 @@ return new class extends Migration
             $table->time('time_out')->nullable();
             $table->time('break_time')->nullable();
             $table->string('attendance_status')->default('Pending');
+            $table->string('actual_attendance_status')->nullable(); // Detailed status for C# display
             $table->date('attendance_date');
             $table->string('session')->nullable()->comment('e.g., morning, afternoon, evening');
             $table->softDeletes();

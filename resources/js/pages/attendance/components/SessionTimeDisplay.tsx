@@ -8,9 +8,12 @@ import { SessionTimeModal } from "./SessionTimeModal";
 type Session = {
   id: number;
   session_name: string;
-  time_in: string;
-  time_out: string;
-  late_time: string | null;
+  time_in_start: string;
+  time_in_end: string;
+  time_out_start: string;
+  time_out_end: string;
+  late_time?: string;
+  double_scan_window?: number;
 };
 
 interface Props {
@@ -55,8 +58,8 @@ export const SessionTimeDisplay: React.FC<Props> = ({ sessions }) => {
             <CardTitle>Session Times</CardTitle>
             <CardDescription>Current attendance session settings</CardDescription>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => setModalOpen(true)}
           >
@@ -79,16 +82,20 @@ export const SessionTimeDisplay: React.FC<Props> = ({ sessions }) => {
                     </Badge>
                     <div className="space-y-1">
                       <div className="text-sm">
-                        <span className="font-medium">Time In:</span> {formatTime(session.time_in)}
+                        <span className="font-medium">Time In:</span> {formatTime(session.time_in_start)} - {formatTime(session.time_in_end)}
                       </div>
                       <div className="text-sm">
-                        <span className="font-medium">Time Out:</span> {formatTime(session.time_out)}
+                        <span className="font-medium">Time Out:</span> {session.time_out_start && session.time_out_end ?
+                          `${formatTime(session.time_out_start)} - ${formatTime(session.time_out_end)}` :
+                          'Not configured'
+                        }
                       </div>
-                      {session.late_time && (
-                        <div className="text-sm">
-                          <span className="font-medium">Late Time:</span> {formatTime(session.late_time)}
-                        </div>
-                      )}
+                      <div className="text-sm">
+                        <span className="font-medium">Late Time:</span> {session.late_time ? formatTime(session.late_time) : 'Not configured'}
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">Double Scan Window:</span> {session.double_scan_window ? `${session.double_scan_window} minutes` : 'Not configured'}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -98,9 +105,9 @@ export const SessionTimeDisplay: React.FC<Props> = ({ sessions }) => {
         </CardContent>
       </Card>
 
-      <SessionTimeModal 
-        open={modalOpen} 
-        onClose={() => setModalOpen(false)} 
+      <SessionTimeModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
         mode="update"
         onSuccess={handleUpdateSuccess}
         sessions={sessions}

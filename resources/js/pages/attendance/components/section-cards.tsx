@@ -17,81 +17,81 @@ export function SectionCards() {
     const employeeCount = useCountUp(0, 1000);
     const departmentCount = useCountUp(0, 1000);
     return (
-        <div className="grid grid-cols-1 gap-3 px-4 *:data-[slot=card]:bg-gradient-to-tl *:data-[slot=card]:from-[#06D6A0] *:data-[slot=card]:to-green-200 *:data-[slot=card]:shadow-xs lg:px-3 @xl/main:grid-cols-4 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
-            <Card className="@container/card border border-green-700">
+        <div className="grid grid-cols-1 gap-3 px-4 *:data-[slot=card]:shadow-xs lg:px-3 @xl/main:grid-cols-4 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+            <Card className="@container/card border-l-7 border-cfar-400">   
                 <CardHeader className="relative">
-                    <CardDescription className="font-semibold dark:text-darkMain">Total Employee</CardDescription>
+                    <CardDescription className="font-semibold dark:text-darkMain">Total Attendance</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{employeeCount.toLocaleString()}</CardTitle>
                     <div className="absolute top-4 right-4">
-                        <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-                            <TrendingUpIcon className="size-3" />
-                            +12.5%
-                        </Badge>
+                        {/* <Badge variant="outline" className="flex gap-1 rounded-lg text-xs"> */}
+                            {/* <TrendingUpIcon className="size-3" /> */}
+                            {/* +12.5% */}
+                        {/* </Badge> */}
                     </div>
                 </CardHeader>
                 <CardFooter className="flex-col items-start gap-1 text-sm">
                     <div className="line-clamp-1 flex gap-2 font-medium">
-                        Trending up this month <TrendingUpIcon className="size-4" />
+                        {/* Trending up this month <TrendingUpIcon className="size-4" /> */}
                     </div>
-                    <div className="text-muted-foreground">Visitors for the last 6 months</div>
+                    {/* <div className="text-muted-foreground">Visitors for the last 6 months</div> */}
                 </CardFooter>
             </Card>
 
-            <Card className="@container/card border border-green-700">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold dark:text-darkMain">Department</CardDescription>
                     {/* Display the count here */}
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{departmentCount.toLocaleString()}</CardTitle>
                     <div className="absolute top-4 right-4">
-                        <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-                            <TrendingDownIcon className="size-3" />
-                            -20%
-                        </Badge>
+                        {/* <Badge variant="outline" className="flex gap-1 rounded-lg text-xs"> */}
+                            {/* <TrendingDownIcon className="size-3" /> */}
+                            {/* -20% */}
+                        {/* </Badge> */}
                     </div>
                 </CardHeader>
                 <CardFooter className="flex-col items-start gap-1 text-sm">
                     <div className="line-clamp-1 flex gap-2 font-medium">
-                        Down 20% this period <TrendingDownIcon className="size-4" />
+                        {/* Down 20% this period <TrendingDownIcon className="size-4" /> */}
                     </div>
-                    <div className="text-muted-foreground">Acquisition needs attention</div>
+                    {/* <div className="text-muted-foreground">Acquisition needs attention</div> */}
                 </CardFooter>
             </Card>
 
-            <Card className="@container/card border border-green-700">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold dark:text-darkMain">Active Accounts</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">45,678</CardTitle>
                     <div className="absolute top-4 right-4">
-                        <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-                            <TrendingUpIcon className="size-3" />
-                            +12.5%
-                        </Badge>
+                        {/* <Badge variant="outline" className="flex gap-1 rounded-lg text-xs"> */}
+                            {/* <TrendingUpIcon className="size-3" /> */}
+                            {/* +12.5% */}
+                        {/* </Badge> */}
                     </div>
                 </CardHeader>
                 <CardFooter className="flex-col items-start gap-1 text-sm">
                     <div className="line-clamp-1 flex gap-2 font-medium">
-                        Strong user retention <TrendingUpIcon className="size-4" />
+                        {/* Strong user retention <TrendingUpIcon className="size-4" /> */}
                     </div>
-                    <div className="text-muted-foreground">Engagement exceed targets</div>
+                    {/* <div className="text-muted-foreground">Engagement exceed targets</div> */}
                 </CardFooter>
             </Card>
 
-            <Card className="@container/card border border-green-700">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold dark:text-darkMain">Growth Rate</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">4.5%</CardTitle>
                     <div className="absolute top-4 right-4">
-                        <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-                            <TrendingUpIcon className="size-3" />
-                            +4.5%
-                        </Badge>
+                        {/* <Badge variant="outline" className="flex gap-1 rounded-lg text-xs"> */}
+                            {/* <TrendingUpIcon className="size-3" /> */}
+                            {/* +4.5% */}
+                        {/* </Badge> */}
                     </div>
                 </CardHeader>
                 <CardFooter className="flex-col items-start gap-1 text-sm">
                     <div className="line-clamp-1 flex gap-2 font-medium">
-                        Steady performance <TrendingUpIcon className="size-4" />
+                        {/* Steady performance <TrendingUpIcon className="size-4" /> */}
                     </div>
-                    <div className="text-muted-foreground">Meets growth projections</div>
+                    {/* <div className="text-muted-foreground">Meets growth projections</div> */}
                 </CardFooter>
             </Card>
         </div>

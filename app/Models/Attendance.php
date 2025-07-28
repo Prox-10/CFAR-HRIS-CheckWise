@@ -16,6 +16,7 @@ class Attendance extends Model
         "time_out",
         "break_time",
         "attendance_status",
+        "actual_attendance_status",
         "attendance_date",
         "session"
     ];

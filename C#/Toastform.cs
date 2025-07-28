@@ -34,9 +34,11 @@ namespace HRIS_CheckWise_ATMS_
             label.Font = new System.Drawing.Font("Segoe UI", 12);
             this.Controls.Add(label);
 
-            // Position bottom right
+            // Position center top
             var workingArea = Screen.PrimaryScreen.WorkingArea;
-            this.Location = new System.Drawing.Point(workingArea.Right - this.Width - 10, workingArea.Bottom - this.Height - 10);
+            int x = (workingArea.Width - this.Width) / 10;
+            int y = workingArea.Top + 20; // 20 pixels from top
+            this.Location = new System.Drawing.Point(x, y);
 
             timer = new Timer();
             timer.Interval = duration;

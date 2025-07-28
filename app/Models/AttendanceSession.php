@@ -12,8 +12,11 @@ class AttendanceSession extends Model
 
     protected $fillable = [
         'session_name',
-        'time_in',
-        'time_out',
+        'time_in_start',
+        'time_in_end',
+        'time_out_start',
+        'time_out_end',
         'late_time',
+        'double_scan_window',
     ];
 }

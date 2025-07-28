@@ -30,9 +30,9 @@ export function SectionCards({
     const cancelledLeavesCount = useCountUp(cancelledLeaves, 1000);
     const rejectedAndCancelledCount = useCountUp(rejectedLeaves + cancelledLeaves, 1000);
     return (
-        <div className="grid grid-cols-1 gap-3 px-4 *:data-[slot=card]:bg-gradient-to-tl *:data-[slot=card]:from-[#06D6A0] *:data-[slot=card]:to-green-200 *:data-[slot=card]:shadow-xs lg:px-3 @xl/main:grid-cols-4 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">    
+        <div className="grid grid-cols-1 gap-3 px-4 *:data-[slot=card]:shadow-xs lg:px-3 @xl/main:grid-cols-4 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">  
             {/* Total Leaves */}
-            <Card className="@container/card border border-main bg-primary dark:bg-main-900">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold text-primary dark:text-white">Total Leaves</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{totalLeavesCount}</CardTitle>
@@ -53,7 +53,7 @@ export function SectionCards({
             </Card>
 
             {/* Approved Leaves */}
-            <Card className="@container/card border border-main bg-green-50 dark:bg-green-900">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold text-green-900 dark:text-green-200">Approved</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{approvedLeavesCount}</CardTitle>
@@ -74,7 +74,7 @@ export function SectionCards({
             </Card>
 
             {/* Pending Leaves */}
-            <Card className="@container/card border border-main bg-yellow-50 dark:bg-yellow-900">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold text-yellow-900 dark:text-yellow-200">Pending</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{pendingLeavesCount}</CardTitle>
@@ -95,7 +95,7 @@ export function SectionCards({
             </Card>
 
             {/* Rejected & Cancelled Leaves */}
-            <Card className="@container/card border border-main bg-red-50 dark:bg-red-900">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold text-red-900 dark:text-red-200">Rejected / Cancelled</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{rejectedAndCancelledCount}</CardTitle>

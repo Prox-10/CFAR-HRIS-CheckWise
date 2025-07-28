@@ -2,7 +2,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { Main } from '@/components/customize/main';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Tabs, TabsContent } from '@radix-ui/react-tabs';
@@ -16,7 +16,9 @@ import { SectionCards } from './components/section-cards';
 import { Attendance } from './types/attendance';
 // import { Attendance } from './components/columns';
 import { SiteHeader } from '@/components/employee-site-header';
+import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { ContentLoading } from '@/components/ui/loading';
+import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import axios from 'axios';
 import ViewEmployeeDetails from './components/viewemployeedetails';
 
@@ -106,57 +108,57 @@ export default function Index({
         <SidebarProvider>
             <Head title="Evaluation" />
             <Toaster position="top-right" richColors />
-            <AppSidebar />
-                    <SidebarInset>
-                        {/* <HeaderShrink/> */}
-                        <SiteHeader breadcrumbs={breadcrumbs} title={''} />
-            {loading ? (
-                <ContentLoading />
-            ) : (
-                <>
-                    
-                        <Main fixed>
-                            <div className="mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4">
-                                <div>
-                                    <div className="ms-2 flex items-center">
-                                        <Users className="size-11" />
-                                        <div className="ms-2">
-                                            <h2 className="flex text-2xl font-bold tracking-tight">Attendance</h2>
-                                            <p className="text-muted-foreground">Manage your organization's workforce</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                {/* <TasksPrimaryButtons /> */}
-                            </div>
-                            <Tabs orientation="vertical" defaultValue="overview" className="space-y-4">
-                                <TabsContent value="overview" className="space-y-4">
-                                    <div className="flex flex-1 flex-col">
-                                        <div className="relative flex flex-1 flex-col">
-                                            <div className="@container/main flex flex-1 flex-col gap-2">
-                                                <div className="flex flex-col">
-                                                    <SectionCards
-                                                        totalEmployee={totalEmployee}
-                                                        prevTotalEmployee={prevTotalEmployee}
-                                                        totalDepartment={totalDepartment}
-                                                        prevTotalDepartment={prevTotalDepartment}
-                                                    />
-                                                    {/* <SectionCards totalRevenue={totalRevenue} payments={[]} totalEmployee={totalEmployee} /> */}
-                                                </div>
+            {/* Sidebar hover logic */}
+            <SidebarHoverLogic>
+                <SidebarInset>
+                    {/* <HeaderShrink/> */}
+                    <SiteHeader breadcrumbs={breadcrumbs} title={''} />
+                    {loading ? (
+                        <ContentLoading />
+                    ) : (
+                        <>
+                            <Main fixed>
+                                <div className="mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4">
+                                    <div>
+                                        <div className="ms-2 flex items-center">
+                                            <Users className="size-11" />
+                                            <div className="ms-2">
+                                                <h2 className="flex text-2xl font-bold tracking-tight">Attendance</h2>
+                                                <p className="text-muted-foreground">Manage your organization's workforce</p>
                                             </div>
                                         </div>
                                     </div>
-                                </TabsContent>
-                                <Separator className="shadow-sm" />
-                            </Tabs>
-                            <div className="m-3 no-scrollbar">
-                                <Card className="border-main bg-background drop-shadow-lg dark:bg-backgrounds">
-                                    <CardHeader>
-                                        <CardTitle>Attendance List</CardTitle>
-                                        <CardDescription>List of Attendance</CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        {/* Replace with your data */}
-                                        <DataTable
+                                    {/* <TasksPrimaryButtons /> */}
+                                </div>
+                                <Tabs orientation="vertical" defaultValue="overview" className="space-y-4">
+                                    <TabsContent value="overview" className="space-y-4">
+                                        <div className="flex flex-1 flex-col">
+                                            <div className="relative flex flex-1 flex-col">
+                                                <div className="@container/main flex flex-1 flex-col gap-2">
+                                                    <div className="flex flex-col">
+                                                        <SectionCards
+                                                            totalEmployee={totalEmployee}
+                                                            prevTotalEmployee={prevTotalEmployee}
+                                                            totalDepartment={totalDepartment}
+                                                            prevTotalDepartment={prevTotalDepartment}
+                                                        />
+                                                        {/* <SectionCards totalRevenue={totalRevenue} payments={[]} totalEmployee={totalEmployee} /> */}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+                                    <Separator className="shadow-sm" />
+                                </Tabs>
+                                <div className="m-3 no-scrollbar">
+                                    <Card className="border-main bg-background drop-shadow-lg dark:bg-backgrounds">
+                                        <CardHeader>
+                                            <CardTitle>Attendance List</CardTitle>
+                                            <CardDescription>List of Attendance</CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            {/* Replace with your data */}
+                                            <DataTable
                                                 columns={columns(
                                                     setIsViewOpen, // Pass setIsViewOpen
                                                     setViewEmployee, // Pass setViewEmployee
@@ -171,29 +173,41 @@ export default function Index({
                                                 onRefresh={handleRefresh}
                                                 refreshing={refreshing}
                                                 sessions={sessions}
-                                        />
-                                        <EditEmployeeModal
-                                            isOpen={editModelOpen}
-                                            onClose={() => setEditModalOpen(false)}
-                                            employee={selectedEmployee}
-                                            onUpdate={handleUpdate}
-                                        />
-                                        <ViewEmployeeDetails
-                                            isOpen={isViewOpen}
-                                            onClose={() => setIsViewOpen(false)}
-                                            employee={viewEmployee}
-                                            onEdit={handleEdit}
-                                            onDelete={handleDelete}
-                                        />
-                                        {/* <AddAttendanceModal isOpen={isModelOpen} onClose={() => setIsModalOpen(false)} /> */}
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </Main>
+                                            />
+                                            <EditEmployeeModal
+                                                isOpen={editModelOpen}
+                                                onClose={() => setEditModalOpen(false)}
+                                                employee={selectedEmployee}
+                                                onUpdate={handleUpdate}
+                                            />
+                                            <ViewEmployeeDetails
+                                                isOpen={isViewOpen}
+                                                onClose={() => setIsViewOpen(false)}
+                                                employee={viewEmployee}
+                                                onEdit={handleEdit}
+                                                onDelete={handleDelete}
+                                            />
+                                            {/* <AddAttendanceModal isOpen={isModelOpen} onClose={() => setIsModalOpen(false)} /> */}
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </Main>
                         </>
                     )}
                 </SidebarInset>
-            
+            </SidebarHoverLogic>
         </SidebarProvider>
+    );
+}
+
+function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
+    const { state } = useSidebar();
+    const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
+    return (
+        <>
+            <SidebarHoverZone show={state === 'collapsed'} onMouseEnter={handleMouseEnter} />
+            <AppSidebar onMouseLeave={handleMouseLeave} />
+            {children}
+        </>
     );
 }
