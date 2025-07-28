@@ -16,9 +16,12 @@ import { toast } from "sonner";
 type Session = {
   id: number;
   session_name: string;
-  time_in: string;
-  time_out: string;
-  late_time: string | null;
+  time_in_start: string;
+  time_in_end: string;
+  time_out_start: string;
+  time_out_end: string;
+  late_time?: string;
+  double_scan_window?: number;
 };
 
 interface Props {
@@ -37,18 +40,24 @@ const sessionOptions = [
 
 type FormValues = {
   session_name: string;
-  time_in: string;
-  time_out: string;
+  time_in_start: string;
+  time_in_end: string;
+  time_out_start: string;
+  time_out_end: string;
   late_time: string;
+  double_scan_window: number;
 };
 
 export const SessionTimeModal: React.FC<Props> = ({ open, onClose, mode = 'create', onSuccess, sessions }) => {
   const [selected, setSelected] = useState<string>("morning");
   const { data, setData, post, put, processing, errors } = useForm<FormValues>({
     session_name: "morning",
-    time_in: "",
-    time_out: "",
+    time_in_start: "",
+    time_in_end: "",
+    time_out_start: "",
+    time_out_end: "",
     late_time: "",
+    double_scan_window: 0,
   });
 
   useEffect(() => {
@@ -57,17 +66,23 @@ export const SessionTimeModal: React.FC<Props> = ({ open, onClose, mode = 'creat
       if (session) {
         setData({
           session_name: selected,
-          time_in: session.time_in,
-          time_out: session.time_out,
+          time_in_start: session.time_in_start,
+          time_in_end: session.time_in_end,
+          time_out_start: session.time_out_start,
+          time_out_end: session.time_out_end,
           late_time: session.late_time || "",
+          double_scan_window: session.double_scan_window || 0,
         });
       }
     } else if (mode === 'create') {
       setData({
         session_name: selected,
-        time_in: "",
-        time_out: "",
+        time_in_start: "",
+        time_in_end: "",
+        time_out_start: "",
+        time_out_end: "",
         late_time: "",
+        double_scan_window: 0,
       });
     }
   }, [selected, sessions, mode, setData]);
@@ -134,31 +149,66 @@ export const SessionTimeModal: React.FC<Props> = ({ open, onClose, mode = 'creat
               ))}
             </select>
           </Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Label>
+              Time In Start:
+              <Input
+                type="time"
+                value={data.time_in_start}
+                onChange={e => setData("time_in_start", e.target.value)}
+                required
+              />
+            </Label>
+            <Label>
+              Time In End:
+              <Input
+                type="time"
+                value={data.time_in_end}
+                onChange={e => setData("time_in_end", e.target.value)}
+                required
+              />
+            </Label>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Label>
+              Time Out Start (Optional):
+              <Input
+                type="time"
+                value={data.time_out_start}
+                onChange={e => setData("time_out_start", e.target.value)}
+              />
+            </Label>
+            <Label>
+              Time Out End (Optional):
+              <Input
+                type="time"
+                value={data.time_out_end}
+                onChange={e => setData("time_out_end", e.target.value)}
+              />
+            </Label>
+          </div>
           <Label>
-            Time In:
-            <Input
-              type="time"
-              value={data.time_in}
-              onChange={e => setData("time_in", e.target.value)}
-              required
-            />
-          </Label>
-          <Label>
-            Time Out:
-            <Input
-              type="time"
-              value={data.time_out}
-              onChange={e => setData("time_out", e.target.value)}
-              required
-            />
-          </Label>
-          <Label>
-            Late Time (optional):
+            Late Time (Optional):
             <Input
               type="time"
               value={data.late_time}
               onChange={e => setData("late_time", e.target.value)}
+              min={data.time_in_start}
+              max={data.time_in_end}
             />
+            <span className="text-xs text-muted-foreground">Set the time after which employees are considered late (must be between Time In Start and Time In End).</span>
+          </Label>
+          <Label>
+            Double Scan Window (minutes):
+            <Input
+              type="number"
+              value={data.double_scan_window}
+              onChange={e => setData("double_scan_window", parseInt(e.target.value) || 0)}
+              min={1}
+              max={60}
+              placeholder="10"
+            />
+            <span className="text-xs text-muted-foreground">Time window (in minutes) for double scan detection. Within this window, second scan is ignored. After this window, second scan becomes emergency logout.</span>
           </Label>
           <DialogFooter className="flex justify-end space-x-2 mt-2">
             <DialogClose asChild>

@@ -22,10 +22,10 @@ export function SectionCards({ employee, totalDepartment, totalEmployee }: Props
     const employeeCount = useCountUp(totalEmployee, 1000);
     const departmentCount = useCountUp(totalDepartment, 1000);
     return (
-        <div className="grid grid-cols-1 gap-3 px-4 *:data-[slot=card]:bg-gradient-to-tl *:data-[slot=card]:from-cfar-300 *:data-[slot=card]:to-cfar-100 *:data-[slot=card]:shadow-xs lg:px-3 @xl/main:grid-cols-4 @5xl/main:grid-cols-3 dark:*:data-[slot=card]:bg-card">
-            <Card className="@container/card">
+        <div className="grid grid-cols-1 gap-3 px-4 *:data-[slot=card]:shadow-xs lg:px-3 @xl/main:grid-cols-4 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
-                    <CardDescription className="font-semibold text-cfar-50 dark:text-darkMain">Total Employee</CardDescription>
+                    <CardDescription className="font-semibold text-cfar-400 dark:text-darkMain">Total Employee</CardDescription>    
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{employeeCount.toLocaleString()}</CardTitle>
                     {/* <div className="absolute top-4 right-4">
                         <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
@@ -42,9 +42,9 @@ export function SectionCards({ employee, totalDepartment, totalEmployee }: Props
                 </CardFooter> */}
             </Card>
 
-            <Card className="@container/card">  
+            <Card className="@container/card border-l-7 border-cfar-400">  
                 <CardHeader className="relative">
-                    <CardDescription className="font-semibold text-cfar-50 dark:text-darkMain">Department</CardDescription>
+                    <CardDescription className="font-semibold text-cfar-400 dark:text-darkMain">Department</CardDescription>
                     {/* Display the count here */}
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{departmentCount.toLocaleString()}</CardTitle>
                     {/* <div className="absolute top-4 right-4">
@@ -62,10 +62,10 @@ export function SectionCards({ employee, totalDepartment, totalEmployee }: Props
                 </CardFooter> */}
             </Card>
 
-            <Card className="@container/card">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
-                    <CardDescription className="font-semibold text-cfar-50 dark:text-darkMain">Active Accounts</CardDescription>
-                    <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">278</CardTitle>
+                        <CardDescription className="font-semibold text-cfar-400 dark:text-darkMain">Active Accounts</CardDescription>
+                    <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">190</CardTitle>
                     {/* <div className="absolute top-4 right-4">
                         <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
                             <TrendingUpIcon className="size-3" />
@@ -81,7 +81,7 @@ export function SectionCards({ employee, totalDepartment, totalEmployee }: Props
                 </CardFooter> */}
             </Card>
 
-            {/* <Card className="@container/card border border-green-700">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold dark:text-darkMain">Growth Rate</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">4.5%</CardTitle>
@@ -98,7 +98,7 @@ export function SectionCards({ employee, totalDepartment, totalEmployee }: Props
                     </div>
                     <div className="text-muted-foreground">Meets growth projections</div>
                 </CardFooter>
-            </Card> */}
+            </Card>
         </div>
     );
 }

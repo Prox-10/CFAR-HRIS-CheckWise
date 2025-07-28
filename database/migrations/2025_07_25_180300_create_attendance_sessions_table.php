@@ -14,9 +14,12 @@ return new class extends Migration
         Schema::create('attendance_sessions', function (Blueprint $table) {
             $table->id();
             $table->string('session_name'); // morning, afternoon, night
-            $table->time('time_in');
-            $table->time('time_out');
-            $table->time('late_time')->nullable(); // Optional
+            $table->time('time_in_start'); // Start time for time-in period
+            $table->time('time_in_end');   // End time for time-in period
+            $table->time('time_out_start')->nullable(); // Start time for time-out period (optional)
+            $table->time('time_out_end')->nullable();   // End time for time-out period (optional)
+            $table->time('late_time')->nullable(); // Late time (optional)
+            $table->integer('double_scan_window')->default(10); // Double scan window in minutes
             $table->timestamps();
         });
     }

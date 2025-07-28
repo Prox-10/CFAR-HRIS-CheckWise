@@ -1,47 +1,29 @@
-import * as React from "react"
+import { Link } from '@inertiajs/react';
 import {
-    AudioWaveform,
-    BookOpen,
-    Bot,
-    ClipboardList,
-    Command,
-    Frame,
-    GalleryVerticalEnd,
-    LayoutDashboard,
-    LayoutGrid,
-    Map,
-    PieChart,
-    Settings2,
-    SquareTerminal,
-    User2,
-    Fingerprint,
     CalendarPlus2,
     FileChartColumnIncreasing,
+    Fingerprint,
+    LayoutGrid,
+    NotebookPen,
     ShieldCheck,
-    NotebookPen
-   
+    User2
 } from 'lucide-react';
-import { Link } from '@inertiajs/react';
+import * as React from "react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarRail
+} from "@/components/ui/sidebar";
 import { type NavItem } from '@/types';
-import { NavSidebar } from "./nav-sidebar"
-import { User } from "./user";
 import AppLogo from "./customize/app-logo";
+import { NavSidebar } from "./nav-sidebar";
+import { User } from "./user";
 
 // This is sample data.
 
@@ -72,11 +54,7 @@ const mainNavItems: NavItem[] = [
         href: '/leave',
         icon: CalendarPlus2,
     },
-    {
-        title: 'Service Tenure',
-        href: '/service-tenure',
-        icon: CalendarPlus2,
-    },
+    
     // {
     //     title: 'Test',
     //     href: '/test',
@@ -84,71 +62,106 @@ const mainNavItems: NavItem[] = [
 
     // },
     {
+        title: 'Service-Tenure',
+        href: '/service',
+        icon: FileChartColumnIncreasing,
+        items: [
+            {
+                title: 'Attendance Reports',
+                href: '/report/attendance',
+            },
+            {
+                title: 'Leave Reports',
+                href: '/report/leave',
+            },
+            {
+                title: 'Performance Reports',
+                href: '/report/performance',
+            },
+            {
+                title: 'Analytics',
+                href: '/report/analytics',
+            },
+        ],
+    },
+    {
         title: 'Reports',
         href: '/report',
         icon: FileChartColumnIncreasing,
+        items: [
+            {
+                title: 'Attendance Reports',
+                href: '/report/attendance',
+            },
+            {
+                title: 'Leave Reports',
+                href: '/report/leave',
+            },
+            {
+                title: 'Performance Reports',
+                href: '/report/performance',
+            },
+            {
+                title: 'Analytics',
+                href: '/report/analytics',
+            },
+        ],
+    },
+    {
+        title: 'Permission',
+        href: '#',
+        icon: ShieldCheck,
+        items: [
+            {
+                title: 'User Management',
+                href: '/permission/users',
+            },
+            {
+                title: 'Role Management',
+                href: '/permission/roles',
+            },
+            {
+                title: 'Access Control',
+                href: '/permission/access',
+            },
+            {
+                title: 'Settings',
+                href: '/permission/settings',
+            },
+        ],
     },
 ];
 
-// const data = {
-  
-//     navMain: [
-//         {
-//             title: 'Permission',
-//             url: '#',
-//             icon: ShieldCheck,
-//             isActive: false,
-//             items: [
-//                 {
-//                     title: 'History',
-//                     url: '#',
-//                 },
-//                 {
-//                     title: 'Starred',
-//                     url: '#',
-//                 },
-//                 {
-//                     title: 'Settings',
-//                     url: '#',
-//                 },
-//             ],
-//         },
-//     ],
-// };
-
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  return (
-      <Sidebar collapsible="icon" variant="inset" {...props}>
-          <SidebarHeader className=" bg-cfar-400">
-              {/* <TeamSwitcher teams={data.teams} /> */}
-              <SidebarMenu>
-                  <SidebarMenuItem>
-                      <SidebarMenuButton
-                          size="lg"
-                          asChild
-                          className="h-auto flex-col items-center justify-center gap-1 data-[slot=sidebar-menu-button]:!p-3"
-                      >
-                          <Link href="/dashboard" prefetch>
-                              <AppLogo />
-                          </Link>
-                      </SidebarMenuButton>
-                  </SidebarMenuItem>
-              </SidebarMenu>
-          </SidebarHeader>
-          <SidebarContent className="bg-cfar-400">
-              <NavSidebar items={mainNavItems} />
+    return (
+        <Sidebar variant="inset" {...props}>
+            <SidebarHeader className=" bg-cfar-400">
+                {/* <TeamSwitcher teams={data.teams} /> */}
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            size="lg"
+                            asChild
+                            className="h-auto flex-col items-center justify-center gap-1 data-[slot=sidebar-menu-button]:!p-3"
+                        >
+                            <Link href="/dashboard" prefetch>
+                                <AppLogo />
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            <SidebarContent className="bg-cfar-400">
+                <NavSidebar items={mainNavItems} />
 
-              {/* <NavMain navItem={data.navItem} /> */}
-              {/* <NavProjects projects={data.projects} /> */}
-          </SidebarContent>
-          <SidebarFooter className="bg-cfar-400">
-              {/* <NavUser user={data.user} /> */}
-              {/* <NavMain items={data.navMain} /> */}
-
-              <User />
-          </SidebarFooter>
-          <SidebarRail />
-      </Sidebar>
-  );
+                {/* <NavMain navItem={data.navItem} /> */}
+                {/* <NavProjects projects={data.projects} /> */}
+            </SidebarContent>
+            <SidebarFooter className="bg-cfar-400">
+                {/* <NavUser user={data.user} /> */}
+                <User />
+            </SidebarFooter>
+            <SidebarRail />
+        </Sidebar>
+    );
 }

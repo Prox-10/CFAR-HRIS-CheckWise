@@ -18,12 +18,14 @@ class AttendanceController extends Controller
         'timeOut'          => $attendance->time_out,
         'breakTime'        => $attendance->break_time,
         'attendanceStatus' => $attendance->attendance_status,
+        'actualAttendanceStatus' => $attendance->actual_attendance_status,
         'attendanceDate'   => $attendance->attendance_date,
         'employee_name'    => $attendance->employee ? $attendance->employee->employee_name : null,
         'picture'          => $attendance->employee ? $attendance->employee->picture : null,
         'department'       => $attendance->employee ? $attendance->employee->department : null,
         'employeeid'       => $attendance->employee ? $attendance->employee->employeeid : null,
         'position'         => $attendance->employee ? $attendance->employee->position : null,
+        'session'          => $attendance->session,
       ]
     );
 

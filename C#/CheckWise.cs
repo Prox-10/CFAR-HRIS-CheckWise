@@ -35,7 +35,6 @@ namespace HRIS_CheckWise_ATMS_
         // Database-related variables
         private bool IsDbEnrolling = false;
         private Template CurrentDbTemplate;
-        private string SelectedImagePath = "";
         private Bitmap CurrentFingerprintImage;
 
         private WebSocket ws;

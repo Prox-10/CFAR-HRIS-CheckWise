@@ -82,9 +82,11 @@ namespace HRIS_CheckWise_ATMS_
                 NativeMethods.CreateRoundRectRgn(0, 0, this.Width, this.Height, 16, 16)
             );
 
-            // Position bottom right
+            // Position center top
             var workingArea = Screen.PrimaryScreen.WorkingArea;
-            this.Location = new Point(workingArea.Right - this.Width - 10, workingArea.Bottom - this.Height - 10);
+            int x = (workingArea.Width - this.Width) / 2;
+            int y = workingArea.Top + 20; // 20 pixels from top
+            this.Location = new Point(x, y);
 
             // Timer for auto-dismiss
             timer = new Timer();

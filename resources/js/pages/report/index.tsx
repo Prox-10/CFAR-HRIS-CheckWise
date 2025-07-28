@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SidebarInset, SidebarProvider, SidebarSeparator } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
@@ -11,9 +11,11 @@ import { Toaster } from 'sonner';
 // import { format } from 'path';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SiteHeader } from '@/components/employee-site-header';
+import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { ContentLoading } from '@/components/ui/loading';
+import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
 
@@ -91,14 +93,14 @@ const ReportPage = () => {
         <SidebarProvider>
             <Head title="Leave" />
             <Toaster position="top-right" richColors />
-            {loading ? (
-                <ContentLoading />
-            ) : (
-                <>
-                    <AppSidebar />
-                    <SidebarInset>
-                        {/* <HeaderShrink/> */}
-                        <SiteHeader breadcrumbs={breadcrumbs} title={''} />
+            {/* Sidebar hover logic */}
+            <SidebarHoverLogic>
+                <SidebarInset>
+                    {/* <HeaderShrink/> */}
+                    <SiteHeader breadcrumbs={breadcrumbs} title={''} />
+                    {loading ? (
+                        <ContentLoading />
+                    ) : (
                         <Card className="m-5 space-y-4 border-main">
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center">
@@ -341,11 +343,23 @@ const ReportPage = () => {
                                 </div>
                             </CardContent>
                         </Card>
-                    </SidebarInset>
-                </>
-            )}
+                    )}
+                </SidebarInset>
+            </SidebarHoverLogic>
         </SidebarProvider>
     );
 };
+
+function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
+    const { state } = useSidebar();
+    const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
+    return (
+        <>
+            <SidebarHoverZone show={state === 'collapsed'} onMouseEnter={handleMouseEnter} />
+            <AppSidebar onMouseLeave={handleMouseLeave} />
+            {children}
+        </>
+    );
+}
 
 export default ReportPage;

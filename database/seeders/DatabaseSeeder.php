@@ -27,18 +27,18 @@ class DatabaseSeeder extends Seeder
             \App\Models\Employee::factory(10)->create();
         }
         // Seed evaluations
-        \App\Models\Employee::factory(100)->create();
+        \App\Models\Employee::factory(10)->create();
         $this->call([
             EmployeeSeeder::class,
         ]);
-        \App\Models\Evaluation::factory(30)->create();
-        $this->call([
-            EvaluationSeeder::class,
-        ]);
-        \App\Models\Attendance::factory(40)->create();
-        $this->call([
-            AttendanceSeeder::class,
-        ]);
+        // \App\Models\Evaluation::factory(30)->create();
+        // $this->call([
+        //     EvaluationSeeder::class,
+        // ]);
+        // \App\Models\Attendance::factory()->create();
+        // $this->call([
+        //     AttendanceSeeder::class,
+        // ]);
         $this->call([
             LeaveSeeder::class,
         ]);

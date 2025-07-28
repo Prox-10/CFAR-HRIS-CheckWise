@@ -13,7 +13,6 @@ class AttendanceSessionController extends Controller
      */
     public function index()
     {
-        
         return AttendanceSession::all();
     }
 
@@ -32,9 +31,12 @@ class AttendanceSessionController extends Controller
     {
         $validated = $request->validate([
             'session_name' => 'required|string',
-            'time_in' => 'required',
-            'time_out' => 'required',
+            'time_in_start' => 'required',
+            'time_in_end' => 'required',
+            'time_out_start' => 'nullable',
+            'time_out_end' => 'nullable',
             'late_time' => 'nullable',
+            'double_scan_window' => 'nullable|integer|min:1|max:60',
         ]);
         $session = AttendanceSession::create($validated);
         return response()->json($session, 201);
@@ -62,9 +64,12 @@ class AttendanceSessionController extends Controller
     public function update(Request $request, AttendanceSession $attendanceSession)
     {
         $validated = $request->validate([
-            'time_in' => 'required',
-            'time_out' => 'required',
+            'time_in_start' => 'required',
+            'time_in_end' => 'required',
+            'time_out_start' => 'nullable',
+            'time_out_end' => 'nullable',
             'late_time' => 'nullable',
+            'double_scan_window' => 'nullable|integer|min:1|max:60',
         ]);
         $attendanceSession->update($validated);
         return response()->json($attendanceSession);

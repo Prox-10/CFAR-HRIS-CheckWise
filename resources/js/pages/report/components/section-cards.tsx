@@ -14,8 +14,8 @@ import {
 
 export function SectionCards() {
     return (
-        <div className="grid grid-cols-1 gap-3 px-4 *:data-[slot=card]:bg-gradient-to-tl *:data-[slot=card]:from-[#06D6A0] *:data-[slot=card]:to-green-200 *:data-[slot=card]:shadow-xs lg:px-3 @xl/main:grid-cols-4 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
-            <Card className="@container/card border border-green-700">
+        <div className="grid grid-cols-1 gap-3 px-4 *:data-[slot=card]:shadow-xs lg:px-3 @xl/main:grid-cols-4 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold dark:text-darkMain">Total Employee</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl"></CardTitle>
@@ -34,7 +34,7 @@ export function SectionCards() {
                 </CardFooter>
             </Card>
 
-            <Card className="@container/card border border-green-700">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold dark:text-darkMain">Department</CardDescription>
                     {/* Display the count here */}
@@ -54,7 +54,7 @@ export function SectionCards() {
                 </CardFooter>
             </Card>
 
-            <Card className="@container/card border border-green-700">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold dark:text-darkMain">Active Accounts</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">45,678</CardTitle>
@@ -73,7 +73,7 @@ export function SectionCards() {
                 </CardFooter>
             </Card>
 
-            <Card className="@container/card border border-green-700">
+            <Card className="@container/card border-l-7 border-cfar-400">
                 <CardHeader className="relative">
                     <CardDescription className="font-semibold dark:text-darkMain">Growth Rate</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">4.5%</CardTitle>
