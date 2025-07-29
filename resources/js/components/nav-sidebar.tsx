@@ -42,13 +42,13 @@ export function NavSidebar({ items = [] }: { items: NavItem[] }) {
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
-                                    <SidebarMenuSub>
+                                    <SidebarMenuSub> 
                                         {item.items.map((subItem) => (
                                             <SidebarMenuSubItem key={subItem.title}>
                                                 <SidebarMenuSubButton
                                                     asChild
                                                     isActive={subItem.href === page.url}
-                                                >
+                                                    className="text-white">
                                                     <Link href={subItem.href} prefetch>
                                                         {subItem.icon && <subItem.icon />}
                                                         <span>{subItem.title}</span>
@@ -66,7 +66,7 @@ export function NavSidebar({ items = [] }: { items: NavItem[] }) {
                                 isActive={item.href === page.url} 
                                 tooltip={{ children: item.title }}
                             >
-                                <Link className="p-3 py-5 font-semibold" href={item.href} prefetch>
+                                <Link className="font-semibold" href={item.href} prefetch>
                                     {item.icon && <item.icon />}
                                     <span>{item.title}</span>
                                 </Link>

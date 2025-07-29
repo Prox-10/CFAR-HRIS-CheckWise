@@ -19,7 +19,7 @@ import { DataTablePagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useState } from 'react';
-import AddLeaveModal from './addleavemodal';
+
 // import { Employees } from './columns';
 import { DataTableToolbar } from './data-tool-bar';
 // import { Employees } from '../types/employees';
@@ -27,15 +27,21 @@ import { DataTableToolbar } from './data-tool-bar';
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
-    employees: any[]; // Add employees prop
+    showRecalculateButton?: boolean;
+    recalculateFunction?: () => void;
+    isRecalculating?: boolean;
 }
 
-export function DataTable<TData, TValue>({ columns, data, employees }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, showRecalculateButton = false, recalculateFunction, isRecalculating = false }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-
+    // const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [isModelOpen, setIsModelOpen] = useState(false);
-
+    // const [isViewOpen, setIsViewOpen] = useState(false);
+    // const [rowSelection, setRowSelection] = React.useState({});
+    // const [isEditOpen, setIsEditOpen] = useState(false);
+    // const [selectedEmployee, setSelectedEmployee] = useState<Employees | null>(null);
+    // const [viewEmployee, setViewEmployee] = useState<Employees | null>(null);
 
     const table = useReactTable({
         data: data || [],
@@ -77,11 +83,30 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
                         </Button> */}
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
-                    <Button variant="main" className="ml-auto" onClick={() => setIsModelOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Leave Request
-                    </Button>
-                    <Button variant="main" className="ml-auto">Absent Request</Button>
+                    {showRecalculateButton && (
+                        <Button
+                            variant="main"
+                            className="ml-auto"
+                            onClick={() => {
+                                if (recalculateFunction) {
+                                    recalculateFunction();
+                                }
+                            }}
+                            disabled={!recalculateFunction || isRecalculating}
+                        >
+                            {isRecalculating ? (
+                                <>
+                                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                                    Recalculating...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Recalculate
+                                </>
+                            )}
+                        </Button>
+                    )}
                     <DropdownMenuContent align="end">
                         {table
                             .getAllColumns()
@@ -132,7 +157,7 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    <span className="text-sm font-semibold">No Leave Data</span>
+                                    No Employee Data
                                 </TableCell>
                             </TableRow>
                         )}
@@ -144,7 +169,7 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
                 <DataTablePagination table={table} />
             </div>
 
-            <AddLeaveModal isOpen={isModelOpen} onClose={() => setIsModelOpen(false)} employees={employees} />
+
         </div>
     );
 }

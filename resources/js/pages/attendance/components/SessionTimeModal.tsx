@@ -92,7 +92,7 @@ export const SessionTimeModal: React.FC<Props> = ({ open, onClose, mode = 'creat
     if (mode === 'update') {
       const session = sessions.find((s) => s.session_name === selected);
       if (session) {
-        put(route('attendance-sessions.update', { id: session.id }), {
+        put(route('attendance-session.update', { id: session.id }), {
           ...data,
           preserveScroll: true,
           onSuccess: () => {
@@ -109,7 +109,7 @@ export const SessionTimeModal: React.FC<Props> = ({ open, onClose, mode = 'creat
         toast.error("Session not found for update.");
       }
     } else if (mode === 'create') {
-      post(route('attendance-sessions.store'), {
+      post(route('attendance-session.store'), {
         ...data,
         preserveScroll: true,
         onSuccess: () => {

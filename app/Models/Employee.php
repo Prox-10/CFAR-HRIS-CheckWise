@@ -46,4 +46,9 @@ class Employee extends Model
     {
         return $this->hasMany(Evaluation::class);
     }
+
+    public function serviceTenure()
+    {
+        return $this->hasMany(ServiceTenure::class);
+    }
 }

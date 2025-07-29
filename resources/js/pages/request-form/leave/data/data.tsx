@@ -9,12 +9,10 @@ import {
   IconStopwatch,
 } from '@tabler/icons-react'
 
-export const departments = [
-    { label: 'Human Resources', value: 'Human Resources' },
-    { label: 'Finance', value: 'Finance' },
-    { label: 'IT', value: 'IT' },
-    { label: 'Operations', value: 'Operations' },
-    { label: 'Production', value: 'Production' },
+export const statuses = [
+    { label: 'Peding', value: 'Pending' },
+    { label: 'Approaved', value: 'Approaved' },
+    { label: 'Rejected', value: 'Rejected' },
 ];
 
 export const workStatus = [

@@ -1,10 +1,12 @@
 import { Link } from '@inertiajs/react';
 import {
+    Activity,
     CalendarPlus2,
     FileChartColumnIncreasing,
     Fingerprint,
     LayoutGrid,
     NotebookPen,
+    NotepadText,
     ShieldCheck,
     User2
 } from 'lucide-react';
@@ -54,7 +56,23 @@ const mainNavItems: NavItem[] = [
         href: '/leave',
         icon: CalendarPlus2,
     },
-    
+    {
+        title: 'Request Form',
+        href: '/request-form',
+        icon: NotepadText,
+        items: [
+            {
+                title: 'Leave Form',
+                href: '/request-form/leave',
+            },
+            {
+                title: 'Absent Form',
+                href: '/request-form/absent',
+            },
+           
+        ],
+    },
+
     // {
     //     title: 'Test',
     //     href: '/test',
@@ -63,24 +81,28 @@ const mainNavItems: NavItem[] = [
     // },
     {
         title: 'Service-Tenure',
-        href: '/service',
-        icon: FileChartColumnIncreasing,
+        href: '/service-tenure/index',
+        icon: Activity,
         items: [
             {
-                title: 'Attendance Reports',
-                href: '/report/attendance',
+                title: 'Dashboard',
+                href: '/service-tenure/index',
             },
             {
-                title: 'Leave Reports',
-                href: '/report/leave',
+                title: 'Employee List',
+                href: '/service-tenure/employee',
             },
             {
-                title: 'Performance Reports',
-                href: '/report/performance',
+                title: 'Service Tenure',
+                href: '/service-tenure/service-tenure',
             },
             {
-                title: 'Analytics',
-                href: '/report/analytics',
+                title: 'Pay Advancement',
+                href: '/service-tenure/pay-advancement',
+            },
+            {
+                title: 'Report',
+                href: '/service-tenure/report',
             },
         ],
     },
@@ -134,7 +156,7 @@ const mainNavItems: NavItem[] = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
-        <Sidebar variant="inset" {...props}>
+        <Sidebar collapsible="icon" variant="inset" {...props}>
             <SidebarHeader className=" bg-cfar-400">
                 {/* <TeamSwitcher teams={data.teams} /> */}
                 <SidebarMenu>

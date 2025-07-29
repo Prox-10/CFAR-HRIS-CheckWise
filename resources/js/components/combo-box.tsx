@@ -29,7 +29,15 @@ export function ComboboxDemo({ options, value, onChange, placeholder = 'Select..
     // Filter options by search (case-insensitive, matches label or search field)
     const filteredOptions = options.filter((option) => {
         const searchText = search.toLowerCase();
-        return option.label.toLowerCase().includes(searchText) || (option.search && option.search.includes(searchText));
+        const labelMatch = option.label.toLowerCase().includes(searchText);
+        const searchMatch = option.search && option.search.toLowerCase().includes(searchText);
+
+        // Debug: Log search matches
+        if (searchText && (labelMatch || searchMatch)) {
+            console.log(`Search match found: "${searchText}" in option:`, option);
+        }
+
+        return labelMatch || searchMatch;
     });
 
     const selectedLabel = options.find((option) => option.value === value)?.label;
@@ -49,7 +57,7 @@ export function ComboboxDemo({ options, value, onChange, placeholder = 'Select..
             </PopoverTrigger>
             <PopoverContent className="w-full min-w-[200px] p-0">
                 <Command>
-                    <CommandInput placeholder={placeholder} className="h-9" value={search} onValueChange={setSearch} />
+                    <CommandInput placeholder="Search by Employee ID or Name..." className="h-9" value={search} onValueChange={setSearch} />
                     <CommandList>
                         <CommandEmpty>No results found.</CommandEmpty>
                         <CommandGroup>
@@ -57,8 +65,11 @@ export function ComboboxDemo({ options, value, onChange, placeholder = 'Select..
                                 <CommandItem
                                     key={option.value}
                                     value={option.value}
-                                    onSelect={(currentValue) => {
-                                        onChange(currentValue);
+                                    onSelect={() => {
+                                        console.log('Combo-box onSelect called with value:', option.value);
+                                        console.log('Option value:', option.value);
+                                        console.log('Option label:', option.label);
+                                        onChange(option.value);
                                         setOpen(false);
                                     }}
                                 >

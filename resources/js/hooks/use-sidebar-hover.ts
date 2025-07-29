@@ -13,13 +13,10 @@ export function useSidebarHover() {
     }
   }, [state, setOpen]);
 
-  // Hide sidebar when mouse leaves if it was shown by hover
+  // No auto-hide on mouse leave anymore
   const handleMouseLeave = useCallback(() => {
-    if (isHovering && state === 'expanded') {
-      setIsHovering(false);
-      setOpen(false);
-    }
-  }, [isHovering, state, setOpen]);
+    // Do nothing
+  }, []);
 
   return { isHovering, handleMouseEnter, handleMouseLeave };
 }

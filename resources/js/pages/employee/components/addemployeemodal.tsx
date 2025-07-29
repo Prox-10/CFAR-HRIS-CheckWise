@@ -39,9 +39,9 @@ interface EmployeeDetails {
 }
 
 const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
-    const departmentses = ['Admin', 'Packing Plant', 'Harvesting', 'Coop Area', 'P&D','Engineering', 'Utility'];
+    const departmentses = ['Admin', 'Packing Plant', 'Harvesting', 'Coop Area', 'P&D', 'Engineering', 'Utility'];
     const work_statuses = ['Regular', 'Add Crew'];
-    const positiones = ['Harvester', 'Accounting','Cashier','Finance(Payroll)', 'Manager', 'Supervisor', 'Packer', 'P&D'];
+    const positiones = ['Harvester', 'Accounting', 'Cashier', 'Finance(Payroll)', 'Manager', 'Supervisor', 'Packer', 'P&D'];
     const statuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
     const genderes = ['Male', 'Female'];
 
@@ -69,7 +69,7 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                 if (data.type === 'fingerprint_data') {
                     setWsFingerprintData(data);
                 }
-            } catch {}
+            } catch { }
         };
         return () => ws.close();
     }, []);
@@ -381,6 +381,7 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                                             id="date"
                                             className="w-48 justify-between font-normal w-full border-green-300 focus:border-cfar-500"
                                             aria-invalid={!!errors.service_tenure}
+                                            disabled={data.work_status === 'Add Crew'}
                                         >
                                             {date ? date.toLocaleDateString() : 'Select date'}
                                             <ChevronDownIcon />
@@ -403,6 +404,9 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                                         />
                                     </PopoverContent>
                                 </Popover>
+                                {data.work_status === 'Add Crew' && (
+                                    <p className="text-xs text-gray-500">Service tenure is not applicable for Add Crew employees</p>
+                                )}
                                 <InputError message={errors.service_tenure} />
                             </div>
                         </div>
@@ -415,6 +419,11 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                                 onValueChange={(value) => {
                                     console.log('Selected Work Status:', value);
                                     setData('work_status', value);
+                                    // Clear date of service tenure if switching from Regular to Add Crew
+                                    if (value === 'Add Crew') {
+                                        setDate(undefined);
+                                        setData('service_tenure', '');
+                                    }
                                 }}
                                 aria-invalid={!!errors.work_status}
                             >
@@ -491,7 +500,7 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                                 }}
                                 aria-invalid={!!errors.status}
                             >
-                                    <SelectTrigger className="border-green-300 focus:border-cfar-500">
+                                <SelectTrigger className="border-green-300 focus:border-cfar-500">
                                     <SelectValue placeholder="Select Status" />
                                 </SelectTrigger>
                                 <SelectContent>

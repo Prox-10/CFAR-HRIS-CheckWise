@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import { Table } from '@tanstack/react-table';
-import { departments, workStatus } from '../data/data'; // Assuming departments list
+import { statuses, workStatus } from '../data/data'; // Assuming departments list
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
 
 interface DataTableToolbarProps<TData> {
@@ -22,15 +22,15 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
                     className="h-8 w-[150px] lg:w-[250px]"
                 />
                 <div className="flex gap-x-2">
-                    {table.getColumn('department') && (
+                    {table.getColumn('status') && (
                         <DataTableFacetedFilter
-                            column={table.getColumn('department')}
-                            title="Department"
-                            options={departments} // Department options like ['HR', 'Finance', etc.]
+                            column={table.getColumn('status')}
+                            title="Status"
+                            options={statuses} // Department options like ['HR', 'Finance', etc.]
                         />
                     )}
                 </div>
-                <div className="flex gap-x-2">
+                {/* <div className="flex gap-x-2">
                     {table.getColumn('work_status') && (
                         <DataTableFacetedFilter
                             column={table.getColumn('work_status')}
@@ -38,7 +38,7 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
                             options={workStatus} // Department options like ['HR', 'Finance', etc.]
                         />
                     )}
-                </div>
+                </div> */}
                 {isFiltered && (
                     <Button variant="ghost" onClick={() => table.resetColumnFilters()} className="h-8 px-2 lg:px-3">
                         Reset

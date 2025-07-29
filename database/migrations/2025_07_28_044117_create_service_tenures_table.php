@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('service_tenures', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('employee_id')->constrained('employees');
+            $table->integer('years_claim')->nullable();
+            $table->integer('remaining_years')->nullable();
+            $table->integer('total_years')->nullable();
+            $table->string('status')->nullable();
+            $table->string('remarks')->nullable();
+            $table->string('date_of_payout')->nullable();
+            $table->string('date_of_approval')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

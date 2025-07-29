@@ -204,14 +204,7 @@ class LeaveController extends Controller
                 $leave->leave_comments        = $request->leave_comments;
                 $leave->leave_status        = $request->leave_status;
 
-                // if ($request->file('featured_image')) {
-                //     $featuredImage             = $request->file('featured_image');
-                //     $featuredImageOriginalName = $featuredImage->getClientOriginalName();
-                //     $featuredImage             = $featuredImage->store('products', 'public');
-
-                //     $leave->featured_image               = $featuredImage;
-                //     $leave->featured_image_original_name = $featuredImageOriginalName;
-                // }
+               
 
                 $leave->save();
 
@@ -234,4 +227,5 @@ class LeaveController extends Controller
         $leave->delete();
         return redirect()->back()->with('success', 'Leave deleted');
     }
+
 }
