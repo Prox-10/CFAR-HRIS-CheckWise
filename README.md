@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/Logo.png" alt="CFARBEMCO-HRIS Logo" />
+  <img src="public/Logo.png" alt="CFARBEMCO-HRIS Logo" width="400"/>
 </p>
 
 
