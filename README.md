@@ -1,4 +1,9 @@
-# hris(checkwise)
+<p align="center">
+  <img src="/Logo.png" alt="CFARBEMCO-HRIS Logo" />
+</p>
+
+
+# CFARBEMCO-HRIS(CheckWise)
 
 To install dependencies:
 
