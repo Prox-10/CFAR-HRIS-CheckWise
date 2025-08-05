@@ -31,7 +31,7 @@ export default function Index() {
     return (
         <SidebarProvider>
             <Head title="Employee Dashboard" />
-            <Toaster position="top-right" richColors />
+           
            
                     <EmployeeAppSidebar />
                     <SidebarInset>

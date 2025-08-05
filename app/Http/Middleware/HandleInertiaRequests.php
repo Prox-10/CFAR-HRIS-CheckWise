@@ -43,13 +43,15 @@ class HandleInertiaRequests extends Middleware
         // Fetch notifications for admin bell (latest 10)
         $notifications = Notification::orderBy('created_at', 'desc')->take(10)->get();
         $unreadCount = Notification::whereNull('read_at')->count();
-
+        $user = $request->user();
+        $permissions = $user ? $user->getAllPermissions()->pluck('name')->toArray() : [];
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                'permissions' => $permissions,
             ],
             'ziggy' => fn(): array => [
                 ...(new Ziggy)->toArray(),
@@ -59,6 +61,10 @@ class HandleInertiaRequests extends Middleware
             // Add notifications globally
             'notifications' => $notifications,
             'unreadNotificationCount' => $unreadCount,
+            'flash' => [
+                'success' => fn() => $request->session()->get('success') ?? null,
+                'error' => fn() => $request->session()->get('error') ?? null,
+            ],
         ];
     }
 }

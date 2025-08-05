@@ -81,7 +81,7 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
                         <Plus className="mr-2 h-4 w-4" />
                         Leave Request
                     </Button>
-                    <Button variant="main" className="ml-auto">Absent Request</Button>
+        
                     <DropdownMenuContent align="end">
                         {table
                             .getAllColumns()

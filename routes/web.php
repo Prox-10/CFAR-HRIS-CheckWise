@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AuthEmployeeController;
 use App\Http\Controllers\AbsentController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\RoleController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -26,46 +29,78 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('request-form/absent', [AbsentController::class, 'index'])->name('request-form.absent');
 
-    Route::get('report', function () {
-        return Inertia::render('report/index');
-    })->name('report');
+    Route::middleware(['permission:view-report'])->group(function () {
+        Route::get('report', function () {
+            return Inertia::render('report/index');
+        })->name('report');
+    });
 
     // Explicit routes for all service-tenure subpages
-    Route::get('service-tenure/employee', [ServiceTenureController::class, 'employee'])->name('service-tenure.employee');
+    Route::middleware(['permission:view-service-tenure'])->group(function () {
+        Route::get('service-tenure/employee', [ServiceTenureController::class, 'employee'])->name('service-tenure.employee');
+        Route::get('service-tenure/index', [ServiceTenureController::class, 'index'])->name('service-tenure.index');
+        Route::get('service-tenure/service-tenure', [ServiceTenureController::class, 'serviceTenure'])->name('service-tenure.service-tenure');
+        Route::get('service-tenure/pay-advancement', [ServiceTenureController::class, 'payAdvancement'])->name('service-tenure.pay-advancement');
+        Route::get('service-tenure/report', [ServiceTenureController::class, 'report'])->name('service-tenure.report');
+        Route::post('service-tenure/recalculate', [ServiceTenureController::class, 'recalculate'])->name('service-tenure.recalculate');
+        Route::post('service-tenure/pay-advancement/store', [ServiceTenureController::class, 'storePayAdvancement'])->name('service-tenure.pay-advancement.store');
+    });
 
-    Route::get('service-tenure/index', [ServiceTenureController::class, 'index'])->name('service-tenure.index');
+    Route::middleware(['permission:view-evaluation'])->group(function () {
+        Route::resource('evaluation', EvaluationController::class)->names('evaluation');
+    });
 
-    Route::get('service-tenure/service-tenure', [ServiceTenureController::class, 'serviceTenure'])->name('service-tenure.service-tenure');
+    Route::middleware(['permission:view-dashboard'])->group(function () {
+        Route::resource('dashboard', DashboardController::class)->names('dashboard');
+    });
 
-    Route::get('service-tenure/pay-advancement', [ServiceTenureController::class, 'payAdvancement'])->name('service-tenure.pay-advancement');
-    Route::get('service-tenure/report', [ServiceTenureController::class, 'report'])->name('service-tenure.report');
+    Route::middleware(['permission:view-attendance'])->group(function () {
+        Route::resource('attendance', AttendanceController::class)->names('attendance');
+        Route::resource('attendance-session', AttendanceSessionController::class)->names('attendance-session');
+    });
 
-    // Add recalculate route
-    Route::post('service-tenure/recalculate', [ServiceTenureController::class, 'recalculate'])->name('service-tenure.recalculate');
-
-    // Add pay advancement store route
-    Route::post('service-tenure/pay-advancement/store', [ServiceTenureController::class, 'storePayAdvancement'])->name('service-tenure.pay-advancement.store');
-
-    Route::resource('evaluation', EvaluationController::class)->names('evaluation');
-
-    Route::resource('dashboard', DashboardController::class)->names('dashboard');
-    Route::resource('attendance', AttendanceController::class)->names('attendance');
-    Route::resource('attendance-session', AttendanceSessionController::class)->names('attendance-session');
-    Route::resource('leave', LeaveController::class)->names('leave');
+    Route::middleware(['permission:view-leave'])->group(function () {
+        Route::resource('leave', LeaveController::class)->names('leave');
+    });
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/employee', [EmployeeController::class, 'index'])->name('employee.index');
-    Route::post('/employee', [EmployeeController::class, 'store'])->name('employee.store');
-    Route::put('/employee/{id}', [EmployeeController::class, 'update'])->name('employee.update');
-    Route::delete('/employee/{id}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
+    Route::middleware(['permission:view-employee'])->group(function () {
+        Route::get('/employee', [EmployeeController::class, 'index'])->name('employee.index');
+        Route::post('/employee', [EmployeeController::class, 'store'])->name('employee.store');
+        Route::put('/employee/{id}', [EmployeeController::class, 'update'])->name('employee.update');
+        Route::delete('/employee/{id}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
+    });
 });
 
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/test', [TestController::class, 'index'])->name('test.index');
-    Route::post('/test', [TestController::class, 'store'])->name('test.store');
-    Route::put('/test/{id}', [TestController::class, 'update'])->name('test.update');
-    Route::delete('/test/{id}', [TestController::class, 'destroy'])->name('test.destroy');
+    // Permission Management Routes
+    Route::middleware(['permission:view-permissions'])->group(function () {
+        Route::get('permission/access/index', [PermissionController::class, 'index'])->name('permission.index');
+        Route::post('permission/access/store', [PermissionController::class, 'store'])->name('permission.store');
+        Route::delete('permission/access/{permission}', [PermissionController::class, 'destroy'])->name('permission.destroy');
+    });
+
+    // User Management Routes
+    Route::middleware(['permission:view-users'])->group(function () {
+        Route::get('permission/user/index', [UserController::class, 'index'])->name('user.index');
+        Route::get('permission/user/{user}', [UserController::class, 'show'])->name('user.show');
+        Route::post('permission/user/store', [UserController::class, 'store'])->name('user.store');
+        Route::put('permission/user/{user}', [UserController::class, 'update'])->name('user.update');
+        Route::delete('permission/user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+    });
+
+    // Role Management Routes
+    Route::middleware(['permission:view-roles'])->group(function () {
+        Route::get('permission/role/index', [RoleController::class, 'index'])->name('role.index');
+        Route::get('permission/role/create', [RoleController::class, 'create'])->name('role.create');
+        Route::post('permission/role/store', [RoleController::class, 'store'])->name('role.store');
+        Route::get('permission/role/{role}', [RoleController::class, 'show'])->name('role.show');
+        Route::get('permission/role/{role}/edit', [RoleController::class, 'edit'])->name('role.edit');
+        Route::put('permission/role/{role}', [RoleController::class, 'update'])->name('role.update');
+        Route::delete('permission/role/{role}', [RoleController::class, 'destroy'])->name('role.destroy');
+    });
 });
 
 

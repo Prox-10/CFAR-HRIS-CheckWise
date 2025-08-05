@@ -36,7 +36,7 @@ export default function Index() {
   return (
     <SidebarProvider>
       <Head title="Evaluation" />
-      <Toaster position="top-right" richColors />
+      
       <SidebarHoverLogic>
         <SidebarInset>
           {/* <HeaderShrink/> */}

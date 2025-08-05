@@ -17,11 +17,18 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'kyledev10282001@gmail.com',
-            'password' => Hash::make('10282001'),  // hashed password
-        ]);
+        // Create the main developer user
+        User::firstOrCreate(
+            ['email' => 'kyledev10282001@gmail.com'],
+            [
+                'firstname' => 'Kyle',
+                'middlename' => 'Dev',
+                'lastname' => 'Labz',
+                'email' => 'kyledev10282001@gmail.com',
+                'password' => Hash::make('10282001'),
+                'email_verified_at' => now(),
+            ]
+        )->assignRole('Super Admin');
         // Seed employees first if not present
         if (\App\Models\Employee::count() === 0) {
             \App\Models\Employee::factory(10)->create();
@@ -39,8 +46,13 @@ class DatabaseSeeder extends Seeder
         // $this->call([
         //     AttendanceSeeder::class,
         // ]);
+        // Run PermissionSeeder first to create roles and permissions
+        $this->call(PermissionSeeder::class);
+
+        // Then run other seeders
         $this->call([
             LeaveSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

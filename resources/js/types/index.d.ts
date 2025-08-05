@@ -21,6 +21,7 @@ export interface NavItem {
     icon?: LucideIcon | null;
     isActive?: boolean;
     items?: NavItem[]; // Add support for dropdown items
+    permission: string;
 }
 
 export interface SharedData {
@@ -34,7 +35,9 @@ export interface SharedData {
 
 export interface User {
     id: number;
-    name: string;
+    firstname: string;
+    middlename?: string;
+    lastname: string;
     email: string;
     avatar?: string;
     email_verified_at: string | null;

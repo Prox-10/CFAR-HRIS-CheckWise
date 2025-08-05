@@ -100,7 +100,7 @@ export default function Index({ evaluations, employees, employees_all }: Props) 
     return (
         <SidebarProvider>
             <Head title="Evaluation" />
-            <Toaster position="top-right" richColors />
+           
             {/* Sidebar hover logic */}
             <SidebarHoverLogic>
                 <SidebarInset>
