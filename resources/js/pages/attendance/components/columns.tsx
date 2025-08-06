@@ -8,6 +8,7 @@ import { CircleEllipsis, Edit, Eye } from 'lucide-react';
 import DeleteConfirmationDialog from '@/components/delete-alert';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { } from './editemployeemodal';
+import { usePermission } from '@/hooks/user-permission';
 
 type Attendance = {
     id: string;
@@ -202,7 +203,7 @@ const columns = (
             id: 'actions',
             cell: ({ row }) => {
                 const employee = row.original;
-
+                const { can } = usePermission();
                 return (
                     <>
                         <DropdownMenu>
@@ -215,6 +216,7 @@ const columns = (
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                {can('View Attendance Details') && (
                                 <DropdownMenuItem>
                                     <Button
                                         size="sm"
@@ -230,7 +232,8 @@ const columns = (
                                         View
                                     </Button>
                                 </DropdownMenuItem>
-
+                                )}
+                                {can('Update Attendance') && (
                                 <DropdownMenuItem>
                                     <Button
                                         size="sm"
@@ -245,7 +248,8 @@ const columns = (
                                         Update
                                     </Button>
                                 </DropdownMenuItem>
-
+                                )}
+                                {can('Delete Attendance') && (  
                                 <DropdownMenuItem asChild>
                                     <DeleteConfirmationDialog
                                         onConfirm={() =>
@@ -256,6 +260,7 @@ const columns = (
                                         }
                                     />
                                 </DropdownMenuItem>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </>

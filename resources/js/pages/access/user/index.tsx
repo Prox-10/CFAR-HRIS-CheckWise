@@ -21,7 +21,7 @@ import ViewUserModal from './components/view-user-modal';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: 'User Management',
+    title: 'Admin Management',
     href: '/permission/user/index',
   },
 ];
@@ -77,7 +77,7 @@ export default function Index() {
                 <div className="ms-2 flex items-center">
                   <Users className="size-11" />
                   <div className="ms-2">
-                    <h2 className="flex text-2xl font-bold tracking-tight">User Management</h2>
+                    <h2 className="flex text-2xl font-bold tracking-tight">Admin Management</h2>
                     <p className="text-muted-foreground">Manage your organization's workforce</p>
                   </div>
                 </div>
@@ -100,8 +100,8 @@ export default function Index() {
             <div className="m-3 no-scrollbar">
               <Card className="border-main bg-background drop-shadow-lg dark:bg-backgrounds">
                 <CardHeader>
-                  <CardTitle>User List</CardTitle>
-                  <CardDescription>List of all users in the system</CardDescription>
+                  <CardTitle>Admin List</CardTitle>
+                  <CardDescription>List of all admins in the system</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <DataTable

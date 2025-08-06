@@ -81,8 +81,6 @@ const columns = (
 
                 return (
                     <>
-                       
-
                         {/* Dropdown for additional actions */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -96,25 +94,33 @@ const columns = (
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {can('view-permissions') && (
-                                    <DropdownMenuItem
-                                        onClick={() => handleView(permission)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Eye className="h-4 w-4 text-green-600" />
-                                        View
+                                {can('View Permission Details') && (
+                                    <DropdownMenuItem>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleView(permission)}
+                                            className="hover-lift w-full border-blue-300 text-blue-600 hover:bg-blue-50"
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                            View
+                                        </Button>
                                     </DropdownMenuItem>
                                 )}
-                                {can('edit-permissions') && (
-                                    <DropdownMenuItem
-                                        onClick={() => handleEdit(permission)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Edit className="h-4 w-4 text-blue-600" />
-                                        Edit
+                                {can('Update Permission') && (
+                                    <DropdownMenuItem>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleEdit(permission)}
+                                            className="hover-lift w-full border-green-300 text-green-600 hover:bg-green-50"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                            Edit
+                                        </Button>
                                     </DropdownMenuItem>
                                 )}
-                                {can('delete-permissions') && (
+                                {can('Delete Permission') && (
                                     <DropdownMenuItem asChild>
                                         <DeleteConfirmationDialog
                                             onConfirm={() =>
@@ -135,3 +141,4 @@ const columns = (
 };
 
 export { columns };
+

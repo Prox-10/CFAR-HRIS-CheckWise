@@ -15,10 +15,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Run PermissionSeeder FIRST to create roles and permissions
+        $this->call(PermissionSeeder::class);
 
-        // Create the main developer user
-        User::firstOrCreate(
+        // Create the main developer user AFTER roles exist
+        $developer = User::firstOrCreate(
             ['email' => 'kyledev10282001@gmail.com'],
             [
                 'firstname' => 'Kyle',
@@ -28,26 +29,24 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('10282001'),
                 'email_verified_at' => now(),
             ]
-        )->assignRole('Super Admin');
+        );
+
+        // Assign role only if it exists
+        if (\Spatie\Permission\Models\Role::where('name', 'Super Admin')->exists()) {
+            $developer->assignRole('Super Admin');
+        }
+
         // Seed employees first if not present
         if (\App\Models\Employee::count() === 0) {
             \App\Models\Employee::factory(10)->create();
         }
+
         // Seed evaluations
         \App\Models\Employee::factory(10)->create();
+
         $this->call([
             EmployeeSeeder::class,
         ]);
-        // \App\Models\Evaluation::factory(30)->create();
-        // $this->call([
-        //     EvaluationSeeder::class,
-        // ]);
-        // \App\Models\Attendance::factory()->create();
-        // $this->call([
-        //     AttendanceSeeder::class,
-        // ]);
-        // Run PermissionSeeder first to create roles and permissions
-        $this->call(PermissionSeeder::class);
 
         // Then run other seeders
         $this->call([

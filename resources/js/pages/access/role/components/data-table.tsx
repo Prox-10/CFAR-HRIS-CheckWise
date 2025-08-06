@@ -20,6 +20,7 @@ import { DataTablePagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DataTableToolbar } from './data-tool-bar';
+import { usePermission } from '@/hooks/user-permission';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -29,7 +30,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-
+    const { can } = usePermission();
     const table = useReactTable({
         data: data || [],
         columns,
@@ -60,12 +61,14 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                     <DropdownMenuTrigger asChild>
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
+                    {can('Add Roles') && (
                     <Link className="ml-auto" href="/permission/role/create">
                         <Button variant="main" className="ml-auto">
                             <Plus className="mr-2 h-4 w-4" />
-                            Add Role
+                            Add Roles
                         </Button>
                     </Link>
+                    )}
                     <DropdownMenuContent align="end">
                         {table
                             .getAllColumns()

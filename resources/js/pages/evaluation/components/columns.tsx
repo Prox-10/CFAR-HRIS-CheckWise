@@ -6,7 +6,7 @@ import { Eye, Star } from 'lucide-react';
 import { Evaluation } from '../types/evaluation';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { } from './editemployeemodal';
-
+import { usePermission } from '@/hooks/user-permission';
 
     const columns = (
         setIsModelOpen: (open: boolean) => void,
@@ -122,7 +122,7 @@ import { } from './editemployeemodal';
         id: 'actions',
         cell: ({ row }) => {
             const evaluation = row.original;
-
+            const { can } = usePermission();
             return (
                 <>
                 <div className="flex items-center gap-2">
@@ -138,6 +138,7 @@ import { } from './editemployeemodal';
                         <span className="sr-only">View</span>
                         <Eye className="h-4 w-4" />
                     </Button>
+                    {can('Start Evaluation Rating') && (
                     <Button
                         variant="main"
                         size="icon"
@@ -150,6 +151,7 @@ import { } from './editemployeemodal';
                         <span className="sr-only">Add Rating</span>
                         <Star className="h-4 w-4" />
                     </Button>
+                    )}
                 </div>
                 </>
             );

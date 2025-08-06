@@ -87,7 +87,7 @@ export default function Index({ leave }: Props) {
                                 <Users className="size-11" />
 
                                 <div className="ms-2">
-                                    <h2 className="flex text-2xl font-bold tracking-tight">Edit Leave</h2>
+                                    <h2 className="flex text-2xl font-bold tracking-tight">Leave Approval</h2>
                                     <p className="text-muted-foreground">Manage your organization's workforce</p>
                                 </div>
                             </div>

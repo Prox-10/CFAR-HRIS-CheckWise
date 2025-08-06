@@ -23,6 +23,7 @@ import AddPaymentModal from './testmodal';
 // import { Employees } from './columns';
 import { DataTableToolbar } from './data-tool-bar';
 // import { Employees } from '../types/employees';
+import { usePermission } from '@/hooks/user-permission';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -40,7 +41,7 @@ export function DataTable<TData, TValue>({ columns, data, onAddUser }: DataTable
     // const [isEditOpen, setIsEditOpen] = useState(false);
     // const [selectedEmployee, setSelectedEmployee] = useState<Employees | null>(null);
     // const [viewEmployee, setViewEmployee] = useState<Employees | null>(null);
-
+    const { can } = usePermission();
     const table = useReactTable({
         data: data || [],
         columns,
@@ -81,10 +82,12 @@ export function DataTable<TData, TValue>({ columns, data, onAddUser }: DataTable
                         </Button> */}
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
+                    {can('Add Admin') && (
                     <Button variant="main" className="ml-auto" onClick={onAddUser}>
                         <Plus className="mr-2 h-4 w-4" />
                         Add User
                     </Button>
+                    )}
                     <DropdownMenuContent align="end">
                         {table
                             .getAllColumns()

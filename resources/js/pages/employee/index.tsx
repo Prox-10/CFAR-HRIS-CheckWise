@@ -176,7 +176,7 @@ export default function Employee({ employee, totalEmployee, totalDepartment }: P
                                                     setEditModalOpen,
                                                     setSelectedEmployee,
                                                     handleEdit,
-                                                    handleDelete,
+                                                    handleDelete, 
                                                 )}
                                                 // data={employee}
                                                 data={data}

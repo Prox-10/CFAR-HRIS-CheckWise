@@ -119,10 +119,11 @@ class UserSeeder extends Seeder
         'roles' => ['Super Admin', 'Admin']
       ],
       [
-        'firstname' => 'Manager',
-        'lastname' => 'User',
-        'email' => 'manager@example.com',
-        'roles' => ['HR Manager', 'Supervisor']
+        'firstname' => 'Meshel',
+        'middlename' => 'A.',
+        'lastname' => 'Basang',
+        'email' => 'meshelbasang@gmail.com',
+        'roles' => ['HR', 'Supervisor']
       ]
     ];
 

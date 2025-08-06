@@ -1,6 +1,4 @@
-// Filename: columns.tsx
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -9,7 +7,9 @@ import { CircleEllipsis, Edit, Eye, Fingerprint } from 'lucide-react';
 // import { Employees } from '../types/employees';
 import DeleteConfirmationDialog from '@/components/delete-alert';
 import { DataTableColumnHeader } from './data-table-column-header';
-import { } from './editemployeemodal';
+
+
+import { usePermission } from '@/hooks/user-permission';
 
 type Employees = {
     id: string;
@@ -38,7 +38,9 @@ const columns = (
     setSelectedEmployee: (employee: Employees | null) => void,
     handleEdit: (employee: Employees) => void,
     handleDelete: (id: string, onSuccess: () => void) => void,
-): ColumnDef<Employees>[] => [
+): ColumnDef<Employees>[] => {
+    const { can } = usePermission();
+    return [
     {
         id: 'select',
         header: ({ table }) => (
@@ -155,7 +157,10 @@ const columns = (
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            {can('View Employee Details') && (
                             <DropdownMenuItem>
+                                
+                                   
                                 <Button
                                     size="sm"
                                     variant="outline"
@@ -170,7 +175,9 @@ const columns = (
                                     View
                                 </Button>
                             </DropdownMenuItem>
-
+                            )}
+                           
+                            {can('Update Employee') && (
                             <DropdownMenuItem>
                                 <Button
                                     size="sm"
@@ -185,23 +192,9 @@ const columns = (
                                     Update
                                 </Button>
                             </DropdownMenuItem>
-
-                            {/* <DropdownMenuItem>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                        setSelectedEmployee(employee);
-                                        if (typeof window !== 'undefined' && window.onRegisterFingerprint) {
-                                            window.onRegisterFingerprint(employee);
-                                        }
-                                    }}
-                                    className="hover-lift w-full border-yellow-300 text-yellow-600 hover:bg-yellow-50"
-                                >
-                                    <Fingerprint className="h-4 w-4" />
-                                    Register Fingerprint
-                                </Button>
-                            </DropdownMenuItem> */}
+                            )}
+                            {can('Delete Employee') && (        
+                            
 
                             <DropdownMenuItem asChild>
                                 <DeleteConfirmationDialog
@@ -213,13 +206,14 @@ const columns = (
                                     }
                                 />
                             </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </>
             );
         },
     },
-];
+];}
 
 export { columns, type Employees };
 

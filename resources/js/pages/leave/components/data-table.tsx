@@ -23,7 +23,7 @@ import AddLeaveModal from './addleavemodal';
 // import { Employees } from './columns';
 import { DataTableToolbar } from './data-tool-bar';
 // import { Employees } from '../types/employees';
-
+import { usePermission } from '@/hooks/user-permission';
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
@@ -33,7 +33,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({ columns, data, employees }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-
+    const { can } = usePermission();
     const [isModelOpen, setIsModelOpen] = useState(false);
 
 
@@ -77,11 +77,12 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
                         </Button> */}
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
+                    {can('Add Leave') && (
                     <Button variant="main" className="ml-auto" onClick={() => setIsModelOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" />
                         Leave Request
                     </Button>
-        
+                    )}
                     <DropdownMenuContent align="end">
                         {table
                             .getAllColumns()

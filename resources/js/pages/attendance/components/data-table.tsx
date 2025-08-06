@@ -25,7 +25,7 @@ import { SessionTimeModal } from './SessionTimeModal';
 // import { Employees } from './columns';
 import { DataTableToolbar } from './data-tool-bar';
 // import { Employees } from '../types/employees';
-
+import { usePermission } from '@/hooks/user-permission';
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
@@ -38,15 +38,9 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({ columns, data, attendance, sessions, onRefresh, refreshing }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-    // const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [isModelOpen, setIsModelOpen] = useState(false);
     const [sessionModalOpen, setSessionModalOpen] = useState(false);
-    // const [isViewOpen, setIsViewOpen] = useState(false);
-    // const [rowSelection, setRowSelection] = React.useState({});
-    // const [isEditOpen, setIsEditOpen] = useState(false);
-    // const [selectedEmployee, setSelectedEmployee] = useState<Employees | null>(null);
-    // const [viewEmployee, setViewEmployee] = useState<Employees | null>(null);
-
+    const { can } = usePermission();
     const table = useReactTable({
         data: data || [],
         columns,
@@ -97,9 +91,10 @@ export function DataTable<TData, TValue>({ columns, data, attendance, sessions, 
                             <RotateCw className={refreshing ? 'animate-spin mr-1 h-4 w-4' : 'mr-1 h-4 w-4'} />
                             {refreshing ? 'Refreshing...' : 'Refresh'}
                         </Button>
+                        {can('Set Session Times') && (
                         <Button variant="main" onClick={() => setSessionModalOpen(true)}>
                             Set Session Times
-                        </Button>
+                        </Button>)}
                         {/* <Button variant="main" onClick={() => setIsModelOpen(true)}>
                             <Plus className="mr-2 h-4 w-4" />
                             Start Attendance

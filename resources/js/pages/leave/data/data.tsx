@@ -10,9 +10,10 @@ import {
 } from '@tabler/icons-react'
 
 export const statuses = [
-    { label: 'Peding', value: 'Pending' },
-    { label: 'Approaved', value: 'Approaved' },
+    { label: 'Pending', value: 'Pending' },
+    { label: 'Approved', value: 'Approved' },
     { label: 'Rejected', value: 'Rejected' },
+    { label: 'Cancelled', value: 'Cancelled' },
 ];
 
 export const workStatus = [

@@ -24,6 +24,7 @@ import { useState } from 'react';
 import AddPaymentModal from './addemployeemodal';
 
 import { DataTableToolbar } from './data-tool-bar';
+import { usePermission } from '@/hooks/user-permission';
 
 
 interface DataTableProps<TData, TValue> {
@@ -37,7 +38,7 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [isModelOpen, setIsModelOpen] = useState(false);
-
+    const { can } = usePermission();
     const table = useReactTable({
         data,
         columns,
@@ -69,6 +70,7 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
                     <div className="flex items-center gap-2 ml-auto">
+                        {can('Refresh Employee List') && (
                     <Button
                         variant="main"
                         onClick={onRefresh}
@@ -79,10 +81,13 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
                         <RotateCw className={refreshing ? 'animate-spin mr-1 h-4 w-4' : 'mr-1 h-4 w-4'} />
                         {refreshing ? 'Refreshing...' : 'Refresh'}
                     </Button>
+                    )}
+                    {can('Add Employee') && (
                     <Button variant="main" className="" onClick={() => setIsModelOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" />
                             Add Employee
                         </Button>
+                    )}
                     </div>
                     <DropdownMenuContent align="end">
                         {table

@@ -9,6 +9,7 @@ export interface SingleUser {
 	fullname: string;
 	email: string;
 	department?: string;
+	profile_image?: string;
 	roles: string[];
 	role_ids?: number[];
 	created_at: string;

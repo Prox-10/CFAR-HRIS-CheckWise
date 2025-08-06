@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { usePermission } from '@/hooks/user-permission';
 import { cn } from '@/lib/utils';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { differenceInDays, format, parseISO } from 'date-fns';
@@ -32,14 +33,13 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-
 const leaveTypes = ['Annual Leave', 'Sick Leave', 'Emergency Leave', 'Maternity Leave', 'Paternity Leave', 'Bereavement Leave', 'Personal Leave'];
 const leaveStatuses = ['Pending', 'Approved', 'Rejected', 'Cancelled'];
 
 export default function LeaveEditPage() {
     const leave = (usePage().props as any).leave;
     const employee = leave.employee || {};
-
+    const { can } = usePermission();
     const { data, setData, put, processing, errors } = useForm({
         // Employee Information (read-only)
         picture: employee.picture || '',
@@ -58,7 +58,6 @@ export default function LeaveEditPage() {
         leave_reason: leave.leave_reason || '',
         leave_comments: leave.leave_comments || '',
         leave_status: leave.status || 'Pending',
-        
     });
 
     const [openApproved, setOpenApproved] = useState(false);
@@ -74,7 +73,6 @@ export default function LeaveEditPage() {
         }
         // eslint-disable-next-line
     }, [data.leave_start_date, data.leave_end_date]);
-
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -167,7 +165,9 @@ export default function LeaveEditPage() {
                         Reminder: You can only change or update the
                         <span className="ml-2 font-semibold">status</span>
                         <span>of this leave request. All other fields are read-only.</span>
-                        <TextLink href='#status' className='font-semibold text-yellow-800 underline-offset-2 '>Proceed</TextLink>
+                        <TextLink href="#status" className="font-semibold text-yellow-800 underline-offset-2">
+                            Proceed
+                        </TextLink>
                     </div>
                 </Alert>
             </div>
@@ -177,10 +177,12 @@ export default function LeaveEditPage() {
                     <ArrowLeft className="h-4 w-4" />
                     Back
                 </Button>
-                <Button type="button" variant="main" className="flex items-center gap-2" onClick={() => setShowPDF(true)}>
-                    <Download className="h-4 w-4" />
-                    Download PDF
-                </Button>
+                {can('Download Leave PDF') && (
+                    <Button type="button" variant="main" className="flex items-center gap-2" onClick={() => setShowPDF(true)}>
+                        <Download className="h-4 w-4" />
+                        Download PDF
+                    </Button>
+                )}
             </div>
 
             <div className="mx-auto space-y-4">
@@ -197,7 +199,7 @@ export default function LeaveEditPage() {
                             {/* Profile Picture */}
                             <div className="mx-10 flex flex-col items-center space-y-2">
                                 <div className="relative">
-                                    <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-main bg-muted">
+                                    <div className="border-main flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 bg-muted">
                                         <img src={data.picture ? data.picture : '/Logo.png'} alt="Employee" className="h-full w-full object-cover" />
                                     </div>
                                     <Button
@@ -275,6 +277,7 @@ export default function LeaveEditPage() {
                                             readOnly
                                             className="cursor-not-allowed bg-gray-100 transition-all focus:ring-2 focus:ring-primary/20"
                                         />
+                                        {can('Sent Email Approval')}
                                         <Button
                                             variant="main"
                                             className="transition-all hover:scale-105"
@@ -368,7 +371,7 @@ export default function LeaveEditPage() {
                                 />
                                 {errors.leave_type && <div className="text-xs text-red-500">{errors.leave_type}</div>}
                             </div>
-                            <div className="" id='status'>
+                            <div className="" id="status">
                                 <div className="item-center flex">
                                     <Label htmlFor="leave-status" className="mr-1 text-sm font-medium">
                                         Status:
@@ -381,13 +384,15 @@ export default function LeaveEditPage() {
                                     <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                        {leaveStatuses.map((status) => (
-                                            <SelectItem key={status} value={status} className="cursor-pointer">
-                                                {status}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
+                                    {can('Leave Status Approval') && (
+                                        <SelectContent>
+                                            {leaveStatuses.map((status) => (
+                                                <SelectItem key={status} value={status} className="cursor-pointer">
+                                                    {status}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    )}
                                 </Select>
                                 {errors.leave_status && <div className="text-xs text-red-500">{errors.leave_status}</div>}
                             </div>
@@ -445,43 +450,45 @@ export default function LeaveEditPage() {
                                 />
                                 {errors.leave_date_reported && <div className="text-xs text-red-500">{errors.leave_date_reported}</div>}
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="date-approved" className="text-sm font-medium">
-                                    Date Approved
-                                </Label>
-                                <div className="flex items-center gap-2">
-                                    <Popover open={openApproved} onOpenChange={setOpenApproved}>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className={cn(
-                                                    'w-full justify-start text-left font-normal',
-                                                    !data.leave_date_approved && 'text-muted-foreground',
-                                                )}
-                                            >
-                                                <Clock className="mr-2 h-4 w-4" />
-                                                {data.leave_date_approved ? (
-                                                    format(parseISO(data.leave_date_approved), 'PPP')
-                                                ) : (
-                                                    <span>Select date approved</span>
-                                                )}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={data.leave_date_approved ? parseISO(data.leave_date_approved) : undefined}
-                                                onSelect={(date) => {
-                                                    setOpenApproved(false);
-                                                    setData('leave_date_approved', date ? format(date, 'yyyy-MM-dd') : '');
-                                                }}
-                                                disabled={() => false}
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                            {can('Leave Status Approval') && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="date-approved" className="text-sm font-medium">
+                                        Date Approved
+                                    </Label>
+                                    <div className="flex items-center gap-2">
+                                        <Popover open={openApproved} onOpenChange={setOpenApproved}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !data.leave_date_approved && 'text-muted-foreground',
+                                                    )}
+                                                >
+                                                    <Clock className="mr-2 h-4 w-4" />
+                                                    {data.leave_date_approved ? (
+                                                        format(parseISO(data.leave_date_approved), 'PPP')
+                                                    ) : (
+                                                        <span>Select date approved</span>
+                                                    )}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={data.leave_date_approved ? parseISO(data.leave_date_approved) : undefined}
+                                                    onSelect={(date) => {
+                                                        setOpenApproved(false);
+                                                        setData('leave_date_approved', date ? format(date, 'yyyy-MM-dd') : '');
+                                                    }}
+                                                    disabled={() => false}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    {errors.leave_date_approved && <div className="text-xs text-red-500">{errors.leave_date_approved}</div>}
                                 </div>
-                                {errors.leave_date_approved && <div className="text-xs text-red-500">{errors.leave_date_approved}</div>}
-                            </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -491,19 +498,21 @@ export default function LeaveEditPage() {
                     <Button variant="outline" className="transition-all hover:scale-105" disabled={processing} type="button" onClick={handleBack}>
                         Cancel
                     </Button>
-                    <Button className="bg-main-600 transition-all hover:scale-105 hover:bg-main" disabled={processing} type="submit">
-                        {processing ? (
-                            <>
-                                <div className="n mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
-                                Saving...
-                            </>
-                        ) : (
-                            <>
-                                <Save className="mr-2 h-4 w-4" />
-                                Save Changes
-                            </>
-                        )}
-                    </Button>
+                    {can('Leave Status Approval') && (
+                        <Button variant="main" disabled={processing} type="submit">
+                            {processing ? (
+                                <>
+                                    <div className="n mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Save Changes
+                                </>
+                            )}
+                        </Button>
+                    )}
                 </div>
             </div>
             <Dialog open={showPDF} onOpenChange={setShowPDF}>

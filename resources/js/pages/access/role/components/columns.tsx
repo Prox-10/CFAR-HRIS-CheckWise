@@ -106,8 +106,6 @@ const columns = (
 
                 return (
                     <>
-                    
-
                         {/* Dropdown for additional actions */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -121,27 +119,35 @@ const columns = (
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {can('view-roles') && (
-                                    <DropdownMenuItem
-                                        onClick={() => handleView(role)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Eye className="h-4 w-4 text-green-600" />
-                                        View
-                                    </DropdownMenuItem>
-                                )}
-                                {can('edit-roles') && (
-                                    <DropdownMenuItem asChild>
-                                        <Link
-                                            href={route('role.edit', role.id)}
-                                            className="flex items-center gap-2"
+                                {can('View Roles Details') && (
+                                    <DropdownMenuItem>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleView(role)}
+                                            className="hover-lift w-full border-blue-300 text-blue-600 hover:bg-blue-50"
                                         >
-                                            <Edit className="h-4 w-4 text-blue-600" />
-                                            Edit
-                                        </Link>
+                                            <Eye className="h-4 w-4" />
+                                            View
+                                        </Button>
                                     </DropdownMenuItem>
                                 )}
-                                {can('delete-roles') && (
+                                {can('Update Roles') && (
+                                    <DropdownMenuItem>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            asChild
+                                            className="hover-lift w-full border-green-300 text-green-600 hover:bg-green-50"
+                                        >
+                                            <Link href={route('role.edit', role.id)}>
+                                                <Edit className="h-4 w-4" />
+                                                Edit
+                                            </Link>
+                                        </Button>
+                                    </DropdownMenuItem>
+                                )}
+                                {can('Delete Roles') && (
                                     <DropdownMenuItem asChild>
                                         <DeleteConfirmationDialog
                                             onConfirm={() =>

@@ -50,9 +50,28 @@ const columns = (
             cell: ({ row }) => {
                 const fullname = row.getValue('fullname') as string;
                 const department = row.getValue('department') as string;
+                const profileImage = row.original.profile_image;
 
                 return (
                     <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                            {profileImage ? (
+                                <img
+                                    src={profileImage}
+                                    alt={fullname}
+                                    className="w-10 h-10 rounded-full object-cover"
+                                    onError={(e) => {
+                                        e.currentTarget.src = '/Logo.png';
+                                    }}
+                                />
+                            ) : (
+                                <img
+                                    src="/Logo.png"
+                                    alt={fullname}
+                                    className="w-10 h-10 rounded-full object-cover"
+                                />
+                            )}
+                        </div>
                         <div>
                             <div className="text-sm font-medium text-gray-900">{fullname}</div>
                             <div className="text-xs text-gray-500">
@@ -94,18 +113,39 @@ const columns = (
             cell: ({ row }) => {
                 const roles = row.original.roles || [];
 
+                // Define role colors based on role name
+                const getRoleColor = (roleName: string) => {
+                    const roleLower = roleName.toLowerCase();
+                    if (roleLower.includes('super admin')) {
+                        return 'bg-red-100 text-red-800 border-red-200';
+                    } else if (roleLower.includes('admin')) {
+                        return 'bg-purple-100 text-purple-800 border-purple-200';
+                    } else if (roleLower.includes('manager')) {
+                        return 'bg-blue-100 text-blue-800 border-blue-200';
+                    } else if (roleLower.includes('hr')) {
+                        return 'bg-pink-100 text-pink-800 border-pink-200';
+                    } else if (roleLower.includes('supervisor')) {
+                        return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+                    } else if (roleLower.includes('employee')) {
+                        return 'bg-green-100 text-green-800 border-green-200';
+                    } else {
+                        // Default color for other roles
+                        return 'bg-gray-100 text-gray-800 border-gray-200';
+                    }
+                };
+
                 return (
                     <div className="flex flex-wrap gap-1">
                         {roles.slice(0, 3).map((role, index) => (
                             <span
                                 key={index}
-                                className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800"
+                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${getRoleColor(role)}`}
                             >
                                 {role}
                             </span>
                         ))}
                         {roles.length > 3 && (
-                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 border border-gray-200">
                                 +{roles.length - 3} more
                             </span>
                         )}
@@ -134,7 +174,6 @@ const columns = (
 
                 return (
                     <>
-
                         {/* Dropdown for additional actions */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -148,25 +187,33 @@ const columns = (
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {can('view-users') && (
-                                    <DropdownMenuItem
-                                        onClick={() => handleView(user)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Eye className="h-4 w-4 text-green-600" />
-                                        View
+                                {can('View Admin Details') && (
+                                    <DropdownMenuItem>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleView(user)}
+                                            className="hover-lift w-full border-blue-300 text-blue-600 hover:bg-blue-50"
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                            View
+                                        </Button>
                                     </DropdownMenuItem>
                                 )}
-                                {can('edit-users') && (
-                                    <DropdownMenuItem
-                                        onClick={() => handleEdit(user)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Edit className="h-4 w-4 text-blue-600" />
-                                        Edit
+                                {can('Update Admin') && (
+                                    <DropdownMenuItem>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleEdit(user)}
+                                            className="hover-lift w-full border-green-300 text-green-600 hover:bg-green-50"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                            Edit
+                                        </Button>
                                     </DropdownMenuItem>
                                 )}
-                                {can('delete-users') && (
+                                {can('Delete Admin') && (
                                     <DropdownMenuItem asChild>
                                         <DeleteConfirmationDialog
                                             onConfirm={() =>
@@ -187,3 +234,4 @@ const columns = (
 };
 
 export { columns };
+

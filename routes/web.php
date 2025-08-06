@@ -36,7 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Explicit routes for all service-tenure subpages
-    Route::middleware(['permission:view-service-tenure'])->group(function () {
+    Route::middleware(['permission:View Service Tenure'])->group(function () {
         Route::get('service-tenure/employee', [ServiceTenureController::class, 'employee'])->name('service-tenure.employee');
         Route::get('service-tenure/index', [ServiceTenureController::class, 'index'])->name('service-tenure.index');
         Route::get('service-tenure/service-tenure', [ServiceTenureController::class, 'serviceTenure'])->name('service-tenure.service-tenure');
@@ -46,26 +46,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('service-tenure/pay-advancement/store', [ServiceTenureController::class, 'storePayAdvancement'])->name('service-tenure.pay-advancement.store');
     });
 
-    Route::middleware(['permission:view-evaluation'])->group(function () {
+    Route::middleware(['permission:View Evaluation'])->group(function () {
         Route::resource('evaluation', EvaluationController::class)->names('evaluation');
     });
 
-    Route::middleware(['permission:view-dashboard'])->group(function () {
+    Route::middleware(['permission:View Dashboard'])->group(function () {
         Route::resource('dashboard', DashboardController::class)->names('dashboard');
     });
 
-    Route::middleware(['permission:view-attendance'])->group(function () {
+    Route::middleware(['permission:View Attendance'])->group(function () {
         Route::resource('attendance', AttendanceController::class)->names('attendance');
         Route::resource('attendance-session', AttendanceSessionController::class)->names('attendance-session');
     });
 
-    Route::middleware(['permission:view-leave'])->group(function () {
+    Route::middleware(['permission:View Leave'])->group(function () {
         Route::resource('leave', LeaveController::class)->names('leave');
     });
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::middleware(['permission:view-employee'])->group(function () {
+    Route::middleware(['permission:View Employee'])->group(function () {
         Route::get('/employee', [EmployeeController::class, 'index'])->name('employee.index');
         Route::post('/employee', [EmployeeController::class, 'store'])->name('employee.store');
         Route::put('/employee/{id}', [EmployeeController::class, 'update'])->name('employee.update');
@@ -76,14 +76,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Permission Management Routes
-    Route::middleware(['permission:view-permissions'])->group(function () {
+    Route::middleware(['permission:View Permission'])->group(function () {
         Route::get('permission/access/index', [PermissionController::class, 'index'])->name('permission.index');
         Route::post('permission/access/store', [PermissionController::class, 'store'])->name('permission.store');
         Route::delete('permission/access/{permission}', [PermissionController::class, 'destroy'])->name('permission.destroy');
     });
 
     // User Management Routes
-    Route::middleware(['permission:view-users'])->group(function () {
+    Route::middleware(['permission:View Admin'])->group(function () {
         Route::get('permission/user/index', [UserController::class, 'index'])->name('user.index');
         Route::get('permission/user/{user}', [UserController::class, 'show'])->name('user.show');
         Route::post('permission/user/store', [UserController::class, 'store'])->name('user.store');
@@ -92,7 +92,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Role Management Routes
-    Route::middleware(['permission:view-roles'])->group(function () {
+        Route::middleware(['permission:View Role'])->group(function () {
         Route::get('permission/role/index', [RoleController::class, 'index'])->name('role.index');
         Route::get('permission/role/create', [RoleController::class, 'create'])->name('role.create');
         Route::post('permission/role/store', [RoleController::class, 'store'])->name('role.store');

@@ -35,85 +35,62 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
-        permission: 'view-dashboard',
+        permission: 'View Dashboard',
     },
     {
         title: 'Employee',
         href: '/employee',
         icon: User2,
-        permission: 'view-employee',
+        permission: 'View Employee',
     },
     {
         title: 'Attendance',
         href: '/attendance',
         icon: Fingerprint,
-        permission: 'view-attendance',
+        permission: 'View Attendance',
     },
     {
         title: 'Evaluation',
         href: '/evaluation',
         icon: NotebookPen,
-        permission: 'view-evaluation',
+        permission: 'View Evaluation',
     },
     {
         title: 'Leave',
         href: '/leave',
         icon: CalendarPlus2,
-        permission: 'view-leave',
+        permission: 'View Leave',
     },
-    // {
-    //     title: 'Request Form',
-    //     href: '/request-form',
-    //     icon: NotepadText,
-    //     items: [
-    //         {
-    //             title: 'Leave Form',
-    //             href: '/request-form/leave',
-    //         },
-    //         {
-    //             title: 'Absent Form',
-    //             href: '/request-form/absent',
-    //         },
-
-    //     ],
-    // },
-
-    // {
-    //     title: 'Test',
-    //     href: '/test',
-    //     icon: CalendarPlus2,
-
-    // },
     {
         title: 'Service-Tenure',
         href: '/service-tenure/index',
         icon: Activity,
-        permission: 'view-service-tenure',
+        permission: 'View Service Tenure Management',
         items: [
             {
                 title: 'Dashboard',
                 href: '/service-tenure/index',
-                permission: 'view-service-tenure',
+                permission: 'View Service Tenure Dashboard',
             },
             {
                 title: 'Employee List',
                 href: '/service-tenure/employee',
-                permission: 'view-service-tenure',
+                permission: 'View Service Tenure Employee',
             },
             {
                 title: 'Service Tenure',
                 href: '/service-tenure/service-tenure',
-                permission: 'view-service-tenure',
+                permission: 'View Service Tenure',
             },
             {
                 title: 'Pay Advancement',
                 href: '/service-tenure/pay-advancement',
-                permission: 'view-service-tenure',
+                permission: 'View Service Tenure Pay Advancement',
             },
             {
                 title: 'Report',
                 href: '/service-tenure/report',
-                permission: 'view-service-tenure',
+                permission: 'View Service Tenure Report',
             },
         ],
     },
@@ -121,27 +98,27 @@ const mainNavItems: NavItem[] = [
         title: 'Reports',
         href: '/report',
         icon: FileText,
-        permission: 'view-report',
+        permission: 'View Report',
         items: [
             {
                 title: 'Attendance Reports',
                 href: '/report/attendance',
-                permission: 'view-report',
+                permission: 'View Report Attendance',
             },
             {
                 title: 'Leave Reports',
                 href: '/report/leave',
-                permission: 'view-report',
+                permission: 'View Report Leave',
             },
             {
                 title: 'Performance Reports',
                 href: '/report/performance',
-                permission: 'view-report',
+                permission: 'View Report Performance',
             },
             {
                 title: 'Analytics',
                 href: '/report/analytics',
-                permission: 'view-report',
+                permission: 'View Report Analytics',
             },
         ],
     },
@@ -149,27 +126,22 @@ const mainNavItems: NavItem[] = [
         title: 'Access Management',
         href: '/permission/access/index',
         icon: ShieldCheck,
-        permission: 'view-access',
+        permission: 'View Access',
         items: [
             {
-                title: 'User Management',
+                title: 'Admin Management',
                 href: '/permission/user/index',
-                permission: 'view-users',
+                permission: 'View Admin',
             },
             {
                 title: 'Role Management',
                 href: '/permission/role/index',
-                permission: 'view-roles',
+                permission: 'View Role',
             },
             {
                 title: 'Permission Control',
                 href: '/permission/access/index',
-                permission: 'view-permissions',
-            },
-            {
-                title: 'Settings',
-                href: '/permission/settings',
-                permission: 'view-permission-settings',
+                permission: 'View Permission',
             },
         ],
     },

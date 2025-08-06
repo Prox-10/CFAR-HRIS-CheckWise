@@ -2,13 +2,13 @@ import LeavePDF from '@/components/pdf/leave-pdf';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { usePermission } from '@/hooks/user-permission';
 import { Link } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { CheckCircle, Clock, Download, Edit, Star, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Leave } from '../types/leave';
-
 interface LeaveDetailsModalProps {
     leave: Leave | null;
     isOpen: boolean;
@@ -19,7 +19,7 @@ interface LeaveDetailsModalProps {
 
 const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDetailsModalProps) => {
     // if (!employee) return null;
-
+    const { can } = usePermission();
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -329,7 +329,7 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl border-2 border-main">
+            <DialogContent className="border-main max-w-2xl border-2">
                 <DialogHeader>
                     <DialogTitle className="text-primary-custom">Leave Request Details</DialogTitle>
                     <DialogDescription>Complete information about the leave request</DialogDescription>
@@ -339,7 +339,7 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
                     <div className="flex items-center space-x-4 rounded-lg bg-green-100 p-4">
                         <Avatar className="h-16 w-16 border-2 border-green-300">
                             <AvatarImage src={data.picture} />
-                            <AvatarFallback className="bg-green-100 text-main">
+                            <AvatarFallback className="text-main bg-green-100">
                                 {/* {data.employee_name
                                         .split(' ')
                                         .map((n) => n[0])
@@ -348,7 +348,7 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
                             </AvatarFallback>
                         </Avatar>
                         <div>
-                            <h3 className="text-lg font-bold text-main">{data.employee_name}</h3>
+                            <h3 className="text-main text-lg font-bold">{data.employee_name}</h3>
                             {/* <p className="text-muted-foreground">{data.}</p> */}
                             <p className="text-muted-foreground">{data.employeeid}</p>
 
@@ -425,34 +425,38 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
                 </div>
 
                 <div className="mt-5 ml-auto flex gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => setShowPDF(true)}
-                        className="border-blue-500 bg-blue-50 text-blue-600 hover:scale-105 hover:bg-blue-100"
-                    >
-                        <Download className="mr-2 h-4 w-4" />
-                        Download PDF
-                    </Button>
-
-                    <Link href={route('leave.edit', data.id)}>
+                    {can('Download Leave PDF') && (
                         <Button
                             variant="outline"
-                            // onClick={() => handleEditLeave(selectedLeave)}
-                            className="border-main bg-green-50 text-main-500 hover:scale-105 hover:bg-green-100"
+                            onClick={() => setShowPDF(true)}
+                            className="border-blue-500 bg-blue-50 text-blue-600 hover:scale-105 hover:bg-blue-100"
                         >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Update
+                            <Download className="mr-2 h-4 w-4" />
+                            Download PDF
                         </Button>
-                    </Link>
-
-                    <Button
-                        variant="outline"
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="border-destructive/20 text-destructive hover:scale-105 hover:bg-red-100"
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                    </Button>
+                    )}
+                    {can('Update Leave') && (
+                        <Link href={route('leave.edit', data.id)}>
+                            <Button
+                                variant="outline"
+                                // onClick={() => handleEditLeave(selectedLeave)}
+                                className="border-main text-main-500 bg-green-50 hover:scale-105 hover:bg-green-100"
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Update
+                            </Button>
+                        </Link>
+                    )}
+                    {can('Delete Leave') && (
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="border-destructive/20 text-destructive hover:scale-105 hover:bg-red-100"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                        </Button>
+                    )}
                     {/* <Button
                             variant="outline"
                             onClick={() => setIsViewDialogOpen(false)}
@@ -480,15 +484,17 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
                         <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
                             Cancel
                         </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={() => {
-                                handleDelete();
-                                setShowDeleteConfirm(false);
-                            }}
-                        >
-                            Delete
-                        </Button>
+                        {can('Delete Leave') && (
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    handleDelete();
+                                    setShowDeleteConfirm(false);
+                                }}
+                            >
+                                Delete
+                            </Button>
+                        )}
                     </div>
                 </DialogContent>
             </Dialog>

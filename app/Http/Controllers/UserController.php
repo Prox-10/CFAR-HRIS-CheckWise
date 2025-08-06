@@ -25,6 +25,7 @@ class UserController extends Controller
                 'fullname' => $user->fullname,
                 'email' => $user->email,
                 'department' => $user->department,
+                'profile_image' => $user->profile_image ? $user->profile_image : '/Logo.png',
                 'roles' => $user->roles->pluck('name')->toArray(),
                 'role_ids' => $user->roles->pluck('id')->toArray(),
                 'created_at' => $user->created_at->format('d-m-Y'),
@@ -63,6 +64,7 @@ class UserController extends Controller
                 'fullname' => $user->fullname,
                 'email' => $user->email,
                 'department' => $user->department,
+                'profile_image' => $user->profile_image ? '/storage/' . $user->profile_image : '/Logo.png',
                 'roles' => $user->roles->pluck('name')->toArray(),
                 'role_ids' => $user->roles->pluck('id')->toArray(),
                 'created_at' => $user->created_at->format('d-m-Y'),
@@ -82,23 +84,51 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'department' => 'required|string|max:255',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
             'roles' => 'array',
             'roles.*' => 'exists:roles,id',
         ]);
 
         try {
-            $user = User::create([
+            $userData = [
                 'firstname' => $request->firstname,
                 'middlename' => $request->middlename,
                 'lastname' => $request->lastname,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'department' => $request->department,
-            ]);
+            ];
 
-            if ($request->has('roles') && is_array($request->roles)) {
-                $roles = Role::whereIn('id', $request->roles)->get();
-                $user->syncRoles($roles);
+            // Handle profile image upload
+            if ($request->hasFile('profile_image')) {
+                $image = $request->file('profile_image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->storeAs('uploads', $imageName, 'public');
+                $userData['profile_image'] = '/storage/uploads/' . $imageName;
+            }
+
+            // if ($request->hasFile('picture')) {
+            //     $file = $request->file('picture');
+            //     $filename = time() . '_' . $file->getClientOriginalName();
+            //     $path = $file->storeAs('uploads', $filename, 'public');
+            //     $data['picture'] = '/storage/' . $path;
+            // }
+
+            $user = User::create($userData);
+
+            // Handle roles
+            if ($request->has('roles')) {
+                $roles = [];
+                if (is_string($request->roles)) {
+                    $roles = json_decode($request->roles, true);
+                } elseif (is_array($request->roles)) {
+                    $roles = $request->roles;
+                }
+
+                if (!empty($roles)) {
+                    $roleModels = Role::whereIn('id', $roles)->get();
+                    $user->syncRoles($roleModels);
+                }
             }
 
             return redirect()->back()->with('success', 'User created successfully');
@@ -116,22 +146,43 @@ class UserController extends Controller
             'lastname' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'department' => 'required|string|max:255',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
             'roles' => 'array',
             'roles.*' => 'exists:roles,id',
         ]);
 
         try {
-            $user->update([
+            $userData = [
                 'firstname' => $request->firstname,
                 'middlename' => $request->middlename,
                 'lastname' => $request->lastname,
                 'email' => $request->email,
                 'department' => $request->department,
-            ]);
+            ];
 
-            if ($request->has('roles') && is_array($request->roles)) {
-                $roles = Role::whereIn('id', $request->roles)->get();
-                $user->syncRoles($roles);
+            // Handle profile image upload
+            if ($request->hasFile('profile_image')) {
+                $image = $request->file('profile_image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->storeAs('uploads', $imageName, 'public');
+                $userData['profile_image'] = '/storage/uploads/' . $imageName;
+            }
+
+            $user->update($userData);
+
+            // Handle roles
+            if ($request->has('roles')) {
+                $roles = [];
+                if (is_string($request->roles)) {
+                    $roles = json_decode($request->roles, true);
+                } elseif (is_array($request->roles)) {
+                    $roles = $request->roles;
+                }
+
+                if (!empty($roles)) {
+                    $roleModels = Role::whereIn('id', $roles)->get();
+                    $user->syncRoles($roleModels);
+                }
             }
 
             return redirect()->back()->with('success', 'User updated successfully');

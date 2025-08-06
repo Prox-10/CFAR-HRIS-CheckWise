@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from '@inertiajs/react';
+import { Upload, X } from 'lucide-react';
+import * as React from 'react';
 import { toast } from 'sonner';
 
 interface AddUserModalProps {
@@ -26,7 +28,11 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
     password: '',
     department: '',
     roles: [] as number[],
+    profile_image: null as File | null,
   });
+
+  const [previewImage, setPreviewImage] = React.useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,10 +42,27 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
       return;
     }
 
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('firstname', data.firstname);
+    formData.append('middlename', data.middlename || '');
+    formData.append('lastname', data.lastname);
+    formData.append('email', data.email);
+    formData.append('password', data.password);
+    formData.append('department', data.department);
+    formData.append('roles', JSON.stringify(data.roles));
+
+    if (data.profile_image) {
+      formData.append('profile_image', data.profile_image);
+    }
+
     post('/permission/user/store', {
+      data: formData,
+      forceFormData: true,
       onSuccess: () => {
         toast.success('User created successfully');
         reset();
+        setPreviewImage(null);
         onClose();
       },
       onError: (errors) => {
@@ -53,6 +76,7 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
   const handleClose = () => {
     if (!processing) {
       reset();
+      setPreviewImage(null);
       onClose();
     }
   };
@@ -65,9 +89,43 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
     }
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+
+      setData('profile_image', file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setData('profile_image', null);
+    setPreviewImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New User</DialogTitle>
           <DialogDescription>
@@ -75,11 +133,57 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-6 py-4">
+            {/* Profile Image Upload Section */}
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer overflow-hidden">
+                  {previewImage ? (
+                    <img
+                      src={previewImage}
+                      alt="Profile preview"
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <img
+                      src="/Logo.png"
+                      alt="Default profile"
+                      className="w-16 h-16 object-contain"
+                    />
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={processing}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Upload className="h-4 w-4 text-gray-500" />
+                <span className="text-sm text-gray-600">Upload Profile Image</span>
+              </div>
+              {previewImage && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={removeImage}
+                  className="flex items-center space-x-1"
+                  disabled={processing}
+                >
+                  <X className="h-3 w-3" />
+                  <span>Remove Image</span>
+                </Button>
+              )}
+            </div>
+
             {/* Name Fields */}
             <div className="grid grid-cols-3 gap-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="firstname" className="text-right">
+              <div className="space-y-2">
+                <Label htmlFor="firstname">
                   First Name *
                 </Label>
                 <Input
@@ -87,15 +191,14 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
                   value={data.firstname}
                   onChange={(e) => setData('firstname', e.target.value)}
                   placeholder="Enter first name"
-                  className="col-span-3"
                   disabled={processing}
                 />
                 {errors.firstname && (
-                  <span className="col-span-4 text-sm text-red-500">{errors.firstname}</span>
+                  <span className="text-sm text-red-500">{errors.firstname}</span>
                 )}
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="middlename" className="text-right">
+              <div className="space-y-2">
+                <Label htmlFor="middlename">
                   Middle Name
                 </Label>
                 <Input
@@ -103,15 +206,14 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
                   value={data.middlename}
                   onChange={(e) => setData('middlename', e.target.value)}
                   placeholder="Enter middle name"
-                  className="col-span-3"
                   disabled={processing}
                 />
                 {errors.middlename && (
-                  <span className="col-span-4 text-sm text-red-500">{errors.middlename}</span>
+                  <span className="text-sm text-red-500">{errors.middlename}</span>
                 )}
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="lastname" className="text-right">
+              <div className="space-y-2">
+                <Label htmlFor="lastname">
                   Last Name *
                 </Label>
                 <Input
@@ -119,19 +221,18 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
                   value={data.lastname}
                   onChange={(e) => setData('lastname', e.target.value)}
                   placeholder="Enter last name"
-                  className="col-span-3"
                   disabled={processing}
                 />
                 {errors.lastname && (
-                  <span className="col-span-4 text-sm text-red-500">{errors.lastname}</span>
+                  <span className="text-sm text-red-500">{errors.lastname}</span>
                 )}
               </div>
             </div>
 
             {/* Email and Password */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
+              <div className="space-y-2">
+                <Label htmlFor="email">
                   Email *
                 </Label>
                 <Input
@@ -140,15 +241,14 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
                   value={data.email}
                   onChange={(e) => setData('email', e.target.value)}
                   placeholder="Enter email address"
-                  className="col-span-3"
                   disabled={processing}
                 />
                 {errors.email && (
-                  <span className="col-span-4 text-sm text-red-500">{errors.email}</span>
+                  <span className="text-sm text-red-500">{errors.email}</span>
                 )}
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="password" className="text-right">
+              <div className="space-y-2">
+                <Label htmlFor="password">
                   Password *
                 </Label>
                 <Input
@@ -157,43 +257,38 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
                   value={data.password}
                   onChange={(e) => setData('password', e.target.value)}
                   placeholder="Enter password"
-                  className="col-span-3"
                   disabled={processing}
                 />
                 {errors.password && (
-                  <span className="col-span-4 text-sm text-red-500">{errors.password}</span>
+                  <span className="text-sm text-red-500">{errors.password}</span>
                 )}
               </div>
             </div>
 
             {/* Department */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="department" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="department">
                 Department *
               </Label>
-              <div className="col-span-3">
-                <Select
-                  value={data.department}
-                  onValueChange={(value) => setData('department', value)}
-                  disabled={processing}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Manager">Manager</SelectItem>
-                    <SelectItem value="Super Admin">Super Admin</SelectItem>
-                    <SelectItem value="HR">HR</SelectItem>
-                    <SelectItem value="Supervisor">Supervisor</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.department && (
-                  <span className="text-sm text-red-500">{errors.department}</span>
-                )}
-              </div>
+              <Select
+                value={data.department}
+                onValueChange={(value) => setData('department', value)}
+                disabled={processing}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Manager">Manager</SelectItem>
+                  <SelectItem value="Super Admin">Super Admin</SelectItem>
+                  <SelectItem value="HR">HR</SelectItem>
+                  <SelectItem value="Supervisor">Supervisor</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.department && (
+                <span className="text-sm text-red-500">{errors.department}</span>
+              )}
             </div>
-
-
 
             {/* Roles Selection */}
             <div className="space-y-3">

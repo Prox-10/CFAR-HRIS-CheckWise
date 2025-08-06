@@ -11,9 +11,10 @@ import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Tabs, TabsContent } from '@radix-ui/react-tabs';
+import axios from 'axios';
 import { Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import { SectionCards } from './components/section-cards';
@@ -42,6 +43,7 @@ export default function Index({ evaluations, employees, employees_all }: Props) 
     const [loading, setLoading] = useState(true);
     const [viewEvaluation, setViewEvaluation] = useState<Evaluation | null>(null);
     const [isEvalModalOpen, setIsEvalModalOpen] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         setTimeout(() => {
@@ -57,6 +59,19 @@ export default function Index({ evaluations, employees, employees_all }: Props) 
     const handleEdit = (evaluation: Evaluation) => {
         setSelectedEvaluation(evaluation);
         setEditModalOpen(true);
+    };
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            const res = await axios.get<Evaluation[]>('/api/evaluation/all');
+            setData(res.data);
+            toast.success('Employee list refreshed!');
+        } catch (err) {
+            toast.error('Failed to refresh employee list!');
+        } finally {
+            setRefreshing(false);
+        }
     };
 
     const handleDelete = (id: number, onSuccess: () => void) => {
@@ -77,7 +92,7 @@ export default function Index({ evaluations, employees, employees_all }: Props) 
     };
 
     // Ensure all employees are mapped to Evaluation type structure
-    const allEmployeesAsEvaluations: Evaluation[] = employees_all.map(emp => ({
+    const allEmployeesAsEvaluations: Evaluation[] = employees_all.map((emp) => ({
         id: Number(emp.id),
         employee_id: Number(emp.employee_id),
         ratings: emp.ratings || '',
@@ -94,13 +109,12 @@ export default function Index({ evaluations, employees, employees_all }: Props) 
         department: emp.department,
         position: emp.position,
         employeeid: emp.employeeid,
-
     }));
 
     return (
         <SidebarProvider>
             <Head title="Evaluation" />
-           
+
             {/* Sidebar hover logic */}
             <SidebarHoverLogic>
                 <SidebarInset>
@@ -136,7 +150,7 @@ export default function Index({ evaluations, employees, employees_all }: Props) 
                                     <Separator className="shadow-sm" />
                                 </Tabs>
                                 <div className="m-3 no-scrollbar">
-                                    <Card className="border-main bg-background drop-shadow-lg dark:bg-backgrounds">
+                                    <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                         <CardHeader>
                                             <CardTitle>Evaluation List</CardTitle>
                                             <CardDescription>List of Evaluation</CardDescription>
@@ -147,6 +161,8 @@ export default function Index({ evaluations, employees, employees_all }: Props) 
                                                 data={allEmployeesAsEvaluations}
                                                 employees={employees}
                                                 employees_all={employees_all}
+                                                onRefresh={handleRefresh}
+                                                refreshing={refreshing}
                                             />
                                         </CardContent>
                                     </Card>
@@ -170,4 +186,4 @@ function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
             {children}
         </>
     );
-}   
+}
