@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Activity, CalendarPlus2, FileText, Fingerprint, LayoutGrid, NotebookPen, ShieldCheck, User2 } from 'lucide-react';
+import { Activity, CalendarPlus2, FileText, Fingerprint, LayoutGrid, NotebookPen, Settings, ShieldCheck, User2 } from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -143,6 +143,29 @@ const mainNavItems: NavItem[] = [
                 title: 'Permission Control',
                 href: '/permission/access/index',
                 permission: 'View Permission',
+            },
+        ],
+    },
+    {
+        title: 'Settings',
+        href: '/settings',
+        icon: Settings,
+        permission: 'View Settings',
+        items: [
+            {
+                title: 'Company Settings',
+                href: '/settings/company',
+                permission: 'View Company Settings',
+            },
+            {
+                title: 'Department Settings',
+                href: '/settings/department',
+                permission: 'View Department Settings',
+            },
+            {
+                title: 'Position Settings',
+                href: '/settings/position',
+                permission: 'View Position Settings',
             },
         ],
     },
