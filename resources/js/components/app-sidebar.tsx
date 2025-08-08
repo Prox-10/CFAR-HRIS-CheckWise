@@ -1,15 +1,6 @@
 import { Link } from '@inertiajs/react';
-import {
-    Activity,
-    CalendarPlus2,
-    FileText,
-    Fingerprint,
-    LayoutGrid,
-    NotebookPen,
-    ShieldCheck,
-    User2
-} from 'lucide-react';
-import * as React from "react";
+import { Activity, CalendarPlus2, FileText, Fingerprint, LayoutGrid, NotebookPen, ShieldCheck, User2 } from 'lucide-react';
+import * as React from 'react';
 
 import {
     Sidebar,
@@ -19,16 +10,14 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarRail
-} from "@/components/ui/sidebar";
-import { Toaster } from '@/components/ui/sonner';
+    SidebarRail,
+} from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import AppLogo from "./customize/app-logo";
-import { NavSidebar } from "./nav-sidebar";
-import { User } from "./user";
+import AppLogo from './customize/app-logo';
+import { NavSidebar } from './nav-sidebar';
+import { User } from './user';
 
 // This is sample data.
-
 
 const mainNavItems: NavItem[] = [
     {
@@ -54,6 +43,18 @@ const mainNavItems: NavItem[] = [
         href: '/evaluation',
         icon: NotebookPen,
         permission: 'View Evaluation',
+        items: [
+            {
+                title: 'Evaluation List',
+                href: '/evaluation',
+                permission: 'View Evaluation',
+            },
+            {
+                title: 'Supervisor Management',
+                href: '/evaluation/supervisor-management',
+                permission: 'View Admin',
+            },
+        ],
     },
     {
         title: 'Leave',
@@ -150,9 +151,8 @@ const mainNavItems: NavItem[] = [
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar collapsible="offcanvas" variant="inset" {...props}>
-            <SidebarHeader className=" bg-cfar-400">
+            <SidebarHeader className="bg-cfar-400">
                 {/* <TeamSwitcher teams={data.teams} /> */}
-               
 
                 <SidebarMenu>
                     <SidebarMenuItem>

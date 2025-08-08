@@ -45,12 +45,31 @@ class HandleInertiaRequests extends Middleware
         $unreadCount = Notification::whereNull('read_at')->count();
         $user = $request->user();
         $permissions = $user ? $user->getAllPermissions()->pluck('name')->toArray() : [];
+
+        // Transform user data to include profile_image and roles
+        $transformedUser = null;
+        if ($user) {
+            $transformedUser = [
+                'id' => $user->id,
+                'firstname' => $user->firstname,
+                'middlename' => $user->middlename,
+                'lastname' => $user->lastname,
+                'email' => $user->email,
+                'profile_image' => $user->profile_image,
+                'department' => $user->department,
+                'roles' => $user->roles->pluck('name')->toArray(),
+                'email_verified_at' => $user->email_verified_at,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ];
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $transformedUser,
                 'permissions' => $permissions,
             ],
             'ziggy' => fn(): array => [

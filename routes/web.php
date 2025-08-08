@@ -15,6 +15,7 @@ use App\Http\Controllers\AbsentController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SupervisorDepartmentController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -45,6 +46,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('service-tenure/recalculate', [ServiceTenureController::class, 'recalculate'])->name('service-tenure.recalculate');
         Route::post('service-tenure/pay-advancement/store', [ServiceTenureController::class, 'storePayAdvancement'])->name('service-tenure.pay-advancement.store');
     });
+
+    // Supervisor management routes (only for super admin) - moved outside evaluation group
+    Route::get('evaluation/supervisor-management', [SupervisorDepartmentController::class, 'index'])->name('evaluation.supervisor-management');
+    Route::post('evaluation/supervisor-management', [SupervisorDepartmentController::class, 'store'])->name('evaluation.supervisor-management.store');
+    Route::put('evaluation/supervisor-management/{assignment}', [SupervisorDepartmentController::class, 'update'])->name('evaluation.supervisor-management.update');
+    Route::delete('evaluation/supervisor-management/{assignment}', [SupervisorDepartmentController::class, 'destroy'])->name('evaluation.supervisor-management.destroy');
 
     Route::middleware(['permission:View Evaluation'])->group(function () {
         Route::resource('evaluation', EvaluationController::class)->names('evaluation');
@@ -92,7 +99,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Role Management Routes
-        Route::middleware(['permission:View Role'])->group(function () {
+    Route::middleware(['permission:View Role'])->group(function () {
         Route::get('permission/role/index', [RoleController::class, 'index'])->name('role.index');
         Route::get('permission/role/create', [RoleController::class, 'create'])->name('role.create');
         Route::post('permission/role/store', [RoleController::class, 'store'])->name('role.store');

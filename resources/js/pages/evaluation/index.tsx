@@ -31,9 +31,15 @@ interface Props {
     employees: any[];
     evaluations: Evaluation[];
     employees_all: Employees[];
+    user_permissions: {
+        can_evaluate: boolean;
+        is_super_admin: boolean;
+        is_supervisor: boolean;
+        evaluable_departments: string[];
+    };
 }
 
-export default function Index({ evaluations, employees, employees_all }: Props) {
+export default function Index({ evaluations, employees, employees_all, user_permissions }: Props) {
     const [data, setData] = useState<Evaluation[]>(evaluations);
     const [editModelOpen, setEditModalOpen] = useState(false);
     const [isModelOpen, setIsModelOpen] = useState(false);
@@ -44,6 +50,15 @@ export default function Index({ evaluations, employees, employees_all }: Props) 
     const [viewEvaluation, setViewEvaluation] = useState<Evaluation | null>(null);
     const [isEvalModalOpen, setIsEvalModalOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+
+    // Debug logging
+    console.log('Evaluation Index Props:', {
+        evaluationsCount: evaluations?.length,
+        employeesCount: employees?.length,
+        employees_allCount: employees_all?.length,
+        user_permissions,
+        sampleEmployees: employees_all?.slice(0, 3),
+    });
 
     useEffect(() => {
         setTimeout(() => {
@@ -111,6 +126,13 @@ export default function Index({ evaluations, employees, employees_all }: Props) 
         employeeid: emp.employeeid,
     }));
 
+    // Debug logging for mapped data
+    console.log('Mapped Employees Data:', {
+        totalCount: allEmployeesAsEvaluations.length,
+        departments: [...new Set(allEmployeesAsEvaluations.map((emp) => emp.department))],
+        sampleEmployees: allEmployeesAsEvaluations.slice(0, 3),
+    });
+
     return (
         <SidebarProvider>
             <Head title="Evaluation" />
@@ -163,6 +185,7 @@ export default function Index({ evaluations, employees, employees_all }: Props) 
                                                 employees_all={employees_all}
                                                 onRefresh={handleRefresh}
                                                 refreshing={refreshing}
+                                                user_permissions={user_permissions}
                                             />
                                         </CardContent>
                                     </Card>

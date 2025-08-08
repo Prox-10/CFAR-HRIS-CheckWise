@@ -42,9 +42,23 @@ interface DataTableProps<TData, TValue> {
     employees_all: Employees[];
     refreshing?: boolean;
     onRefresh?: () => void;
+    user_permissions?: {
+        can_evaluate: boolean;
+        is_super_admin: boolean;
+        is_supervisor: boolean;
+        evaluable_departments: string[];
+    };
 }
 
-export function DataTable<TData, TValue>({ columns, data, employees, employees_all, refreshing, onRefresh }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({
+    columns,
+    data,
+    employees,
+    employees_all,
+    refreshing,
+    onRefresh,
+    user_permissions,
+}: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
@@ -57,8 +71,11 @@ export function DataTable<TData, TValue>({ columns, data, employees, employees_a
 
     // Use columns as a function with handlers
     const columnsWithHandlers = React.useMemo(
-        () => (typeof columns === 'function' ? columns(setIsModelOpen, setViewModalOpen, setEditModalOpen, setSelectedEvaluation) : columns),
-        [columns],
+        () =>
+            typeof columns === 'function'
+                ? columns(setIsModelOpen, setViewModalOpen, setEditModalOpen, setSelectedEvaluation, user_permissions)
+                : columns,
+        [columns, user_permissions],
     );
 
     const table = useReactTable({
@@ -101,14 +118,14 @@ export function DataTable<TData, TValue>({ columns, data, employees, employees_a
                         </Button> */}
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
-                    <div className="ml-auto flex items-center gap-2">
+                    {/* <div className="ml-auto flex items-center gap-2">
                         {can('Refresh Evaluation List') && (
                             <Button variant="main" onClick={onRefresh} disabled={refreshing} className="" title="Refresh Evaluation List">
                                 <RotateCw className={refreshing ? 'mr-1 h-4 w-4 animate-spin' : 'mr-1 h-4 w-4'} />
                                 {refreshing ? 'Refreshing...' : 'Refresh'}
                             </Button>
                         )}
-                    </div>
+                    </div> */}
                     {/* <Button variant="main" className="ml-auto" onClick={() => setIsModelOpen(true)}> */}
                     {/* <Plus className="mr-2 h-4 w-4" /> */}
                     {/* Add Rating */}

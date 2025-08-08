@@ -52,6 +52,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             LeaveSeeder::class,
             UserSeeder::class,
+            SupervisorDepartmentSeeder::class,
         ]);
     }
 }

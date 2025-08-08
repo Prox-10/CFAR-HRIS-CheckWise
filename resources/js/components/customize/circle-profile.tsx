@@ -5,16 +5,25 @@ import { type User } from '@/types';
 export function CircleProfile({ user, showEmail = false }: { user: User; showEmail?: boolean }) {
     const getInitials = useInitials();
 
+    // Create full name from firstname and lastname
+    const fullName = user.firstname && user.lastname ? `${user.firstname} ${user.lastname}`.trim() : user.firstname || user.lastname || '';
+
     return (
         <>
             <Avatar className="h-8 w-8 overflow-hidden rounded-full">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage
+                    src={user.profile_image || '/Logo.png'}
+                    alt={fullName}
+                    onError={(e) => {
+                        e.currentTarget.src = '/Logo.png';
+                    }}
+                />
                 <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                    {getInitials(user.name)}
+                    {getInitials(fullName)}
                 </AvatarFallback>
             </Avatar>
             {/* <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{fullName}</span>
                 {showEmail && <span className="text-muted-foreground truncate text-xs">{user.email}</span>}
             </div> */}
         </>

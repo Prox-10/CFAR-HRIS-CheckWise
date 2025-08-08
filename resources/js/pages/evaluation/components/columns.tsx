@@ -1,19 +1,25 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { usePermission } from '@/hooks/user-permission';
 import { ColumnDef } from '@tanstack/react-table';
 import { Eye, Star } from 'lucide-react';
 import { Evaluation } from '../types/evaluation';
 import { DataTableColumnHeader } from './data-table-column-header';
-import { } from './editemployeemodal';
-import { usePermission } from '@/hooks/user-permission';
+import {} from './editemployeemodal';
 
-    const columns = (
-        setIsModelOpen: (open: boolean) => void,
-        setViewModalOpen: (open: boolean) => void,
+const columns = (
+    setIsModelOpen: (open: boolean) => void,
+    setViewModalOpen: (open: boolean) => void,
     setEditModalOpen: (open: boolean) => void,
     setSelectedEvaluation: (evaluation: Evaluation | null) => void,
-) : ColumnDef<Evaluation>[] => [
+    user_permissions?: {
+        can_evaluate: boolean;
+        is_super_admin: boolean;
+        is_supervisor: boolean;
+        evaluable_departments: string[];
+    },
+): ColumnDef<Evaluation>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -35,7 +41,7 @@ import { usePermission } from '@/hooks/user-permission';
             const src = row.original.picture;
             const name = row.original.employee_name;
             const empid = row.original.employeeid;
- 
+
             return (
                 <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
@@ -43,13 +49,13 @@ import { usePermission } from '@/hooks/user-permission';
                             <img
                                 src={src}
                                 alt="Profile"
-                                className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
+                                className="animate-scale-in border-main dark:border-darksMain h-12 w-12 rounded-full border-2 object-cover"
                             />
                         ) : (
                             <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500">
                                 <img
                                     src="Logo.png"
-                                    className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
+                                    className="animate-scale-in border-main dark:border-darksMain h-12 w-12 rounded-full border-2 object-cover"
                                 />
                             </div>
                         )}
@@ -123,36 +129,43 @@ import { usePermission } from '@/hooks/user-permission';
         cell: ({ row }) => {
             const evaluation = row.original;
             const { can } = usePermission();
+
+            // Check if user can evaluate this specific employee
+            const canEvaluateThisEmployee =
+                user_permissions?.can_evaluate &&
+                (user_permissions.is_super_admin ||
+                    (user_permissions.is_supervisor && user_permissions.evaluable_departments.includes(evaluation.department)));
+
             return (
                 <>
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 p-0 px-3 hover:bg-green-200"
-                        onClick={() => {
-                            setSelectedEvaluation(evaluation);
-                            setViewModalOpen(true);
-                        }}
-                    >
-                        <span className="sr-only">View</span>
-                        <Eye className="h-4 w-4" />
-                    </Button>
-                    {can('Start Evaluation Rating') && (
-                    <Button
-                        variant="main"
-                        size="icon"
-                        className="h-8 w-8 p-0 px-3 hover:bg-blue-200"
-                        onClick={() => {
-                            if (typeof setSelectedEvaluation === 'function') setSelectedEvaluation(evaluation);
-                            setIsModelOpen(true);
-                        }}
-                    >
-                        <span className="sr-only">Add Rating</span>
-                        <Star className="h-4 w-4" />
-                    </Button>
-                    )}
-                </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 p-0 px-3 hover:bg-green-200"
+                            onClick={() => {
+                                setSelectedEvaluation(evaluation);
+                                setViewModalOpen(true);
+                            }}
+                        >
+                            <span className="sr-only">View</span>
+                            <Eye className="h-4 w-4" />
+                        </Button>
+                        {canEvaluateThisEmployee && can('Start Evaluation Rating') && (
+                            <Button
+                                variant="main"
+                                size="icon"
+                                className="h-8 w-8 p-0 px-3 hover:bg-blue-200"
+                                onClick={() => {
+                                    if (typeof setSelectedEvaluation === 'function') setSelectedEvaluation(evaluation);
+                                    setIsModelOpen(true);
+                                }}
+                            >
+                                <span className="sr-only">Add Rating</span>
+                                <Star className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
                 </>
             );
         },
