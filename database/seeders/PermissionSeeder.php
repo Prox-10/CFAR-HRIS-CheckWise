@@ -101,7 +101,21 @@ class PermissionSeeder extends Seeder
     // Create roles and assign permissions
     $roles = [
       'Super Admin' => $permissions, // All permissions
-     
+      'HR' => $permissions, // All permissions
+      'Manager' => $permissions, // All permissions
+      'Supervisor' => [
+        // Dashboard permissions
+        'View Dashboard',
+
+        // Evaluation permissions
+        'View Evaluation Details',
+        'View Evaluation',
+        'Add Evaluation',
+        'Update Evaluation',
+        'Delete Evaluation',
+        'Start Evaluation Rating',
+        'Refresh Evaluation List',
+      ],
     ];
 
     foreach ($roles as $roleName => $rolePermissions) {
