@@ -63,6 +63,12 @@ const mainNavItems: NavItem[] = [
         permission: 'View Leave',
     },
     {
+        title: 'Settings', 
+        href: '/settings',
+        icon: Settings,
+        permission: 'View Settings',
+    },
+    {
         title: 'Service-Tenure',
         href: '/service-tenure/index',
         icon: Activity,
@@ -146,29 +152,7 @@ const mainNavItems: NavItem[] = [
             },
         ],
     },
-    {
-        title: 'Settings',
-        href: '/settings',
-        icon: Settings,
-        permission: 'View Settings',
-        items: [
-            {
-                title: 'Company Settings',
-                href: '/settings/company',
-                permission: 'View Company Settings',
-            },
-            {
-                title: 'Department Settings',
-                href: '/settings/department',
-                permission: 'View Department Settings',
-            },
-            {
-                title: 'Position Settings',
-                href: '/settings/position',
-                permission: 'View Position Settings',
-            },
-        ],
-    },
+   
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

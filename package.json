@@ -13,7 +13,8 @@
         "push": "git add . && git commit -m \"update: commit via bun script\" && push -u origin kyleDev",
         "route": "php artisan route:cache && php artisan route:clear && php artisan route:list",
         "migrate": "php artisan migrate:fresh --seed",
-        "optimize": "php artisan optimize:clear && php artisan optimize"
+        "optimize": "php artisan optimize:clear && php artisan optimize",
+        "dev": "concurrently \"php artisan serve\" \"bun run vite\""
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",

@@ -12,6 +12,7 @@ import axios from 'axios';
 import { ChevronDownIcon, Fingerprint, Save, Upload, User } from 'lucide-react';
 import { FormEventHandler, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { Department, Position } from '../types/employees';
 import FingerprintCapture from './fingerprintcapture';
 // import RegisterFingerprintModal from './registerfingerprintmodal';
 
@@ -36,12 +37,12 @@ type Employees = {
 interface EmployeeDetails {
     isOpen: boolean;
     onClose: () => void;
+    departments?: Department[];
+    positions?: Position[];
 }
 
-const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
-    const departmentses = ['Admin', 'Packing Plant', 'Harvesting', 'Coop Area', 'P&D', 'Engineering', 'Utility'];
+const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }: EmployeeDetails) => {
     const work_statuses = ['Regular', 'Add Crew'];
-    const positiones = ['Harvester', 'Accounting', 'Cashier', 'Finance(Payroll)', 'Manager', 'Supervisor', 'Packer', 'P&D'];
     const statuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
     const genderes = ['Male', 'Female'];
 
@@ -69,7 +70,7 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                 if (data.type === 'fingerprint_data') {
                     setWsFingerprintData(data);
                 }
-            } catch { }
+            } catch {}
         };
         return () => ws.close();
     }, []);
@@ -216,7 +217,7 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="border-cfar-500 max-h-[90vh] min-w-2xl overflow-y-auto border-2 shadow-2xl">
+            <DialogContent className="max-h-[90vh] min-w-2xl overflow-y-auto border-2 border-cfar-500 shadow-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-green-800">Add New Employee</DialogTitle>
                 </DialogHeader>
@@ -342,7 +343,7 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                                         <Button
                                             variant="outline"
                                             id="date"
-                                            className="w-48 justify-between font-normal border-green-300 focus:border-cfar-500 w-full"
+                                            className="w-48 w-full justify-between border-green-300 font-normal focus:border-cfar-500"
                                             aria-invalid={!!errors.date_of_birth}
                                         >
                                             {birth ? birth.toLocaleDateString() : 'Select birth'}
@@ -379,7 +380,7 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                                         <Button
                                             variant="outline"
                                             id="date"
-                                            className="w-48 justify-between font-normal w-full border-green-300 focus:border-cfar-500"
+                                            className="w-48 w-full justify-between border-green-300 font-normal focus:border-cfar-500"
                                             aria-invalid={!!errors.service_tenure}
                                             disabled={data.work_status === 'Add Crew'}
                                         >
@@ -456,9 +457,9 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                                     <SelectValue placeholder="Select Departments" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {departmentses.map((dept) => (
-                                        <SelectItem key={dept} value={dept}>
-                                            {dept}
+                                    {departments.map((dept) => (
+                                        <SelectItem key={dept.id} value={dept.name}>
+                                            {dept.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -480,9 +481,9 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                                     <SelectValue placeholder="Select Positions" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {positiones.map((pos) => (
-                                        <SelectItem key={pos} value={pos}>
-                                            {pos}
+                                    {positions.map((pos) => (
+                                        <SelectItem key={pos.id} value={pos.name}>
+                                            {pos.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -515,12 +516,7 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                         </div>
                     </div>
                     <div className="ml-auto flex justify-end">
-                        <Button
-                            type="submit"
-                            tabIndex={0}
-                            variant="main"
-                            disabled={processing || !!savedEmployee}
-                        >
+                        <Button type="submit" tabIndex={0} variant="main" disabled={processing || !!savedEmployee}>
                             {processing ? (
                                 <>
                                     <div className="n mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>

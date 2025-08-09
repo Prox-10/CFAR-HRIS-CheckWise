@@ -14,12 +14,13 @@ import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import EditEmployeeModal from './components/editemployeemodal';
 import { SectionCards } from './components/section-cards';
-import { Employees } from './types/employees';
+import { Department, Employees, Position } from './types/employees';
 // import { Employees } from './components/columns';
 import { SiteHeader } from '@/components/employee-site-header';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { ContentLoading } from '@/components/ui/loading';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
+import { usePermission } from '@/hooks/user-permission';
 import axios from 'axios';
 import { useEffect as useLayoutEffect } from 'react';
 import RegisterFingerprintModal from './components/registerfingerprintmodal';
@@ -36,9 +37,25 @@ interface Props {
     employee: Employees[];
     totalDepartment: number;
     totalEmployee: number;
+    departments?: Department[];
+    positions?: Position[];
 }
 
-export default function Employee({ employee, totalEmployee, totalDepartment }: Props) {
+// Move SidebarHoverLogic outside the main component
+function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
+    const { state } = useSidebar();
+    const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
+    return (
+        <>
+            <SidebarHoverZone show={state === 'collapsed'} onMouseEnter={handleMouseEnter} />
+            <AppSidebar onMouseLeave={handleMouseLeave} />
+            {children}
+        </>
+    );
+}
+
+export default function Employee({ employee, totalEmployee, totalDepartment, departments = [], positions = [] }: Props) {
+    const { can } = usePermission();
     const [data, setData] = useState<Employees[]>(employee);
     const [editModelOpen, setEditModalOpen] = useState(false);
     const [isModelOpen, setIsModalOpen] = useState(false);
@@ -59,13 +76,13 @@ export default function Employee({ employee, totalEmployee, totalDepartment }: P
 
     // Expose handler for table button
     useLayoutEffect(() => {
-        window.onRegisterFingerprint = (employee) => {
+        (window as any).onRegisterFingerprint = (employee: Employees) => {
             setRegisterFingerprintEmployee(employee);
             setIsRegisterFingerprintOpen(true);
             toast.info(`Register fingerprint for ${employee.employee_name}`);
         };
         return () => {
-            window.onRegisterFingerprint = undefined;
+            (window as any).onRegisterFingerprint = undefined;
         };
     }, []);
 
@@ -160,8 +177,7 @@ export default function Employee({ employee, totalEmployee, totalDepartment }: P
                                     <Separator className="shadow-sm" />
                                 </Tabs>
                                 <div className="m-3 no-scrollbar">
-
-                                    <Card className="border-main bg-background drop-shadow-lg dark:bg-backgrounds">
+                                    <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                         <CardHeader>
                                             <CardTitle>Employee List</CardTitle>
                                             <CardDescription>List of employee</CardDescription>
@@ -170,13 +186,14 @@ export default function Employee({ employee, totalEmployee, totalDepartment }: P
                                             {/* Replace with your data */}
                                             <DataTable
                                                 columns={columns(
-                                                    setIsViewOpen, // Pass setIsViewOpen
-                                                    setViewEmployee, // Pass setViewEmployee
+                                                    can,
+                                                    setIsViewOpen,
+                                                    (emp) => setViewEmployee(emp),
                                                     setIsModalOpen,
                                                     setEditModalOpen,
-                                                    setSelectedEmployee,
-                                                    handleEdit,
-                                                    handleDelete, 
+                                                    (emp) => setSelectedEmployee(emp),
+                                                    (emp) => handleEdit(emp),
+                                                    handleDelete,
                                                 )}
                                                 // data={employee}
                                                 data={data}
@@ -188,6 +205,8 @@ export default function Employee({ employee, totalEmployee, totalDepartment }: P
                                                 onClose={() => setEditModalOpen(false)}
                                                 employee={selectedEmployee}
                                                 onUpdate={handleUpdate}
+                                                departments={departments}
+                                                positions={positions}
                                             />
                                             <ViewEmployeeDetails
                                                 isOpen={isViewOpen}
@@ -197,7 +216,12 @@ export default function Employee({ employee, totalEmployee, totalDepartment }: P
                                                 onDelete={handleDelete}
                                                 onRegisterFingerprint={handleRegisterFingerprint}
                                             />
-                                            <AddEmployeeModal isOpen={isModelOpen} onClose={() => setIsModalOpen(false)} />
+                                            <AddEmployeeModal
+                                                isOpen={isModelOpen}
+                                                onClose={() => setIsModalOpen(false)}
+                                                departments={departments}
+                                                positions={positions}
+                                            />
                                             <RegisterFingerprintModal
                                                 isOpen={isRegisterFingerprintOpen}
                                                 onClose={() => setIsRegisterFingerprintOpen(false)}
@@ -212,17 +236,5 @@ export default function Employee({ employee, totalEmployee, totalDepartment }: P
                 </SidebarInset>
             </SidebarHoverLogic>
         </SidebarProvider>
-    );
-}
-
-function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
-    const { state } = useSidebar();
-    const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
-    return (
-        <>
-            <SidebarHoverZone show={state === 'collapsed'} onMouseEnter={handleMouseEnter} />
-            <AppSidebar onMouseLeave={handleMouseLeave} />
-            {children}
-        </>
     );
 }

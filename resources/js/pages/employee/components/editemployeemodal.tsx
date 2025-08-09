@@ -7,42 +7,24 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from '@inertiajs/react';
+import { DialogDescription } from '@radix-ui/react-dialog';
 import { ChevronDownIcon, Fingerprint, Upload, User } from 'lucide-react';
 import React, { FormEventHandler, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { Department, Employees, Position } from '../types/employees';
 import FingerprintCapture from './fingerprintcapture';
-import { DialogDescription } from '@radix-ui/react-dialog';
-
-type Employees = {
-    id: string;
-    employeeid: string; 
-    employee_name: string;
-    firstname: string;
-    middlename: string;
-    lastname: string;
-    gender: string;
-    department: string;
-    position: string;
-    phone: string;
-    work_status: string;
-    status: string;
-    email: string; 
-    service_tenure: string;
-    date_of_birth: string;
-    picture: File | null; 
-};
 
 interface EditEmployeeModalProps {
     isOpen: boolean;
     onClose: () => void;
     employee: Employees | null;
     onUpdate: (employee: Employees) => void;
+    departments?: Department[];
+    positions?: Position[];
 }
 
-const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployeeModalProps) => {
-    const departmentses = ['Human Resources', 'Office Staff', 'Packing Area', 'Field Area'];
+const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate, departments = [], positions = [] }: EditEmployeeModalProps) => {
     const work_statuses = ['Regular', 'Add Crew'];
-    const positiones = ['Harvester', 'Accounting', 'Manager', 'Supervisor', 'Packer', 'P&D'];
     const statuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
     const genderes = ['Male', 'Female'];
 
@@ -88,7 +70,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
         service_tenure: '',
         date_of_birth: '',
         email: '',
-        picture: '',
+        picture: null,
         _method: 'PUT',
     });
 
@@ -109,17 +91,14 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                 service_tenure: employee.service_tenure,
                 date_of_birth: employee.date_of_birth,
                 email: employee.email,
-                picture: employee.picture,
+                picture: null,
                 _method: 'PUT',
             });
 
-           
             if (employee.picture) {
-               
-                setPreview(employee.picture);
+                setPreview(employee.picture as unknown as string);
             }
 
-          
             if (employee.service_tenure) {
                 setDate(new Date(employee.service_tenure));
             }
@@ -181,19 +160,16 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
     // };
 
     const handleFileSelection = (file: File) => {
-      
         if (!file.type.match('image.*')) {
             toast.error('Please select an image file');
             return;
         }
 
-        
         if (file.size > 5 * 1024 * 1024) {
             toast.error('Image size should be less than 5MB');
             return;
         }
 
-       
         const reader = new FileReader();
         reader.onload = (e) => {
             const result = e.target?.result as string;
@@ -201,16 +177,13 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
         };
         reader.readAsDataURL(file);
 
-    
         setSelectedFile(file);
         setData('picture', file);
     };
 
-
-     const handleFingerprintCapture = (fingerprintData: string) => {
-         ({ fingerprintImage: fingerprintData });
-     };
-
+    const handleFingerprintCapture = (fingerprintData: any) => {
+        // TODO: integrate with form as needed
+    };
 
     const closeModalWithDelay = (delay: number = 1000) => {
         setTimeout(() => {
@@ -234,7 +207,6 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
         event.preventDefault();
         setLoading(true);
 
-     
         post(route('employee.update', employee?.id), {
             forceFormData: true,
             onSuccess: () => {
@@ -272,7 +244,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-h-[90vh] min-w-2xl overflow-y-auto border-2 border-main shadow-2xl">
+            <DialogContent className="border-main max-h-[90vh] min-w-2xl overflow-y-auto border-2 shadow-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-main">Update Employee</DialogTitle>
                     <DialogDescription className="text-muted-foreground">Employee details updating</DialogDescription>
@@ -390,7 +362,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                         <Button
                                             variant="outline"
                                             id="date"
-                                            className="w-48 justify-between border-main font-normal sm:w-auto"
+                                            className="border-main w-48 justify-between font-normal sm:w-auto"
                                             aria-invalid={!!errors.date_of_birth}
                                         >
                                             {birth ? birth.toLocaleDateString() : 'Select birth'}
@@ -426,7 +398,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                         <Button
                                             variant="outline"
                                             id="date"
-                                            className="w-48 justify-between border-main font-normal sm:w-auto"
+                                            className="border-main w-48 justify-between font-normal sm:w-auto"
                                             aria-invalid={!!errors.service_tenure}
                                         >
                                             {date ? date.toLocaleDateString() : 'Select date'}
@@ -487,9 +459,9 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                     <SelectValue placeholder="Select Departments" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {departmentses.map((dept) => (
-                                        <SelectItem key={dept} value={dept}>
-                                            {dept}
+                                    {departments.map((dept) => (
+                                        <SelectItem key={dept.id} value={dept.name}>
+                                            {dept.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -504,9 +476,9 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                     <SelectValue placeholder="Select Positions" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {positiones.map((pos) => (
-                                        <SelectItem key={pos} value={pos}>
-                                            {pos}
+                                    {positions.map((pos) => (
+                                        <SelectItem key={pos.id} value={pos.name}>
+                                            {pos.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -546,7 +518,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                     {/* Image preview section */}
                     <div className="space-y-4">
                         <div
-                            className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-main bg-green-50 p-6 transition-colors hover:bg-green-100"
+                            className="border-main flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed bg-green-50 p-6 transition-colors hover:bg-green-100"
                             onClick={handleProfileImageUpload}
                         >
                             {preview ? (
@@ -555,7 +527,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                     <img
                                         src={preview}
                                         alt="Preview"
-                                        className="mx-auto mb-3 h-24 w-24 rounded-full border-2 border-main object-cover"
+                                        className="border-main mx-auto mb-3 h-24 w-24 rounded-full border-2 object-cover"
                                         onError={(e) => {
                                             e.currentTarget.src = `https://ui-avatars.com/api/?name=User&background=22c55e&color=fff`;
                                         }}
@@ -577,7 +549,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                             <Button
                                 type="button"
                                 onClick={handleProfileImageUpload}
-                                className="bg-main text-black transition duration-200 ease-in hover:bg-main"
+                                className="bg-main hover:bg-main text-black transition duration-200 ease-in"
                             >
                                 <Upload className="mr-2 h-4 w-4" />
                                 Upload Profile Image
@@ -586,10 +558,10 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
 
                         <div className="md:col-span-2">
                             <Label className="mb-3 flex items-center gap-2">
-                                <Fingerprint className="h-4 w-4 text-main" />
+                                <Fingerprint className="text-main h-4 w-4" />
                                 Fingerprint Capture
                             </Label>
-                            <FingerprintCapture onCapture={handleFingerprintCapture} captured={false} />
+                            <FingerprintCapture onFingerprintCaptured={handleFingerprintCapture} employeeId={data.employeeid} />
                         </div>
                     </div>
 
@@ -600,7 +572,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                         <Button
                             type="submit"
                             disabled={processing || loading}
-                            className="bg-main font-semibold text-black transition duration-200 ease-in hover:bg-main"
+                            className="bg-main hover:bg-main font-semibold text-black transition duration-200 ease-in"
                         >
                             {processing || loading ? 'Updating...' : 'Update Employee'}
                         </Button>

@@ -6,7 +6,7 @@ export interface Employees {
     firstname: string;
     middlename: string;
     lastname: string;
-    picture: string;
+    picture: string; // URL from backend for listing/views
     gender: string;
     department: string;
     position: string;
@@ -16,5 +16,15 @@ export interface Employees {
     status: string;
     service_tenure: string;
     email: string;
-    fingerprints?: any[]; // Add this line to support fingerprint info from backend
+    fingerprints?: any[]; // Fingerprint info from backend
+}
+
+export interface Department {
+    id: number;
+    name: string;
+}
+
+export interface Position {
+    id: number;
+    name: string;
 }
