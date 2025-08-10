@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Activity, CalendarPlus2, FileText, Fingerprint, LayoutGrid, NotebookPen, Settings, ShieldCheck, User2 } from 'lucide-react';
+import { Activity, CalendarPlus2, FileText, Fingerprint, LayoutGrid, NotebookPen, ShieldCheck, User2 } from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -63,10 +63,10 @@ const mainNavItems: NavItem[] = [
         permission: 'View Leave',
     },
     {
-        title: 'Settings', 
-        href: '/settings',
-        icon: Settings,
-        permission: 'View Settings',
+        title: 'Absence',
+        href: '/absence',
+        icon: CalendarPlus2,
+        permission: 'View Absence',
     },
     {
         title: 'Service-Tenure',

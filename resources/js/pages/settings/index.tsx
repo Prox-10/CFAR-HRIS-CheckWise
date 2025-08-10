@@ -15,8 +15,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { PageProps } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { type PageProps } from '@/types';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Building2, Edit, Plus, Trash2, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
@@ -79,10 +79,9 @@ export default function SettingsIndex() {
                 },
             });
         } else {
-            departmentForm.post(route('settings.departments.store'), {
+            router.post(route('settings.departments.store'), departmentForm.data, {
                 onSuccess: () => {
-                    setIsDepartmentDialogOpen(false);
-                    departmentForm.reset();
+                    router.reload({ only: ['departments', 'positions'] });
                 },
             });
         }
@@ -100,12 +99,11 @@ export default function SettingsIndex() {
                 },
             });
         } else {
-            positionForm.post(route('settings.positions.store'), {
+            router.post(route('settings.positions.store'), positionForm.data, {
                 onSuccess: () => {
-                    setIsPositionDialogOpen(false);
-                    positionForm.reset();
+                    router.reload({ only: ['departments', 'positions'] });
                 },
-            });
+            }); 
         }
     };
 

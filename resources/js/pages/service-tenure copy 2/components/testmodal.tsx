@@ -1,4 +1,3 @@
-import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -7,80 +6,100 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from '@inertiajs/react';
-import { DialogDescription } from '@radix-ui/react-dialog';
 import { ChevronDownIcon, Fingerprint, Upload, User } from 'lucide-react';
-import React, { FormEventHandler, useEffect, useRef, useState } from 'react';
+import { FormEventHandler, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Department, Employees, Position } from '../types/employees';
 import FingerprintCapture from './fingerprintcapture';
+import InputError from '@/components/input-error';
 
-interface EditEmployeeModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    employee: Employees | null;
-    onUpdate: (employee: Employees) => void;
-   
+
+type Employees = {
+    employeeid: string;
+    employee_name: string;
+    firstname: string;
+    middlename: string;
+    lastname: string;
+    gender: string;
+    department: string;
+    position: string;
+    phone: string;
+    work_status: string;
+    status: string;
+    email: string;
+    service_tenure: string;
+    picture: File | null;
+    
 }
 
-const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployeeModalProps) => {
+const TestModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+    const departmentses = ['Human Resources', 'Finance', 'IT', 'Operations', 'Production'];
     const work_statuses = ['Regular', 'Add Crew'];
+    const positiones = [
+        'Harvester',
+        'Accounting',
+        'Manager',
+        'Supervisor',
+        'Driver',
+        'Security',
+        'Technician',
+        'Support Staff',
+        'Packer',
+        'P&D',
+        'Quality Control',
+        'Logistics',
+        'Warehouse Staff',
+        'Maintenance',
+        'Field Worker',
+    ];
     const statuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
     const genderes = ['Male', 'Female'];
-    const departments = [
-        'Administration',
-        'Finance & Accounting',
-        'Human Resources',
-        'Quality Control',
-        'Production',
-        'Field Operations',
-        'Logistics & Distribution',
-        'Research & Development',
-        'Sales & Marketing',
-        'Maintenance',
-    ];
-
-    const positions = [
-        'Admin Assistant',
-        'Accountant',
-        'HR Officer',
-        'Quality Inspector',
-        'Production Supervisor',
-        'Field Worker',
-        'Field Supervisor',
-        'Logistics Coordinator',
-        'R&D Specialist',
-        'Sales Executive',
-        'Maintenance Technician',
-    ];
 
     const [open, setOpen] = useState(false);
-    const [openBirth, setOpenBirth] = useState(false);
     const [date, setDate] = useState<Date | undefined>(undefined);
-    const [birth, setBirth] = useState<Date | undefined>(undefined);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [loading, setLoading] = useState(false);
     const [preview, setPreview] = useState<string>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [employees, setEmployees] = useState<Employees[]>([]);
 
-    const { data, setData, errors, processing, reset, post } = useForm<{
-        employeeid: string;
-        employee_name: string;
-        firstname: string;
-        middlename: string;
-        lastname: string;
-        gender: string;
-        department: string;
-        position: string;
-        phone: string;
-        work_status: string;
-        status: string;
-        email: string;
-        service_tenure: string;
-        date_of_birth: string;
-        picture: File | null;
-        _method: string;
-    }>({
+    interface FlashProps extends Record<string, any> {
+        flash?: {
+            success?: string;
+            error?: string;
+        };
+    }
+
+    const handleFingerprintCapture = (fingerprintData: string) => {
+        ({ fingerprintImage: fingerprintData });
+    };
+
+    const handleFileSelect = (file: File) => {
+        setSelectedFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const result = e.target?.result as string;
+            setPreview(result);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleProfileImageUpload = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+
+        input.onchange = (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (file) {
+                handleFileSelect(file);
+            }
+        };
+
+        input.click();
+    };
+
+    const { data, setData, errors, processing, reset, post  } = useForm<Employees>({
         employeeid: '',
         employee_name: '',
         firstname: '',
@@ -93,188 +112,57 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
         work_status: '',
         status: '',
         service_tenure: '',
-        date_of_birth: '',
         email: '',
         picture: null,
-        _method: 'PUT',
+        // _method: 'POST',
     });
 
-    useEffect(() => {
-        if (employee) {
-            setData({
-                employeeid: employee.employeeid,
-                employee_name: employee.employee_name,
-                firstname: employee.firstname,
-                middlename: employee.middlename || '',
-                lastname: employee.lastname,
-                gender: employee.gender,
-                department: employee.department,
-                position: employee.position,
-                phone: employee.phone,
-                work_status: employee.work_status,
-                status: employee.status,
-                service_tenure: employee.service_tenure,
-                date_of_birth: employee.date_of_birth,
-                email: employee.email,
-                picture: null,
-                _method: 'PUT',
-            });
+   const closeModalWithDelay = (delay: number = 1000) => {
+       setTimeout(() => {
+           onClose(); 
+           reset(); 
+           setDate(undefined); 
+           setPreview(''); 
+           setSelectedFile(null); 
+       }, delay);
+   };
 
-            if (employee.picture) {
-                setPreview(employee.picture as unknown as string);
-            }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
-            if (employee.service_tenure) {
-                setDate(new Date(employee.service_tenure));
-            }
-            if (employee.date_of_birth) {
-                setBirth(new Date(employee.date_of_birth));
-            }
-        }
-    }, [employee]);
+       const file = e.target.files?.[0];
+       if(file){
+           setData('picture', file)
+       }
 
-    const handleProfileImageUpload = () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = (e) => {
-            const file = (e.target as HTMLInputElement).files?.[0];
-            if (file) {
-                handleFileSelection(file);
-            }
-        };
-        input.click();
-    };
+  };
 
-    // const handleProfileImageUpload = () => {
-    //     const input = document.createElement('input');
-    //     input.type = 'file';
-    //     input.accept = 'image/*';
-    //     input.onchange = (e) => {
-    //         const file = (e.target as HTMLInputElement).files?.[0];
-    //         if (file) {
-    //             // Validate file type (image only)
-    //             if (!file.type.match('image.*')) {
-    //                 toast.error('Please select an image file');
-    //                 return;
-    //             }
+  const handleSubmit: FormEventHandler = (event) => {
+      event.preventDefault();
+      console.log('Form Data before submit:', data); 
+      post(route('test.store'), {
+        
+          onSuccess: (response: { props: FlashProps }) => {
+              const successMessage = response.props.flash?.success || 'Category created successfully.';
+              toast.success(successMessage);
+              closeModalWithDelay(1200);
+          },
+          onError: (error: Record<string, string>) => {
+              const errorMessage = error?.message || 'Failed to create category.';
+              toast.error(errorMessage);
+          },
+      });
+  };
 
-    //             // Validate file size (max 2MB)
-    //             if (file.size > 2 * 1024 * 1024) {
-    //                 toast.error('Image size should be less than 2MB');
-    //                 return;
-    //             }
 
-    //             // Handle file preview and update the form data
-    //             const reader = new FileReader();
-    //             reader.onload = (e) => {
-    //                 const result = e.target?.result as string;
-    //                 setPreview(result); // Set image preview
-    //             };
-    //             reader.readAsDataURL(file);
 
-    //             // Update the selectedFile and form data
-    //             setSelectedFile(file);
-    //             setData({
-    //                 ...data,
-    //                 picture: file, // Update the picture field in form data
-    //             });
-    //         }
-    //     };
-    //     input.click();
-    // };
-
-    const handleFileSelection = (file: File) => {
-        if (!file.type.match('image.*')) {
-            toast.error('Please select an image file');
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error('Image size should be less than 5MB');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const result = e.target?.result as string;
-            setPreview(result);
-        };
-        reader.readAsDataURL(file);
-
-        setSelectedFile(file);
-        setData('picture', file);
-    };
-
-    const handleFingerprintCapture = (fingerprintData: any) => {
-        // TODO: integrate with form as needed
-    };
-
-    const closeModalWithDelay = (delay: number = 1000) => {
-        setTimeout(() => {
-            onClose();
-            reset();
-            setDate(undefined);
-            setBirth(undefined);
-            setPreview('');
-            setSelectedFile(null);
-        }, delay);
-    };
-
-    // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     const file = e.target.files?.[0];
-    //     if (file) {
-    //         handleFileSelection(file);
-    //     }
-    // };
-
-    const handleSubmit: FormEventHandler = (event: React.FormEvent) => {
-        event.preventDefault();
-        setLoading(true);
-
-        post(route('employee.update', employee?.id), {
-            forceFormData: true,
-            onSuccess: () => {
-                toast.success('Employee updated successfully');
-                if (employee) {
-                    onUpdate({
-                        ...employee,
-                        employeeid: data.employeeid,
-                        firstname: data.firstname,
-                        middlename: data.middlename,
-                        lastname: data.lastname,
-                        gender: data.gender,
-                        department: data.department,
-                        position: data.position,
-                        phone: data.phone,
-                        work_status: data.work_status,
-                        status: data.status,
-                        service_tenure: data.service_tenure,
-                        date_of_birth: data.date_of_birth,
-                        email: data.email,
-                    });
-                }
-                closeModalWithDelay(1200);
-            },
-            onError: (errors: any) => {
-                toast.error('Failed to update employee');
-                console.error('Update error:', errors);
-            },
-            onFinish: () => {
-                setLoading(false);
-            },
-            preserveScroll: true,
-        });
-    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="border-main max-h-[90vh] min-w-2xl overflow-y-auto border-2 shadow-2xl">
+            <DialogContent className="max-h-[90vh] min-w-2xl overflow-y-auto border-2 border-main shadow-2xl">
                 <DialogHeader>
-                    <DialogTitle className="text-main">Update Employee</DialogTitle>
-                    <DialogDescription className="text-muted-foreground">Employee details updating</DialogDescription>
+                    <DialogTitle className="text-green-800">Add New Employee</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-2">
+                <form onSubmit={handleSubmit} className="space-y-2" encType="multipart/form-data">
                     {message && (
                         <div className={`rounded p-2 ${message.type === 'success' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
                             {message.text}
@@ -289,8 +177,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 placeholder="Enter employee id...."
                                 value={data.employeeid}
                                 onChange={(e) => setData('employeeid', e.target.value)}
-                                className="border-main focus:border-green-500"
-                                aria-invalid={!!errors.employeeid}
+                                className="border-green-300 focus:border-green-500"
                             />
                             <InputError message={errors.employeeid} />
                         </div>
@@ -302,21 +189,21 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 placeholder="Enter firstname"
                                 value={data.firstname}
                                 onChange={(e) => setData('firstname', e.target.value)}
-                                className="border-main focus:border-green-500"
-                                aria-invalid={!!errors.firstname}
+                                className="border-green-300 focus:border-green-500"
                             />
                             <InputError message={errors.firstname} />
                         </div>
                         <div>
                             <Label>Middlename</Label>
-                            <span className="ms-2 text-[15px] font-medium text-muted">*</span>
+                            <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                             <Input
                                 type="text"
                                 placeholder="Enter middlename"
                                 value={data.middlename}
                                 onChange={(e) => setData('middlename', e.target.value)}
-                                className="border-main focus:border-green-500"
+                                className="border-green-300 focus:border-green-500"
                             />
+                            <InputError message={errors.middlename} />
                         </div>
                         <div>
                             <Label>Lastname</Label>
@@ -326,8 +213,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 placeholder="Enter lastname"
                                 value={data.lastname}
                                 onChange={(e) => setData('lastname', e.target.value)}
-                                className="border-main focus:border-green-500"
-                                aria-invalid={!!errors.lastname}
+                                className="border-green-300 focus:border-green-500"
                             />
                             <InputError message={errors.lastname} />
                         </div>
@@ -339,8 +225,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 placeholder="Enter email"
                                 value={data.email}
                                 onChange={(e) => setData('email', e.target.value)}
-                                className="border-main focus:border-green-500"
-                                aria-invalid={!!errors.email}
+                                className="border-green-300 focus:border-green-500"
                             />
                             <InputError message={errors.email} />
                         </div>
@@ -353,8 +238,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 placeholder="Enter phone number..."
                                 value={data.phone}
                                 onChange={(e) => setData('phone', e.target.value)}
-                                className="border-main focus:border-green-500"
-                                aria-invalid={!!errors.phone}
+                                className="border-green-300 focus:border-green-500"
                             />
                             <InputError message={errors.phone} />
                         </div>
@@ -362,8 +246,14 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                         <div>
                             <Label htmlFor="gender">Gender</Label>
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                            <Select value={data.gender} onValueChange={(value) => setData('gender', value)} aria-invalid={!!errors.gender}>
-                                <SelectTrigger className="border-main focus:border-green-500">
+                            <Select
+                                value={data.gender}
+                                onValueChange={(value) => {
+                                    console.log('Selected Gender:', value);
+                                    setData('gender', value);
+                                }}
+                            >
+                                <SelectTrigger className="border-green-300 focus:border-green-500">
                                     <SelectValue placeholder="Select Gender" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -379,53 +269,12 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
 
                         <div>
                             <div className="flex flex-col gap-3">
-                                <Label htmlFor="dateBirth" className="px-1">
-                                    Date of Birth
-                                </Label>
-                                <Popover open={openBirth} onOpenChange={setOpenBirth}>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            id="date"
-                                            className="border-main w-48 justify-between font-normal sm:w-auto"
-                                            aria-invalid={!!errors.date_of_birth}
-                                        >
-                                            {birth ? birth.toLocaleDateString() : 'Select birth'}
-                                            <ChevronDownIcon />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={birth}
-                                            captionLayout="dropdown"
-                                            onSelect={(selectedBirth) => {
-                                                setBirth(selectedBirth);
-                                                setOpenBirth(false);
-                                                if (selectedBirth) {
-                                                    const localDateString = selectedBirth.toLocaleDateString('en-CA');
-                                                    setData('date_of_birth', localDateString);
-                                                }
-                                            }}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <InputError message={errors.date_of_birth} />
-                            </div>
-                        </div>
-                        <div>
-                            <div className="flex flex-col gap-3">
                                 <Label htmlFor="date" className="px-1">
                                     Date of Service Tenure
                                 </Label>
                                 <Popover open={open} onOpenChange={setOpen}>
                                     <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            id="date"
-                                            className="border-main w-48 justify-between font-normal sm:w-auto"
-                                            aria-invalid={!!errors.service_tenure}
-                                        >
+                                        <Button variant="outline" id="date" className="w-48 justify-between font-normal">
                                             {date ? date.toLocaleDateString() : 'Select date'}
                                             <ChevronDownIcon />
                                         </Button>
@@ -439,7 +288,8 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                                 setDate(selectedDate);
                                                 setOpen(false);
                                                 if (selectedDate) {
-                                                    const localDateString = selectedDate.toLocaleDateString('en-CA');
+                                                    const localDateString = selectedDate.toLocaleDateString('en-CA'); // YYYY-MM-DD in local timezone
+                                                    console.log('Selected Local Date:', localDateString);
                                                     setData('service_tenure', localDateString);
                                                 }
                                             }}
@@ -455,10 +305,12 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                             <Select
                                 value={data.work_status}
-                                onValueChange={(value) => setData('work_status', value)}
-                                aria-invalid={!!errors.work_status}
+                                onValueChange={(value) => {
+                                    console.log('Selected Work Status:', value);
+                                    setData('work_status', value);
+                                }}
                             >
-                                <SelectTrigger className="border-main focus:border-green-500">
+                                <SelectTrigger className="border-green-300 focus:border-green-500">
                                     <SelectValue placeholder="Select Work Status" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -477,14 +329,16 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                             <Select
                                 value={data.department}
-                                onValueChange={(value) => setData('department', value)}
-                                aria-invalid={!!errors.department}
+                                onValueChange={(value) => {
+                                    console.log('Selected Departments:', value);
+                                    setData('department', value);
+                                }}
                             >
-                                <SelectTrigger className="border-main focus:border-green-500">
+                                <SelectTrigger className="border-green-300 focus:border-green-500">
                                     <SelectValue placeholder="Select Departments" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {departments.map((dept) => (
+                                    {departmentses.map((dept) => (
                                         <SelectItem key={dept} value={dept}>
                                             {dept}
                                         </SelectItem>
@@ -496,12 +350,18 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                         <div>
                             <Label htmlFor="positions">Positions</Label>
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                            <Select value={data.position} onValueChange={(value) => setData('position', value)} aria-invalid={!!errors.position}>
-                                <SelectTrigger className="border-main focus:border-green-500">
+                            <Select
+                                value={data.position}
+                                onValueChange={(value) => {
+                                    console.log('Selected Positions:', value);
+                                    setData('position', value);
+                                }}
+                            >
+                                <SelectTrigger className="border-green-300 focus:border-green-500">
                                     <SelectValue placeholder="Select Positions" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {positions.map((pos) => (
+                                    {positiones.map((pos) => (
                                         <SelectItem key={pos} value={pos}>
                                             {pos}
                                         </SelectItem>
@@ -513,8 +373,14 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                         <div>
                             <Label htmlFor="status">Status</Label>
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                            <Select value={data.status} onValueChange={(value) => setData('status', value)} aria-invalid={!!errors.status}>
-                                <SelectTrigger className="border-main focus:border-green-500">
+                            <Select
+                                value={data.status}
+                                onValueChange={(value) => {
+                                    console.log('Selected Status:', value);
+                                    setData('status', value);
+                                }}
+                            >
+                                <SelectTrigger className="border-green-300 focus:border-green-500">
                                     <SelectValue placeholder="Select Status" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -537,13 +403,11 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                             </Label>
                         </div>
 
-                        {/* <Input type="file" name="image" onChange={handleFileChange} className="w-full" accept="image/*" ref={fileInputRef} />
-                        <InputError message={errors.picture} /> */}
+                        <Input type="file" name="picture" onChange={handleFileChange} className="w-full" accept="image/*" />
                     </div>
-                    {/* Image preview section */}
                     <div className="space-y-4">
                         <div
-                            className="border-main flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed bg-green-50 p-6 transition-colors hover:bg-green-100"
+                            className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
                             onClick={handleProfileImageUpload}
                         >
                             {preview ? (
@@ -552,9 +416,9 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                     <img
                                         src={preview}
                                         alt="Preview"
-                                        className="border-main mx-auto mb-3 h-24 w-24 rounded-full border-2 object-cover"
+                                        className="mx-auto mb-3 h-24 w-24 rounded-full border-2 border-green-300 object-cover"
                                         onError={(e) => {
-                                            e.currentTarget.src = `https://ui-avatars.com/api/?name=User&background=22c55e&color=fff`;
+                                            e.currentTarget.src = `${'User'}&background=22c55e&color=fff`;
                                         }}
                                     />
                                     <p className="font-medium text-green-800">Profile Image Selected</p>
@@ -574,7 +438,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                             <Button
                                 type="button"
                                 onClick={handleProfileImageUpload}
-                                className="bg-main hover:bg-main text-black transition duration-200 ease-in"
+                                className="bg-main text-black transition duration-200 ease-in hover:bg-green-300"
                             >
                                 <Upload className="mr-2 h-4 w-4" />
                                 Upload Profile Image
@@ -583,23 +447,22 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
 
                         <div className="md:col-span-2">
                             <Label className="mb-3 flex items-center gap-2">
-                                <Fingerprint className="text-main h-4 w-4" />
+                                <Fingerprint className="h-4 w-4 text-green-600" />
                                 Fingerprint Capture
                             </Label>
-                            <FingerprintCapture onFingerprintCaptured={handleFingerprintCapture} employeeId={data.employeeid} />
+                            <FingerprintCapture onCapture={handleFingerprintCapture} captured={false} />
                         </div>
                     </div>
-
                     <DialogFooter>
                         <Button variant="outline" type="button" onClick={() => closeModalWithDelay(0)} disabled={processing}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
-                            disabled={processing || loading}
-                            className="bg-main hover:bg-main font-semibold text-black transition duration-200 ease-in"
+                            disabled={processing}
+                            className="bg-main font-semibold text-black transition duration-200 ease-in hover:bg-green-300"
                         >
-                            {processing || loading ? 'Updating...' : 'Update Employee'}
+                            {processing ? 'Processing...' : 'Add Payment'}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -608,4 +471,4 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
     );
 };
 
-export default EditEmployeeModal;
+export default TestModal;

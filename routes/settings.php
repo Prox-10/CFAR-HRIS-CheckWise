@@ -20,18 +20,4 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('settings/appearance');
     })->name('appearance');
 
-    // Settings management routes
-    Route::middleware(['permission:View Settings'])->group(function () {
-        Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
-
-        // Department routes
-        Route::post('settings/departments', [SettingsController::class, 'storeDepartment'])->name('settings.departments.store');
-        Route::put('settings/departments/{department}', [SettingsController::class, 'updateDepartment'])->name('settings.departments.update');
-        Route::delete('settings/departments/{department}', [SettingsController::class, 'destroyDepartment'])->name('settings.departments.destroy');
-
-        // Position routes
-        Route::post('settings/positions', [SettingsController::class, 'storePosition'])->name('settings.positions.store');
-        Route::put('settings/positions/{position}', [SettingsController::class, 'updatePosition'])->name('settings.positions.update');
-        Route::delete('settings/positions/{position}', [SettingsController::class, 'destroyPosition'])->name('settings.positions.destroy');
-    });
 });

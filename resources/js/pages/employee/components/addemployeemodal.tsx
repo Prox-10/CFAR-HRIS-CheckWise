@@ -12,7 +12,7 @@ import axios from 'axios';
 import { ChevronDownIcon, Fingerprint, Save, Upload, User } from 'lucide-react';
 import { FormEventHandler, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Department, Position } from '../types/employees';
+import { departments, positions } from '@/hooks/data';
 import FingerprintCapture from './fingerprintcapture';
 // import RegisterFingerprintModal from './registerfingerprintmodal';
 
@@ -37,14 +37,13 @@ type Employees = {
 interface EmployeeDetails {
     isOpen: boolean;
     onClose: () => void;
-    departments?: Department[];
-    positions?: Position[];
 }
 
-const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }: EmployeeDetails) => {
+const AddEmployeeModal = ({ isOpen, onClose}: EmployeeDetails) => {
     const work_statuses = ['Regular', 'Add Crew'];
     const statuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
     const genderes = ['Male', 'Female'];
+
 
     const [openService, setOpenService] = useState(false);
     const [openBirth, setOpenBirth] = useState(false);
@@ -67,7 +66,7 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
         ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                if (data.type === 'fingerprint_data') {
+                if (data.type === 'fingerprint_data') { 
                     setWsFingerprintData(data);
                 }
             } catch {}
@@ -458,8 +457,8 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                                 </SelectTrigger>
                                 <SelectContent>
                                     {departments.map((dept) => (
-                                        <SelectItem key={dept.id} value={dept.name}>
-                                            {dept.name}
+                                        <SelectItem key={dept} value={dept}>
+                                            {dept}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -482,8 +481,8 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                                 </SelectTrigger>
                                 <SelectContent>
                                     {positions.map((pos) => (
-                                        <SelectItem key={pos.id} value={pos.name}>
-                                            {pos.name}
+                                        <SelectItem key={pos} value={pos}>
+                                            {pos}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

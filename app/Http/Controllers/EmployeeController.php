@@ -7,8 +7,6 @@ use App\Http\Requests\EmployeeRequest;
 use Inertia\Inertia;
 use App\Models\Employee;
 use App\Models\Fingerprint;
-use App\Models\Department;
-use App\Models\Position;
 use Inertia\Response;
 use Illuminate\Support\Facades\Log;
 
@@ -66,23 +64,12 @@ class EmployeeController extends Controller
         $prevTotalEmployee = Employee::where('created_at', '<', now()->startOfMonth())->distinct('employeeid')->count('employeeid');
         $prevTotalDepartment = Employee::where('created_at', '<', now()->startOfMonth())->distinct('department')->count('department');
 
-        // Get departments and positions for forms
-        $departments = Department::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        $positions = Position::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
         return Inertia::render('employee/index', [
             'employee'        => $transformedEmployees,
             'totalEmployee'   => $totalEmployee,
             'prevTotalEmployee' => $prevTotalEmployee,
             'totalDepartment' => $totalDepartment,
             'prevTotalDepartment' => $prevTotalDepartment,
-            'departments'     => $departments,
-            'positions'       => $positions,
         ]);
     }
 

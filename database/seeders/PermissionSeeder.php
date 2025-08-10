@@ -32,6 +32,7 @@ class PermissionSeeder extends Seeder
       'Add Attendance',
       'Update Attendance',
       'Delete Attendance',
+      'Set Session Times',
 
       // Evaluation permissions
       'View Evaluation Details',
@@ -89,6 +90,14 @@ class PermissionSeeder extends Seeder
       'Add Permission',
       'Update Permission',
       'Delete Permission',
+
+      // Absence permissions
+      'View Absence',
+      'View Absence Details',
+      'Add Absence',
+      'Update Absence',
+      'Delete Absence',
+      'Absence Request',
 
       // Access Management permissions
       'View Access',

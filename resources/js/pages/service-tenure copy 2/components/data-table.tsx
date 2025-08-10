@@ -1,5 +1,3 @@
-//Filename: data-table.tsx
-
 'use client';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
@@ -13,7 +11,7 @@ import {
     SortingState,
     useReactTable,
 } from '@tanstack/react-table';
-import { Plus, RotateCw } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import * as React from 'react';
 
 import { DataTableViewOptions } from '@/components/column-toggle';
@@ -21,26 +19,29 @@ import { DataTablePagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useState } from 'react';
-import AddPaymentModal from './addemployeemodal';
-
+import AddPaymentModal from './testmodal';
+// import { Employees } from './columns';
 import { DataTableToolbar } from './data-tool-bar';
-import { usePermission } from '@/hooks/user-permission';
-
+// import { Employees } from '../types/employees';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
-    onRefresh?: () => void;
-    refreshing?: boolean;
 }
 
-export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+    // const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [isModelOpen, setIsModelOpen] = useState(false);
-    const { can } = usePermission();
+    // const [isViewOpen, setIsViewOpen] = useState(false);
+    // const [rowSelection, setRowSelection] = React.useState({});
+    // const [isEditOpen, setIsEditOpen] = useState(false);
+    // const [selectedEmployee, setSelectedEmployee] = useState<Employees | null>(null);
+    // const [viewEmployee, setViewEmployee] = useState<Employees | null>(null);
+
     const table = useReactTable({
-        data,
+        data: data || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
@@ -54,41 +55,35 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
         },
         initialState: {
             pagination: {
-                pageIndex: 0,
-                pageSize: 5,
+                pageIndex: 0, //custom initial page index
+                pageSize: 5, //custom default page size
             },
         },
     });
 
     return (
         <div className="space-y-4">
+            {/* <DataTableToolbar table={table} /> */}
             <div className="flex items-center py-4">
+                {/* <Input
+                    placeholder="Filter employee..."
+                    value={(table.getColumn('employee_name')?.getFilterValue() as string) ?? ''}
+                    onChange={(event) => table.getColumn('employee_name')?.setFilterValue(event.target.value)}
+                    className="max-w-sm"
+                /> */}
                 <DataTableToolbar table={table} />
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
+                        {/* <Button variant="outline" className="ml-auto">
+                            Columns
+                        </Button> */}
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
-                    <div className="flex items-center gap-2 ml-auto">
-                        {can('Refresh Employee') && (
-                    <Button
-                        variant="main"
-                        onClick={onRefresh}
-                        disabled={refreshing}
-                        className=""
-                        title="Refresh Employee List"
-                    >
-                        <RotateCw className={refreshing ? 'animate-spin mr-1 h-4 w-4' : 'mr-1 h-4 w-4'} />
-                        {refreshing ? 'Refreshing...' : 'Refresh'}
-                    </Button>
-                    )}
-                    {can('Add Employee') && (
-                    <Button variant="main" className="" onClick={() => setIsModelOpen(true)}>
+                    <Button variant="main" className="ml-auto" onClick={() => setIsModelOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" />
-                            Add Employee
-                        </Button>
-                    )}
-                    </div>
+                        Add Employee
+                    </Button>
                     <DropdownMenuContent align="end">
                         {table
                             .getAllColumns()
@@ -110,7 +105,7 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
             </div>
             <div className="animate-fade-in rounded-md">
                 <Table className="animate-fade-in rounded-md">
-                    <TableHeader className="rounded-t-md bg-green-100 dark:bg-green-950 border-b border-green-200 dark:border-green-800">
+                    <TableHeader className="rounded-t-md bg-green-100 dark:text-darkMain">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
@@ -139,7 +134,7 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    <span className="text-sm font-semibold">No Employee Data</span>
+                                    No Employee Data
                                 </TableCell>
                             </TableRow>
                         )}

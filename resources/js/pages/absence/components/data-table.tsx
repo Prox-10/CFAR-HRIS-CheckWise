@@ -1,5 +1,3 @@
-//Filename: data-table.tsx
-
 'use client';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
@@ -13,34 +11,37 @@ import {
     SortingState,
     useReactTable,
 } from '@tanstack/react-table';
-import { Plus, RotateCw } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import * as React from 'react';
 
 import { DataTableViewOptions } from '@/components/column-toggle';
 import { DataTablePagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useState } from 'react';
-import AddPaymentModal from './addemployeemodal';
-
-import { DataTableToolbar } from './data-tool-bar';
 import { usePermission } from '@/hooks/user-permission';
-
+import { Link, router } from '@inertiajs/react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import AddAbsenceModal from './addabsencemodal';
+import { type Absence } from './columns';
+import { DataTableToolbar } from './data-tool-bar';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
-    onRefresh?: () => void;
-    refreshing?: boolean;
+    employees?: any[];
 }
 
-export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, employees = [] }: DataTableProps<TData, TValue>) {
+    const { can } = usePermission();
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [isModelOpen, setIsModelOpen] = useState(false);
-    const { can } = usePermission();
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [selectedAbsence, setSelectedAbsence] = useState<Absence | null>(null);
+
     const table = useReactTable({
-        data,
+        data: data || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
@@ -60,6 +61,24 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
         },
     });
 
+    const handleEdit = (absence: Absence) => {
+        setSelectedAbsence(absence);
+        setIsEditOpen(true);
+    };
+
+    const handleDelete = (id: string, onSuccess: () => void) => {
+        router.delete(route('absence.destroy', { absence: id }), {
+            onSuccess: () => {
+                toast.success('Absence request deleted successfully!');
+                // Reload the page to get updated data
+                router.reload();
+            },
+            onError: () => {
+                toast.error('Failed to delete absence request. Please try again.');
+            },
+        });
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex items-center py-4">
@@ -69,25 +88,18 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
                     <DropdownMenuTrigger asChild>
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
-                    <div className="flex items-center gap-2 ml-auto">
-                        {can('Refresh Employee') && (
-                    <Button
-                        variant="main"
-                        onClick={onRefresh}
-                        disabled={refreshing}
-                        className=""
-                        title="Refresh Employee List"
-                    >
-                        <RotateCw className={refreshing ? 'animate-spin mr-1 h-4 w-4' : 'mr-1 h-4 w-4'} />
-                        {refreshing ? 'Refreshing...' : 'Refresh'}
-                    </Button>
-                    )}
-                    {can('Add Employee') && (
-                    <Button variant="main" className="" onClick={() => setIsModelOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                            Add Employee
-                        </Button>
-                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                        {can('Add Absence') && (
+                            <Button variant="main" onClick={() => setIsModelOpen(true)}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Absence
+                            </Button>
+                        )}
+                        {can('Absence Request') && (
+                            <Link href={route('absence.absence-approve')}>
+                                <Button variant="main">Absence Request</Button>
+                            </Link>
+                        )}
                     </div>
                     <DropdownMenuContent align="end">
                         {table
@@ -110,12 +122,12 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
             </div>
             <div className="animate-fade-in rounded-md">
                 <Table className="animate-fade-in rounded-md">
-                    <TableHeader className="rounded-t-md bg-green-100 dark:bg-green-950 border-b border-green-200 dark:border-green-800">
+                    <TableHeader className="dark:text-darkMain rounded-t-md bg-green-100">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id} className="dark:bg-[#6baaa6] dark:text-darkMain">
+                                        <TableHead key={header.id} className="dark:text-darkMain dark:bg-[#6baaa6]">
                                             {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                         </TableHead>
                                     );
@@ -123,13 +135,13 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
                             </TableRow>
                         ))}
                     </TableHeader>
-                    <TableBody className="divide-y divide-green-100 bg-background dark:divide-green-950 dark:border-backgroundss dark:bg-backgroundss">
+                    <TableBody className="dark:border-backgroundss dark:bg-backgroundss divide-y divide-green-100 bg-background dark:divide-green-950">
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && 'selected'}
-                                    className="hover-lift transition-colors duration-200 hover:bg-green-50 dark:divide-green-950 dark:border-backgroundss dark:hover:bg-[#6baaa6]"
+                                    className="hover-lift dark:border-backgroundss transition-colors duration-200 hover:bg-green-50 dark:divide-green-950 dark:hover:bg-[#6baaa6]"
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
@@ -139,7 +151,7 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    <span className="text-sm font-semibold">No Employee Data</span>
+                                    No Absence Data
                                 </TableCell>
                             </TableRow>
                         )}
@@ -151,7 +163,7 @@ export function DataTable<TData, TValue>({ columns, data, onRefresh, refreshing 
                 <DataTablePagination table={table} />
             </div>
 
-            <AddPaymentModal isOpen={isModelOpen} onClose={() => setIsModelOpen(false)} />
+            <AddAbsenceModal isOpen={isModelOpen} onClose={() => setIsModelOpen(false)} employees={employees} />
         </div>
     );
 }

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AuthEmployeeController;
 use App\Http\Controllers\AbsentController;
+use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
@@ -27,8 +28,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::get('request-form/leave', [LeaveController::class, 'index'])->name('request-form.index');
-
-    Route::get('request-form/absent', [AbsentController::class, 'index'])->name('request-form.absent');
 
     Route::middleware(['permission:view-report'])->group(function () {
         Route::get('report', function () {
@@ -68,6 +67,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware(['permission:View Leave'])->group(function () {
         Route::resource('leave', LeaveController::class)->names('leave');
+    });
+
+    // Absence routes
+    Route::middleware(['permission:View Absence'])->group(function () {
+        Route::get('absence', [AbsenceController::class, 'index'])->name('absence.index');
+        Route::get('absence/absence-approve', [AbsenceController::class, 'request'])->name('absence.absence-approve');
+        Route::post('absence', [AbsenceController::class, 'store'])->name('absence.store');
+        Route::get('absence/approve', [AbsenceController::class, 'approve'])->name('absence.approve');
+        Route::patch('absence/{absence}/status', [AbsenceController::class, 'updateStatus'])->name('absence.updateStatus');
+        Route::delete('absence/{absence}', [AbsenceController::class, 'destroy'])->name('absence.destroy');
     });
 });
 
