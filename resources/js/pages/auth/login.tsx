@@ -1,5 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { Backpack, LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 import { cn } from '@/lib/utils';
 import InputError from '@/components/input-error';
@@ -116,7 +116,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                 type="button"
                 variant="link"
                 className="w-full"
-                onClick={() => window.history.back()}
+                onClick={() => router.visit(route('home'))}
             >
                 Cancel
             </Button>

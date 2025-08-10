@@ -1,49 +1,57 @@
-import { AppSidebar } from '@/components/app-sidebar';
-import { Main } from '@/components/customize/main';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { SidebarInset, SidebarProvider } from '@/components/ui/employee-sidebar';
-import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Tabs, TabsContent } from '@radix-ui/react-tabs';
-import { Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import { EmployeeDashboard } from './components/dashboard';
+import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 
-// import { Employees } from './components/columns';
-import { SiteHeader } from '@/components/employee-site-header';
-import { ContentLoading } from '@/components/ui/loading';
-import { EmployeeAppSidebar } from '@/components/employee-app-sidebar';
+interface Employee {
+    id: string;
+    employeeid: string;
+    employee_name: string;
+    firstname: string;
+    lastname: string;
+    department: string;
+    position: string;
+    picture?: string;
+}
 
+interface DashboardData {
+    leaveBalance: number;
+    absenceCount: number;
+    evaluationRating: number;
+    assignedArea: string;
+    attendancePercentage: number;
+    productivity: number;
+    recentActivities: Array<{
+        id: string;
+        title: string;
+        timeAgo: string;
+        status: 'approved' | 'pending' | 'completed';
+    }>;
+}
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Employee Dashboard',
-        href: '/employee_dashboard',
-    },
-];
+interface EmployeeViewProps {
+    employee: Employee;
+    dashboardData: DashboardData;
+}
 
+export default function Index({ employee, dashboardData }: EmployeeViewProps) {
+    const cleanup = useMobileNavigation();
+    const isEmployee = 'employeeid' in employee;
 
-
-export default function Index() {
-   
+    const handleLogout = () => {
+        cleanup();
+        if (isEmployee) {
+            // Employee logout
+            router.post(route('employee_logout'));
+        } else {
+            // Regular user logout
+            router.flushAll();
+        }
+    };
 
     return (
-        <SidebarProvider>
+        <>
             <Head title="Employee Dashboard" />
-           
-           
-                    <EmployeeAppSidebar />
-                    <SidebarInset>
-                        {/* <HeaderShrink/> */}
-                        <SiteHeader breadcrumbs={breadcrumbs} title={''} />
-                        <Main>
-                            <div className="flex flex-col gap-4">
-                                <h1 className="text-2xl font-bold">Employee Dashboard</h1>
-                            </div>
-                        </Main>
-                    </SidebarInset>
-             
-        </SidebarProvider>
+            <EmployeeDashboard employee={employee} dashboardData={dashboardData} onLogout={handleLogout} />
+        </>
     );
 }

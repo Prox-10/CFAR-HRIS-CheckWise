@@ -15,8 +15,8 @@ import EditEmployeeModal from './components/editemployeemodal';
 import { SectionCards } from './components/section-cards';
 import { Attendance } from './types/attendance';
 // import { Attendance } from './components/columns';
-import { SiteHeader } from '@/components/employee-site-header';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
+import { SiteHeader } from '@/components/site-header';
 import { ContentLoading } from '@/components/ui/loading';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import axios from 'axios';
@@ -44,7 +44,7 @@ export default function Index({
     totalEmployee = 0,
     prevTotalEmployee = 0,
     totalDepartment = 0,
-    prevTotalDepartment = 0,
+    prevTotalDepartment = 0, 
 }: Props) {
     const [data, setData] = useState<Attendance[]>(attendanceData);
     const [editModelOpen, setEditModalOpen] = useState(false);
@@ -151,7 +151,7 @@ export default function Index({
                                     <Separator className="shadow-sm" />
                                 </Tabs>
                                 <div className="m-3 no-scrollbar">
-                                    <Card className="border-main bg-background drop-shadow-lg dark:bg-backgrounds">
+                                    <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                         <CardHeader>
                                             <CardTitle>Attendance List</CardTitle>
                                             <CardDescription>List of Attendance</CardDescription>
@@ -166,7 +166,7 @@ export default function Index({
                                                     setEditModalOpen,
                                                     setSelectedEmployee,
                                                     handleEdit,
-                                                    handleDelete
+                                                    handleDelete,
                                                 )}
                                                 data={data}
                                                 attendance={data}

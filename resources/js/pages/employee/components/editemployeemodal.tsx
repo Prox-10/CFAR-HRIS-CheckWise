@@ -11,7 +11,7 @@ import { DialogDescription } from '@radix-ui/react-dialog';
 import { ChevronDownIcon, Fingerprint, Upload, User } from 'lucide-react';
 import React, { FormEventHandler, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Department, Employees, Position } from '../types/employees';
+import { Employees } from '../types/employees';
 import FingerprintCapture from './fingerprintcapture';
 
 interface EditEmployeeModalProps {
@@ -19,39 +19,47 @@ interface EditEmployeeModalProps {
     onClose: () => void;
     employee: Employees | null;
     onUpdate: (employee: Employees) => void;
-   
+    departments?: string[];
+    positions?: string[];
 }
 
-const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployeeModalProps) => {
+const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate, departments = [], positions = [] }: EditEmployeeModalProps) => {
     const work_statuses = ['Regular', 'Add Crew'];
     const statuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
     const genderes = ['Male', 'Female'];
-    const departments = [
-        'Administration',
-        'Finance & Accounting',
-        'Human Resources',
-        'Quality Control',
-        'Production',
-        'Field Operations',
-        'Logistics & Distribution',
-        'Research & Development',
-        'Sales & Marketing',
-        'Maintenance',
-    ];
+    // Use props if provided, otherwise use default arrays
+    const departmentOptions =
+        departments.length > 0
+            ? departments
+            : [
+                  'Administration',
+                  'Finance & Accounting',
+                  'Human Resources',
+                  'Quality Control',
+                  'Production',
+                  'Field Operations',
+                  'Logistics & Distribution',
+                  'Research & Development',
+                  'Sales & Marketing',
+                  'Maintenance',
+              ];
 
-    const positions = [
-        'Admin Assistant',
-        'Accountant',
-        'HR Officer',
-        'Quality Inspector',
-        'Production Supervisor',
-        'Field Worker',
-        'Field Supervisor',
-        'Logistics Coordinator',
-        'R&D Specialist',
-        'Sales Executive',
-        'Maintenance Technician',
-    ];
+    const positionOptions =
+        positions.length > 0
+            ? positions
+            : [
+                  'Admin Assistant',
+                  'Accountant',
+                  'HR Officer',
+                  'Quality Inspector',
+                  'Production Supervisor',
+                  'Field Worker',
+                  'Field Supervisor',
+                  'Logistics Coordinator',
+                  'R&D Specialist',
+                  'Sales Executive',
+                  'Maintenance Technician',
+              ];
 
     const [open, setOpen] = useState(false);
     const [openBirth, setOpenBirth] = useState(false);
@@ -484,7 +492,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                     <SelectValue placeholder="Select Departments" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {departments.map((dept) => (
+                                    {departmentOptions.map((dept) => (
                                         <SelectItem key={dept} value={dept}>
                                             {dept}
                                         </SelectItem>
@@ -501,7 +509,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                     <SelectValue placeholder="Select Positions" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {positions.map((pos) => (
+                                    {positionOptions.map((pos) => (
                                         <SelectItem key={pos} value={pos}>
                                             {pos}
                                         </SelectItem>

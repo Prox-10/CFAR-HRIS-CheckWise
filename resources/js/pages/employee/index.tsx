@@ -14,10 +14,10 @@ import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import EditEmployeeModal from './components/editemployeemodal';
 import { SectionCards } from './components/section-cards';
-import { Department, Employees, Position } from './types/employees';
+import { Employees } from './types/employees';
 // import { Employees } from './components/columns';
-import { SiteHeader } from '@/components/employee-site-header';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
+import { SiteHeader } from '@/components/site-header';
 import { ContentLoading } from '@/components/ui/loading';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { usePermission } from '@/hooks/user-permission';
@@ -37,8 +37,8 @@ interface Props {
     employee: Employees[];
     totalDepartment: number;
     totalEmployee: number;
-    departments?: Department[];
-    positions?: Position[];
+    departments?: string[];
+    positions?: string[];
 }
 
 // Move SidebarHoverLogic outside the main component

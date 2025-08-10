@@ -22,7 +22,7 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
-Route::resource('employee_view', AuthEmployeeController::class)->names('employee_view');
+// Employee routes are handled in employee_auth.php
 
 Route::middleware(['auth', 'verified'])->group(function () {
 

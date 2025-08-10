@@ -40,6 +40,7 @@ class EmployeeController extends Controller
                 'phone'         => $employee->phone,
                 'email'         => $employee->email,
                 'position'      => $employee->position,
+                'pin'           => $employee->pin,
                 'created_at'    => $employee->created_at->format('d M Y'),
                 'fingerprints'  => $employee->fingerprints->map(function ($fp) {
                     return [
@@ -70,6 +71,33 @@ class EmployeeController extends Controller
             'prevTotalEmployee' => $prevTotalEmployee,
             'totalDepartment' => $totalDepartment,
             'prevTotalDepartment' => $prevTotalDepartment,
+            'departments'     => [
+                'Administration',
+                'Finance & Accounting',
+                'Human Resources',
+                'Quality Control',
+                'Production',
+                'Field Operations',
+                'Logistics & Distribution',
+                'Research & Development',
+                'Sales & Marketing',
+                'Maintenance',
+                'Engineering',
+            ],
+            'positions'       => [
+                'Admin Assistant',
+                'Accountant',
+                'HR Officer',
+                'Quality Inspector',
+                'Production Supervisor',
+                'Field Worker',
+                'Field Supervisor',
+                'Logistics Coordinator',
+                'R&D Specialist',
+                'Sales Executive',
+                'Maintenance Technician',
+                'P&D',
+            ],
         ]);
     }
 

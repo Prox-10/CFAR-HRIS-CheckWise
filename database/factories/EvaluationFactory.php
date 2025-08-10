@@ -16,12 +16,12 @@ class EvaluationFactory extends Factory
      */
     public function definition(): array
     {
-        $work_quality = $this->faker->numberBetween(1, 5);
-        $safety_compliance = $this->faker->numberBetween(1, 5);
-        $punctuality = $this->faker->numberBetween(1, 5);
-        $teamwork = $this->faker->numberBetween(1, 5);
-        $equipment_handling = $this->faker->numberBetween(1, 5);
-        $organization = $this->faker->numberBetween(1, 5);
+        $work_quality = $this->faker->numberBetween(1, 10);
+        $safety_compliance = $this->faker->numberBetween(1, 10);
+        $punctuality = $this->faker->numberBetween(1, 10);
+        $teamwork = $this->faker->numberBetween(1, 10);
+        $equipment_handling = $this->faker->numberBetween(1, 10);
+        $organization = $this->faker->numberBetween(1, 10);
         $criteria = [$work_quality, $safety_compliance, $punctuality, $teamwork, $equipment_handling, $organization];
         $average = number_format(array_sum($criteria) / count($criteria), 1);
         return [
@@ -32,9 +32,8 @@ class EvaluationFactory extends Factory
             'safety_compliance' => $safety_compliance,
             'punctuality' => $punctuality,
             'teamwork' => $teamwork,
-            'organization' => $this->faker->company,
-            'equipment_handling' => $equipment_handling,
             'organization' => $organization,
+            'equipment_handling' => $equipment_handling,
             'comment' => $this->faker->sentence(),
         ];
     }

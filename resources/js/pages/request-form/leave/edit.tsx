@@ -6,12 +6,12 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import LeaveEditPage from './components/leaveeditpage';
 
 import { Leave } from './types/leave';
 // import { Leave } from './components/columns';
-import { SiteHeader } from '@/components/employee-site-header';
+import { SiteHeader } from '@/components/site-header';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -73,7 +73,6 @@ export default function Index({ leave }: Props) {
 
     return (
         <SidebarProvider>
-            
             <AppSidebar />
             <Head title="Leave" />
             <SidebarInset>
@@ -96,14 +95,13 @@ export default function Index({ leave }: Props) {
                     </div>
 
                     <div className="m-3 no-scrollbar">
-                        <Card className="border-main bg-background drop-shadow-lg dark:bg-backgrounds">
+                        <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                             {/* <CardHeader>
                                 <CardTitle>Leave List</CardTitle>
                                 <CardDescription>List of Leave</CardDescription>
                             </CardHeader> */}
                             <CardContent>
-                             
-                                <LeaveEditPage/>
+                                <LeaveEditPage />
                             </CardContent>
                         </Card>
                     </div>

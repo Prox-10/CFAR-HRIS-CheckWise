@@ -12,7 +12,6 @@ import axios from 'axios';
 import { ChevronDownIcon, Fingerprint, Save, Upload, User } from 'lucide-react';
 import { FormEventHandler, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { departments, positions } from '@/hooks/data';
 import FingerprintCapture from './fingerprintcapture';
 // import RegisterFingerprintModal from './registerfingerprintmodal';
 
@@ -37,13 +36,50 @@ type Employees = {
 interface EmployeeDetails {
     isOpen: boolean;
     onClose: () => void;
+    departments?: string[];
+    positions?: string[];
 }
 
-const AddEmployeeModal = ({ isOpen, onClose}: EmployeeDetails) => {
+const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }: EmployeeDetails) => {
     const work_statuses = ['Regular', 'Add Crew'];
     const statuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
     const genderes = ['Male', 'Female'];
 
+    // Use props if provided, otherwise use default arrays
+    const departmentOptions =
+        departments.length > 0
+            ? departments
+            : [
+                  'Administration',
+                  'Finance & Accounting',
+                  'Human Resources',
+                  'Quality Control',
+                  'Production',
+                  'Field Operations',
+                  'Logistics & Distribution',
+                  'Research & Development',
+                  'Sales & Marketing',
+                  'Maintenance',
+                  'Engineering',
+              ];
+
+    const positionOptions =
+        positions.length > 0
+            ? positions
+            : [
+                  'Admin Assistant',
+                  'Accountant',
+                  'HR Officer',
+                  'Quality Inspector',
+                  'Production Supervisor',
+                  'Field Worker',
+                  'Field Supervisor',
+                  'Logistics Coordinator',
+                  'R&D Specialist',
+                  'Sales Executive',
+                  'Maintenance Technician',
+                  'P&D',
+              ];
 
     const [openService, setOpenService] = useState(false);
     const [openBirth, setOpenBirth] = useState(false);
@@ -66,7 +102,7 @@ const AddEmployeeModal = ({ isOpen, onClose}: EmployeeDetails) => {
         ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                if (data.type === 'fingerprint_data') { 
+                if (data.type === 'fingerprint_data') {
                     setWsFingerprintData(data);
                 }
             } catch {}
@@ -456,7 +492,7 @@ const AddEmployeeModal = ({ isOpen, onClose}: EmployeeDetails) => {
                                     <SelectValue placeholder="Select Departments" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {departments.map((dept) => (
+                                    {departmentOptions.map((dept) => (
                                         <SelectItem key={dept} value={dept}>
                                             {dept}
                                         </SelectItem>
@@ -480,7 +516,7 @@ const AddEmployeeModal = ({ isOpen, onClose}: EmployeeDetails) => {
                                     <SelectValue placeholder="Select Positions" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {positions.map((pos) => (
+                                    {positionOptions.map((pos) => (
                                         <SelectItem key={pos} value={pos}>
                                             {pos}
                                         </SelectItem>

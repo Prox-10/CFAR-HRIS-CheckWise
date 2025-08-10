@@ -4,7 +4,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { Main } from '@/components/customize/main';
 import * as React from "react";
 
-import { SiteHeader } from '@/components/employee-site-header';
+import { SiteHeader } from '@/components/site-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContentLoading } from '@/components/ui/loading';
 import { Separator } from '@/components/ui/separator';
@@ -96,6 +96,7 @@ function SidebarHoverLogic(props: Props & { months: number, loading: boolean, ha
 
     return (
         <>
+        
             <SidebarHoverZone show={state === 'collapsed'} onMouseEnter={handleMouseEnter} />
             <AppSidebar onMouseLeave={handleMouseLeave} />
             <SidebarInset>

@@ -1,7 +1,7 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import { Main } from '@/components/customize/main';
-import { SiteHeader } from '@/components/employee-site-header';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
+import { SiteHeader } from '@/components/site-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContentLoading } from '@/components/ui/loading';
 import { Separator } from '@/components/ui/separator';

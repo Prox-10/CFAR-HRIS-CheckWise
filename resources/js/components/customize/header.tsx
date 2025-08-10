@@ -3,7 +3,8 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
-import { ProfileDropdown } from '@/components/customize/profile-dropdown';
+import { AdminProfileDropdown } from '@/components/customize/admin-profile-dropdown';
+import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import React from 'react';
 
@@ -14,7 +15,7 @@ interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
 
 export const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
     const [offset, setOffset] = React.useState(0);
-    const { notifications = [], unreadNotificationCount = 0 } = usePage().props as any;
+    const { notifications = [], unreadNotificationCount = 0, auth } = usePage<SharedData>().props;
     const [unreadCount, setUnreadCount] = React.useState(unreadNotificationCount);
     const [notificationList, setNotificationList] = React.useState(notifications);
 
@@ -51,7 +52,7 @@ export const Header = ({ className, fixed, children, ...props }: HeaderProps) =>
     }, [notifications, unreadNotificationCount]);
 
     const handleNotificationRead = (id: number) => {
-        setNotificationList((prev) => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
+        setNotificationList((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n)));
         setUnreadCount((prev) => Math.max(0, prev - 1));
     };
 
@@ -69,7 +70,7 @@ export const Header = ({ className, fixed, children, ...props }: HeaderProps) =>
             <Separator orientation="vertical" className="h-6" />
             <div className="mr-auto flex items-center space-x-4">
                 <BellNotification notifications={notificationList} unreadCount={unreadCount} onNotificationRead={handleNotificationRead} />
-                <ProfileDropdown />
+                {auth?.user && <AdminProfileDropdown user={auth.user} />}
             </div>
             {children}
         </header>

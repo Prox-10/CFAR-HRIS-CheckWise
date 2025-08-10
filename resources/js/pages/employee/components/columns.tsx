@@ -3,8 +3,10 @@ import DeleteConfirmationDialog from '@/components/delete-alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
-import { CircleEllipsis, Edit, Eye, Fingerprint } from 'lucide-react';
+import { CircleEllipsis, Edit, Eye, Fingerprint, Key, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import { Employees } from '../types/employees';
 import { DataTableColumnHeader } from './data-table-column-header';
 
@@ -98,6 +100,20 @@ const columns = (
             },
         },
         {
+            accessorKey: 'pin',
+            header: ({ column }) => <DataTableColumnHeader column={column} title="PIN" />,
+            cell: ({ row }) => {
+                const pin = row.original.pin;
+
+                return (
+                    <div className="flex items-center space-x-2">
+                        <Key className="h-4 w-4 text-gray-500" />
+                        <span className="rounded bg-gray-100 px-2 py-1 font-mono text-sm">{pin ? pin : 'Not set'}</span>
+                    </div>
+                );
+            },
+        },
+        {
             accessorKey: 'work_status',
             header: 'Work Status',
             cell: ({ row }) => {
@@ -173,6 +189,44 @@ const columns = (
                                         </Button>
                                     </DropdownMenuItem>
                                 )}
+
+                                <DropdownMenuItem>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={async () => {
+                                            try {
+                                                const response = await fetch('/employee_reset_pin', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                                                    },
+                                                    body: JSON.stringify({
+                                                        employee_id: employee.employeeid,
+                                                    }),
+                                                });
+
+                                                const result = await response.json();
+                                                
+                                                if (result.success) {
+                                                    toast.success(`PIN reset successfully! New PIN: ${result.pin}`);
+                                                    // Refresh the page to update the PIN display
+                                                    window.location.reload();
+                                                } else {
+                                                    toast.error(result.message || 'Failed to reset PIN');
+                                                }
+                                            } catch (error) {
+                                                toast.error('An error occurred while resetting PIN');
+                                            }
+                                        }}
+                                        className="hover-lift w-full border-orange-300 text-orange-600 hover:bg-orange-50"
+                                    >
+                                        <RefreshCw className="h-4 w-4" />
+                                        Reset PIN
+                                    </Button>
+                                </DropdownMenuItem>
+
                                 {can('Delete Employee') && (
                                     <DropdownMenuItem asChild>
                                         <DeleteConfirmationDialog

@@ -1,7 +1,7 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import { Main } from '@/components/customize/main';
-import { SiteHeader } from '@/components/employee-site-header';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
+import { SiteHeader } from '@/components/site-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContentLoading } from '@/components/ui/loading';
 import { Separator } from '@/components/ui/separator';
@@ -94,10 +94,10 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
         <SidebarProvider>
             <Head title="Leave" />
             <Toaster position="top-center" richColors />
-            {/* Sidebar hover logic */}
+           
             <SidebarHoverLogic>
                 <SidebarInset>
-                    {/* <HeaderShrink/> */}
+                   
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />
                     {loading ? (
                         <ContentLoading />
@@ -124,7 +124,6 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
                                                     <div className="flex flex-col">
                                                         <SectionCards leaveStats={leaveStats} />
                                                         {/* ChartBarLabel for leave per month by type */}
-
                                                     </div>
                                                 </div>
                                             </div>
@@ -133,7 +132,7 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
                                     <Separator className="shadow-sm" />
                                 </Tabs>
                                 <div className="m-3 no-scrollbar">
-                                    <Card className="border-main bg-background drop-shadow-lg dark:bg-backgrounds">
+                                    <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                         <CardHeader>
                                             <CardTitle className="text-sm font-semibold">Leave List</CardTitle>
                                             <CardDescription>List of employee leave</CardDescription>

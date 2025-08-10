@@ -16,6 +16,7 @@ export interface Employees {
     status: string;
     service_tenure: string;
     email: string;
+    pin?: string; // Employee PIN for login
     fingerprints?: any[]; // Fingerprint info from backend
 }
 

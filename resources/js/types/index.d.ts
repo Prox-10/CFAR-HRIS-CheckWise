@@ -13,6 +13,7 @@ export interface BreadcrumbItem {
 export interface NavGroup {
     title: string;
     items: NavItem[];
+    
 }
 
 export interface NavItem {

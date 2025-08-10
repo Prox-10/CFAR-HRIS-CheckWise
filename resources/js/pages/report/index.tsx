@@ -10,8 +10,8 @@ import { Calendar, CalendarDays, ChartBar, ClipboardList, Clock, Download, FileT
 import { Toaster } from 'sonner';
 // import { format } from 'path';
 import { AppSidebar } from '@/components/app-sidebar';
-import { SiteHeader } from '@/components/employee-site-header';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
+import { SiteHeader } from '@/components/site-header';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { ContentLoading } from '@/components/ui/loading';
@@ -101,7 +101,7 @@ const ReportPage = () => {
                     {loading ? (
                         <ContentLoading />
                     ) : (
-                        <Card className="m-5 space-y-4 border-main">
+                        <Card className="border-main m-5 space-y-4">
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center">
                                     <ClipboardList className="text-cfarbempco-green mr-2 h-5 w-5" />
@@ -179,17 +179,17 @@ const ReportPage = () => {
                                     </div>
                                     <SidebarSeparator />
                                     <Tabs defaultValue="attendance " className="space-y-4 p-5">
-                                        <TabsList className="mb-4 grid grid-cols-2 bg-main py-[5px] md:grid-cols-4">
-                                            <TabsTrigger className="mx-3 mb-5 hover:bg-main-600" value="attendance">
+                                        <TabsList className="bg-main mb-4 grid grid-cols-2 py-[5px] md:grid-cols-4">
+                                            <TabsTrigger className="hover:bg-main-600 mx-3 mb-5" value="attendance">
                                                 Attendance
                                             </TabsTrigger>
-                                            <TabsTrigger className="mx-3 mb-5 hover:bg-main-600" value="employee">
+                                            <TabsTrigger className="hover:bg-main-600 mx-3 mb-5" value="employee">
                                                 Employee
                                             </TabsTrigger>
-                                            <TabsTrigger className="mx-3 mb-5 hover:bg-main-600" value="leave">
+                                            <TabsTrigger className="hover:bg-main-600 mx-3 mb-5" value="leave">
                                                 Leave
                                             </TabsTrigger>
-                                            <TabsTrigger className="mx-3 mb-5 hover:bg-main-600" value="evaluation">
+                                            <TabsTrigger className="hover:bg-main-600 mx-3 mb-5" value="evaluation">
                                                 Evaluation
                                             </TabsTrigger>
                                         </TabsList>
