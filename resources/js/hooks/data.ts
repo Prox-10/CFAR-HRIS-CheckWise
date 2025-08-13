@@ -1,16 +1,11 @@
 // hooks/useCompanyData.ts
 
 export const departments: string[] = [
-    'Administration',
-    'Finance & Accounting',
-    'Human Resources',
-    'Quality Control',
-    'Production',
-    'Field Operations',
-    'Logistics & Distribution',
-    'Research & Development',
-    'Sales & Marketing', 
-    'Maintenance',
+    'Monthly',
+    'Packing', 
+    'Harvest', 
+    'PDC', 
+    'Coop Area', 
     'Engineering',
 ];
 
@@ -28,3 +23,21 @@ export const positions: string[] = [
     'Maintenance Technician',
     'P&D',
 ];
+
+export const workStatus = ['Regular', 'Add Crew', 'Probationary', 'Sessional'];
+
+export const maritalStatus = [
+    'Single',
+    'Married',
+    'Divorced',
+    'Widowed',
+    'Separated',
+    'Other',
+];
+
+export const gender = [
+    'Male',
+    'Female',
+];
+
+

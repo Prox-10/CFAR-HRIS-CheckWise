@@ -1,22 +1,42 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Employee } from '@/hooks/employees';
 import { useForm } from '@inertiajs/react';
-import { Edit, Star, Trash2 } from 'lucide-react';
+import { Briefcase, Building, Calendar, Edit, Fingerprint, Mail, MapPin, Phone, Trash2, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import FingerprintCapture from './fingerprintcapture';
 
 interface EmployeeDetailsModalProps {
-    employee: any | null; // Accepts the new backend response shape
+    employee: Employee | null; // Accepts the new backend response shape
     isOpen: boolean;
     onClose: () => void;
-    onEdit: (employee: any) => void;
+    onEdit: (employee: Employee) => void;
     onDelete: (id: string, onSuccess: () => void) => void;
-    onRegisterFingerprint?: (employee: any) => void;
+    onRegisterFingerprint?: (employee: Employee) => void;
 }
 
 const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRegisterFingerprint }: EmployeeDetailsModalProps) => {
     const [date, setDate] = useState<Date | undefined>(undefined);
     const [birth, setBirth] = useState<Date | undefined>(undefined);
+    const [fingerprintData, setFingerprintData] = useState<any | null>(null);
+    const [fingerprintSaved, setFingerprintSaved] = useState(false);
+    const [savingFingerprint, setSavingFingerprint] = useState(false);
+
+    // Add WebSocket logic to listen for fingerprint_data and display it
+    const [wsFingerprintData, setWsFingerprintData] = useState<any | null>(null);
+    useEffect(() => {
+        const ws = new WebSocket('ws://localhost:8080');
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'fingerprint_data') {
+                    setWsFingerprintData(data);
+                }
+            } catch {}
+        };
+        return () => ws.close();
+    }, []);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -26,15 +46,10 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
         });
     };
 
-    // const renderStars = (rating: number) => {
-    //     return Array.from({ length: 5 }, (_, index) => (
-    //         <Star key={index} className={`h-5 w-5 ${index < Math.floor(rating) ? 'fill-current text-yellow-400' : 'text-gray-300'}`} />
-    //     ));
-    // };
-
     const [preview, setPreview] = useState<string>('');
 
-    const { data, setData, errors, processing, reset, post } = useForm({
+    // Create view-specific initial data with string picture for display
+    const initialEmployeeViewData: Employee = {
         employeeid: '',
         employee_name: '',
         firstname: '',
@@ -45,13 +60,25 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
         position: '',
         phone: '',
         work_status: '',
-        status: '',
+        marital_status: '',
         email: '',
+        address: '',
         service_tenure: '',
         date_of_birth: '',
-        picture: '',
-        _method: '',
-    });
+        picture: '', // String URL for display, not File for upload
+        city: '',
+        state: '',
+        country: '',
+        zip_code: '',
+        nationality: '',
+        philhealth: '',
+        tin: '',
+        sss: '',
+        pag_ibig: '',
+        gmail_password: '',
+    };
+
+    const { data, setData, errors, processing, reset, post } = useForm<Employee>(initialEmployeeViewData);
 
     useEffect(() => {
         if (employee) {
@@ -66,12 +93,22 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                 position: employee.position,
                 phone: employee.phone,
                 work_status: employee.work_status,
-                status: employee.status,
+                marital_status: employee.marital_status || employee.status,
                 service_tenure: employee.service_tenure,
                 date_of_birth: employee.date_of_birth,
                 email: employee.email,
                 picture: employee.picture,
-                _method: 'PUT',
+                nationality: employee.nationality,
+                address: employee.address,
+                city: employee.city,
+                state: employee.state,
+                country: employee.country,
+                zip_code: employee.zip_code,
+                philhealth: employee.philhealth,
+                tin: employee.tin,
+                sss: employee.sss,
+                pag_ibig: employee.pag_ibig,
+                gmail_password: employee.gmail_password,
             });
 
             if (employee.picture) {
@@ -93,191 +130,261 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
         }
     };
 
-    // Extract root-level fingerprint fields if present
-    const fingerprint_image =
-        employee && employee.fingerprint_image !== undefined ? employee.fingerprint_image : employee && employee.fingerprint_image;
-    const finger_name = employee && employee.finger_name !== undefined ? employee.finger_name : employee && employee.finger_name;
-    const fingerprint_captured_at =
-        employee && employee.fingerprint_captured_at !== undefined ? employee.fingerprint_captured_at : employee && employee.fingerprint_captured_at;
+    // Function to check fingerprint status
+    const getFingerprintStatus = () => {
+        if (!employee) return { hasFingerprint: false, count: 0, status: 'No Employee' };
 
-    // Debug display
-    // Remove after debugging
-    const debug = true;
-    //  const src = row.original.picture;
+        if (employee.fingerprints && employee.fingerprints.length > 0) {
+            return {
+                hasFingerprint: true,
+                count: employee.fingerprints.length,
+                status: 'Fingerprint Registered',
+            };
+        }
+
+        return {
+            hasFingerprint: false,
+            count: 0,
+            status: 'No Fingerprint Registered',
+        };
+    };
+
+    const fingerprintStatus = getFingerprintStatus();
+
+    // Handle fingerprint capture from the component
+    const handleFingerprintCapture = (fingerprintData: any) => {
+        setFingerprintData(fingerprintData);
+        // TODO: integrate with form as needed
+    };
+
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-2 border-main" aria-describedby="employee-description">
-                <DialogHeader className="flex place-items-center sm:w-auto">
-                    <DialogTitle className="flex items-center gap-2 text-main">
-                        <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-green-100">
-                            {/* <ArrowLeft className="h-4 w-4 ml-auto" /> */}
-                        </Button>
-                        Employee Details
-                    </DialogTitle>
-                </DialogHeader>
+        <>
+            <Dialog open={isOpen} onOpenChange={onClose}>
+                <DialogContent className="max-h-[90vh] w-full overflow-y-auto border-2 border-green-200 bg-white shadow-2xl sm:max-w-[900px]">
+                    <DialogHeader className="flex items-center border-b border-green-200 pb-4">
+                        <User className="mr-3 h-6 w-6 text-green-600" />
+                        <DialogTitle className="text-2xl font-bold text-green-800">Employee Details</DialogTitle>
+                    </DialogHeader>
 
-                <div className="animate-fade-in space-y-6">
-                    {/* Profile Section */}
-                    <div className="text-center">
-                        <div className="relative mx-auto mb-4 h-32 w-32">
-                            <div className="flex-shrink-0">
-                                {data.picture ? (
-                                    <img
-                                        src={data.picture}
-                                        alt="Profile"
-                                        className="animate-scale-in object-fit mx-auto h-32 w-32 rounded-full border-4 border-main"
-                                    />
-                                ) : (
-                                    <div className="flex h-32 w-32 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500">
-                                        <img
-                                            src="Logo.png"
-                                            className="animate-scale-in object-fit mx-auto h-32 w-32 rounded-full border-4 border-main"
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                            {/* <img
-                                src={preview ? preview : 'Logo.png'}
-                                alt={data.lastname}
-                                className="animate-scale-in object-fit mx-auto h-32 w-32 rounded-full border-4 border-main"
-                                onError={(e) => {
-                                    e.currentTarget.src = `Logo.png`;
-                                }}
-                            /> */}
-                        </div>
-                        {/* Fingerprint image display */}
-
-                        <h2 className="mb-2 text-2xl font-bold text-gray-900">{data.employee_name}</h2>
-                        <Badge className="bg-green-100 px-4 py-2 text-lg text-gray-600">{data.employeeid}</Badge>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-6 md:grid-cols-2">
-                        <div className="space-y-4">
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Gender</label>
-                                <Badge className="bg-green-100 px-4 py-2 text-gray-900">{data.gender}</Badge>
-                            </div>
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Birth Date</label>
-                                <Badge className="bg-green-100 px-4 py-2 text-gray-900">{formatDate(data.date_of_birth)}</Badge>
-                            </div>
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
-                                <Badge className="bg-green-100 px-4 py-2 text-gray-900">{data.email}</Badge>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Department</label>
-                                <Badge className="bg-green-100 px-4 py-2 text-green-800">{data.department}</Badge>
-                            </div>
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Position</label>
-                                <Badge className="bg-green-100 px-4 py-2 text-gray-900">{data.position}</Badge>
-                            </div>
-
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Phone</label>
-                                <Badge className="bg-green-100 px-4 py-2 text-gray-900">{data.phone}</Badge>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Employment Information */}
-                    <div className="border-t border-green-200 pt-6">
-                        <h3 className="mb-4 text-lg font-semibold text-gray-900">Employment Information</h3>
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Hired Date</label>
-                                <Badge className="bg-green-100 px-4 py-2 text-gray-900">{formatDate(data.service_tenure)}</Badge>
-                            </div>
-
-                            <div className="flex items-center gap-2 flex-col">
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Employee Rating</label>
-                                
-                                    {employee && employee.latest_rating ? (
-                                        <>
-                                            <div className="flex flex-col">
-                                                <span></span>
-                                                <Badge className="bg-green-100 px-4 py-2 text-gray-900">{employee.latest_rating}</Badge>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <span className="text-gray-500">No rating</span>
-                                    )}
-                                
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Fingerprint Images Section */}
-                    <div className="mt-6">
-                        <h3 className="mb-2 text-lg font-semibold text-gray-900">Fingerprints</h3>
-                        {employee && employee.fingerprints && employee.fingerprints.length > 0 ? (
-                            <>
-                                <div className="my-2 flex flex-col items-center">
-                                    <p className="text-sm font-semibold text-green-600">Fingerprint Registered</p>
-                                </div>
-                                <div className="my-4 flex flex-wrap justify-center gap-6">
-                                    {employee.fingerprints.map((fp: any, idx: number) => (
-                                        <div key={fp.id || idx} className="flex flex-col items-center">
+                    <div className="space-y-6 p-6">
+                        {/* Employee Details Section - Top Card */}
+                        <div className="rounded-lg border-2 border-green-200 bg-white p-6 shadow-sm">
+                            <div className="flex items-start space-x-8">
+                                {/* Profile Picture */}
+                                <div className="flex-shrink-0">
+                                    <div className="relative h-32 w-32">
+                                        {data.picture ? (
                                             <img
-                                                src={fp.fingerprint_image ? `data:image/png;base64,${fp.fingerprint_image}` : 'Logo.png'}
-                                                alt={`Fingerprint ${idx + 1}`}
-                                                className="mx-auto h-32 w-32 rounded border border-green-400 object-contain"
-                                                onError={(e) => {
-                                                    e.currentTarget.src = 'Logo.png';
-                                                }}
+                                                src={data.picture}
+                                                alt="Profile"
+                                                className="h-32 w-32 rounded-full border-4 border-green-300 object-cover shadow-lg"
                                             />
-                                            <p className="mt-1 text-center text-xs text-green-700">Fingerprint</p>
-                                            {fp.finger_name && (
-                                                <p className="text-xs text-gray-700">
-                                                    Finger:{' '}
-                                                    <span className="font-semibold">
-                                                        {fp.finger_name.charAt(0).toUpperCase() + fp.finger_name.slice(1)}
-                                                    </span>
-                                                </p>
-                                            )}
-                                            {fp.fingerprint_captured_at && (
-                                                <p className="text-xs text-gray-500">
-                                                    Captured at: {new Date(fp.fingerprint_captured_at).toLocaleString()}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
+                                        ) : (
+                                            <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-green-300 bg-green-50">
+                                                <User className="h-16 w-16 text-green-400" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="mt-3 text-center">
+                                        <h2 className="text-xl font-bold text-green-800">{data.employee_name}</h2>
+                                        <Badge className="mt-1 bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
+                                            ID: {data.employeeid}
+                                        </Badge>
+                                    </div>
                                 </div>
-                            </>
-                        ) : (
-                            <div className="my-4 flex flex-col items-center">
-                                <p className="text-sm text-red-600">No fingerprint registered yet.</p>
-                                <Button
-                                    className="mt-2 bg-main text-black hover:bg-green-300"
-                                    onClick={() => onRegisterFingerprint && onRegisterFingerprint(employee)}
-                                >
-                                    Register Fingerprint
-                                </Button>
-                            </div>
-                        )}
-                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex justify-center gap-4 border-t border-green-200 pt-6">
-                        <Button onClick={() => onEdit(employee!)} className="bg-green-600 text-white hover:bg-main">
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Employee
-                        </Button>
-                        <Button onClick={handleDelete} variant="destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Employee
-                        </Button>
+                                {/* Employee Details Grid - Fixed for long text */}
+                                <div className="grid min-w-0 flex-1 grid-cols-2 gap-6">
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <User className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Gender:</span>
+                                        <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.gender}</Badge>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <Building className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Department:</span>
+                                        <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.department}</Badge>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <Calendar className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Birth Date:</span>
+                                        <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">
+                                            {data.date_of_birth ? formatDate(data.date_of_birth) : 'N/A'}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <Briefcase className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Position:</span>
+                                        <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.position}</Badge>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <Mail className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Email:</span>
+                                        <span className="max-w-full truncate text-sm text-gray-800" title={data.email}>
+                                            {data.email}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <Phone className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Phone:</span>
+                                        <span className="max-w-full truncate text-sm text-gray-800">{data.phone}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Employment Information Section - Middle Card */}
+                        <div className="rounded-lg border-2 border-green-200 bg-white p-6 shadow-sm">
+                            <h3 className="mb-4 text-lg font-semibold text-green-800">Employment Information</h3>
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="flex min-w-0 items-center space-x-3">
+                                    <Calendar className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Hired Date:</span>
+                                    <Badge className="truncate bg-green-100 px-3 py-1 text-sm text-green-800">
+                                        {data.service_tenure ? formatDate(data.service_tenure) : 'N/A'}
+                                    </Badge>
+                                </div>
+
+                                <div className="flex min-w-0 flex-col items-start space-y-2">
+                                    <span className="text-sm font-medium text-gray-600">Employee Rating:</span>
+                                    {employee && employee.latest_rating ? (
+                                        <Badge className="truncate bg-green-100 px-3 py-1 text-sm text-green-800">{employee.latest_rating}</Badge>
+                                    ) : (
+                                        <span className="text-sm text-gray-500">No rating</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Personal Section - Bottom Card */}
+                        <div className="rounded-lg border-2 border-green-200 bg-white p-6 shadow-sm">
+                            <h3 className="mb-4 text-lg font-semibold text-green-800">Personal</h3>
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="flex min-w-0 items-center space-x-3">
+                                    <User className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Marital Status:</span>
+                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.marital_status}</Badge>
+                                </div>
+
+                                <div className="flex min-w-0 items-center space-x-3">
+                                    <User className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Nationality:</span>
+                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.nationality}</Badge>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Contact Information Section */}
+                        <div className="rounded-lg border-2 border-green-200 bg-white p-6 shadow-sm">
+                            <h3 className="mb-4 text-lg font-semibold text-green-800">Contact Information</h3>
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="flex min-w-0 items-center space-x-3">
+                                    <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Address:</span>
+                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.address}>
+                                        {data.address}
+                                    </Badge>
+                                </div>
+
+                                <div className="flex min-w-0 items-center space-x-3">
+                                    <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">City:</span>
+                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.city}</Badge>
+                                </div>
+
+                                <div className="flex min-w-0 items-center space-x-3">
+                                    <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">State:</span>
+                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.state}</Badge>
+                                </div>
+
+                                <div className="flex min-w-0 items-center space-x-3">
+                                    <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Country:</span>
+                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.country}</Badge>
+                                </div>
+
+                                <div className="flex min-w-0 items-center space-x-3">
+                                    <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Zip Code:</span>
+                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.zip_code}</Badge>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Fingerprints Section - Updated with registration functionality */}
+                        <div className="rounded-lg border-2 border-green-200 bg-white p-6 shadow-sm">
+                            <div className="mb-4 flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-green-800">Fingerprints</h3>
+                                {/* Fingerprint Status Badge - Updated with proper colors */}
+                                <Badge
+                                    className={`px-3 py-1 text-sm font-medium ${
+                                        fingerprintStatus.hasFingerprint
+                                            ? 'border border-green-300 bg-green-100 text-green-800'
+                                            : 'border border-red-300 bg-red-100 text-red-800'
+                                    }`}
+                                >
+                                    <Fingerprint className={`mr-2 h-4 w-4 ${fingerprintStatus.hasFingerprint ? 'text-green-600' : 'text-red-600'}`} />
+                                    {fingerprintStatus.status}
+                                </Badge>
+                            </div>
+
+                            
+
+                            {/* Fingerprint Capture Component - Added from editemployeemodal.tsx */}
+                            <div className="mt-6 space-y-4">
+                                <div className="md:col-span-2">
+                                    <h4 className="text-md mb-3 flex items-center gap-2 font-semibold text-green-800">
+                                        <Fingerprint className="text-main h-4 w-4" />
+                                        Fingerprint Capture
+                                    </h4>
+                                    <FingerprintCapture
+                                        onFingerprintCaptured={handleFingerprintCapture}
+                                        employeeId={data.employeeid}
+                                        employeeFingerprints={employee?.fingerprints || []}
+                                    />
+
+                                    {/* WebSocket Fingerprint Preview - Added from editemployeemodal.tsx */}
+                                    {wsFingerprintData && (
+                                        <div className="mt-4 text-center">
+                                            <div className="mb-2 font-medium text-green-800">Fingerprint Preview:</div>
+                                            <img
+                                                src={`data:image/png;base64,${wsFingerprintData.fingerprint_image}`}
+                                                alt="Fingerprint Preview"
+                                                className="mx-auto h-32 w-32 border object-contain"
+                                            />
+                                            <div className="text-xs text-green-600">
+                                                Captured at:{' '}
+                                                {wsFingerprintData.fingerprint_captured_at
+                                                    ? new Date(wsFingerprintData.fingerprint_captured_at).toLocaleString()
+                                                    : ''}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex justify-center gap-4 border-t border-green-200 pt-6">
+                            <Button onClick={() => onEdit(employee!)} className="bg-green-600 px-6 py-2 text-white hover:bg-green-700">
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Employee
+                            </Button>
+                            <Button onClick={handleDelete} variant="destructive" className="px-6 py-2">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Employee
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };
 

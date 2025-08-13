@@ -1,18 +1,18 @@
+import { departments as departmentsData, positions as positionsData, workStatus as workStatusData } from "@/hooks/data";
 
 
-export const departments = [    
-    { label: 'Admin', value: 'Admin' },
-    { label: 'Packing Plant', value: 'Packing Plant' },
-    { label: 'Harvesting', value: 'Harvesting' },
-    { label: 'Coop Area', value: 'Coop Area' },
-    { label: 'P&D', value: 'P&D' },
-    { label: 'Engineering', value: 'Engineering' },
-    { label: 'Utility', value: 'Utility' },
-   
-];
+export const departments = departmentsData.map(department => ({
+    label: department,
+    value: department,
+}));
 
-export const workStatus = [
-    { label: 'Regular', value: 'Regular' },
-    { label: 'Add Crew', value: 'Add Crew' },
-];
+export const positions = positionsData.map(position => ({
+    label: position,
+    value: position,
+}));
+
+export const workStatus = workStatusData.map(status => ({
+    label: status,
+    value: status,
+}));
 

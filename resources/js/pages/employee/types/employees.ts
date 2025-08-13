@@ -13,9 +13,10 @@ export interface Employees {
     phone: string;
     work_status: string;
     date_of_birth: string;
-    status: string;
+    marital_status: string;
     service_tenure: string;
     email: string;
+    address: string;
     pin?: string; // Employee PIN for login
     fingerprints?: any[]; // Fingerprint info from backend
 }

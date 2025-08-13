@@ -73,7 +73,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             id="password"
                             type="password"
                             // required
-                            className="placeholder:text-white-500 text-background focus:ring-0 focus:ring-offset-0"
+                            className="placeholder:text-white-500 text-background focus:ring-0 focus:ring-offset-0 dark:placeholder:text-white-500 dark:text-white-500"
                             tabIndex={2}
                             autoComplete="current-password"
                             value={data.password}
@@ -96,7 +96,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                     <Button
                         type="submit"
-                        className="mt-10 w-full bg-background font-bold text-black transition-all duration-200 ease-in-out hover:bg-background-600 hover:text-black"
+                        className="mt-10 w-full bg-background font-bold text-black transition-all duration-200 ease-in-out hover:bg-background-600 hover:text-black dark:bg-cfar-50 dark:text-white-500 dark:hover:bg-smoke-500 dark:hover:text-white-500"
                         tabIndex={4}
                         disabled={processing}
                     >
@@ -112,14 +112,14 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     </TextLink>
                 </div> */}
             </form>
+            <div className="flex justify-center">   
             <Button
                 type="button"
                 variant="link"
-                className="w-full"
                 onClick={() => router.visit(route('home'))}
             >
                 Cancel
-            </Button>
+            </Button></div>
            
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
         </AuthLayout>

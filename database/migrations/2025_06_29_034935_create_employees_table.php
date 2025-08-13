@@ -25,9 +25,21 @@ return new class extends Migration
             $table->string('gender', 100)->nullable();
             $table->string('phone', 100)->nullable();
             $table->string('work_status', 100)->nullable();
-            $table->string('status', 100)->nullable();
+            $table->string('marital_status', 100)->nullable();
+            $table->string('nationality', 100)->nullable();
+            $table->string('address', 100)->nullable();
+            $table->string('city', 100)->nullable();
+            $table->string('state', 100)->nullable();
+            $table->string('country', 100)->nullable();
+            $table->string('zip_code', 100)->nullable();
             $table->date('service_tenure');
             $table->string('picture')->nullable();
+            $table->integer('sss')->nullable();
+            $table->integer('pag_ibig')->nullable();
+            $table->integer('philhealth')->nullable();
+            $table->integer('tin')->nullable();
+            $table->integer('gmail_password')->nullable();
+
 
             $table->softDeletes();
             $table->timestamps();

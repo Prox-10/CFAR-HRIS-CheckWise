@@ -1,4 +1,3 @@
-// Filename: addemployeemodal.tsx
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -7,94 +6,41 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    departments as departmentsData,
+    gender as genderData,
+    maritalStatus as maritalStatusData,
+    positions as positionsData,
+    workStatus as workStatusData,
+} from '@/hooks/data';
+import { Employees, initialEmployeeFormData } from '@/hooks/employees';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { ChevronDownIcon, Fingerprint, Save, Upload, User } from 'lucide-react';
-import { FormEventHandler, useEffect, useRef, useState } from 'react';
+import { ChevronDownIcon, Fingerprint, Save, User } from 'lucide-react';
+import { FormEventHandler, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import FingerprintCapture from './fingerprintcapture';
-// import RegisterFingerprintModal from './registerfingerprintmodal';
-
-type Employees = {
-    employeeid: string;
-    employee_name: string;
-    firstname: string;
-    middlename: string;
-    lastname: string;
-    gender: string;
-    department: string;
-    position: string;
-    phone: string;
-    work_status: string;
-    status: string;
-    email: string;
-    service_tenure: string;
-    date_of_birth: string;
-    picture: File | null;
-};
 
 interface EmployeeDetails {
     isOpen: boolean;
     onClose: () => void;
-    departments?: string[];
-    positions?: string[];
 }
 
-const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }: EmployeeDetails) => {
-    const work_statuses = ['Regular', 'Add Crew'];
-    const statuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
-    const genderes = ['Male', 'Female'];
-
-    // Use props if provided, otherwise use default arrays
-    const departmentOptions =
-        departments.length > 0
-            ? departments
-            : [
-                  'Administration',
-                  'Finance & Accounting',
-                  'Human Resources',
-                  'Quality Control',
-                  'Production',
-                  'Field Operations',
-                  'Logistics & Distribution',
-                  'Research & Development',
-                  'Sales & Marketing',
-                  'Maintenance',
-                  'Engineering',
-              ];
-
-    const positionOptions =
-        positions.length > 0
-            ? positions
-            : [
-                  'Admin Assistant',
-                  'Accountant',
-                  'HR Officer',
-                  'Quality Inspector',
-                  'Production Supervisor',
-                  'Field Worker',
-                  'Field Supervisor',
-                  'Logistics Coordinator',
-                  'R&D Specialist',
-                  'Sales Executive',
-                  'Maintenance Technician',
-                  'P&D',
-              ];
-
+const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
     const [openService, setOpenService] = useState(false);
     const [openBirth, setOpenBirth] = useState(false);
     const [date, setDate] = useState<Date | undefined>(undefined);
     const [birth, setBirth] = useState<Date | undefined>(undefined);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-    const [loading, setLoading] = useState(false);
+
     const [preview, setPreview] = useState<string>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [employees, setEmployees] = useState<Employees[]>([]);
+
     const [savedEmployee, setSavedEmployee] = useState<any | null>(null); // Store created employee object
     const [fingerprintData, setFingerprintData] = useState<any | null>(null);
     const [fingerprintSaved, setFingerprintSaved] = useState(false);
     const [savingFingerprint, setSavingFingerprint] = useState(false);
+
     // Add WebSocket logic to listen for fingerprint_data and display it
     const [wsFingerprintData, setWsFingerprintData] = useState<any | null>(null);
     useEffect(() => {
@@ -153,23 +99,7 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
         input.click(); // Trigger the file input click to open file explorer
     };
 
-    const { data, setData, errors, processing, reset, post } = useForm<Employees>({
-        employeeid: '',
-        employee_name: '',
-        firstname: '',
-        middlename: '',
-        lastname: '',
-        gender: '',
-        department: '',
-        position: '',
-        phone: '',
-        work_status: '',
-        status: '',
-        service_tenure: '',
-        date_of_birth: '',
-        email: '',
-        picture: null,
-    });
+    const { data, setData, errors, processing, reset, post } = useForm<Employees>(initialEmployeeFormData);
 
     const closeModalWithDelay = (delay: number = 1000) => {
         setTimeout(() => {
@@ -191,6 +121,7 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
         if (savedEmployee) return; // Prevent double submit
         post(route('employee.store'), {
             preserveScroll: true,
+            forceFormData: true,
             onSuccess: async (page) => {
                 // Fetch the latest employee by employeeid from the new API endpoint using axios
                 if (data.employeeid) {
@@ -217,39 +148,6 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
         });
     };
 
-    // const handleSaveFingerprint = async () => {
-    //     if (!savedEmployee || !fingerprintData) return;
-    //     setSavingFingerprint(true);
-    //     try {
-    //         const response = await fetch('/api/fingerprint/store', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //                 Accept: 'application/json',
-    //             },
-    //             body: JSON.stringify({
-    //                 employeeid: savedEmployee.employeeid, // <-- always use the string employeeid
-    //                 fingerprint_template: fingerprintData.fingerprint_template,
-    //                 fingerprint_image: fingerprintData.fingerprint_image,
-    //                 fingerprint_captured_at: fingerprintData.fingerprint_captured_at,
-    //                 finger_name: fingerprintData.finger_name || null,
-    //             }),
-    //         });
-    //         const result = await response.json();
-    //         if (response.ok && result.status === 'success') {
-    //             setFingerprintSaved(true);
-    //             toast.success('Fingerprint registered successfully!');
-    //             closeModalWithDelay(1200);
-    //         } else {
-    //             toast.error(result.message || 'Failed to register fingerprint.');
-    //         }
-    //     } catch (err) {
-    //         toast.error('Error saving fingerprint.');
-    //     } finally {
-    //         setSavingFingerprint(false);
-    //     }
-    // };
-
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-h-[90vh] min-w-2xl overflow-y-auto border-2 border-cfar-500 shadow-2xl">
@@ -262,9 +160,52 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                             {message.text}
                         </div>
                     )}
-                    {/* Employee Information Registration */}
+                    <div className="space-y-4">
+                        <div className="md:col-span-2">
+                            <div className="flex">
+                                <Label className="mb-3 flex items-center gap-2">
+                                    <User className="h-4 w-4 text-green-600" />
+                                    Profile Image
+                                    <span className="text-[15px] font-medium text-muted-foreground">(optional)</span>
+                                </Label>
+                            </div>
+
+                            {/* <Input type="file" name="picture" onChange={handleFileChange} className="w-full" accept="image/*" /> */}
+                        </div>
+                        <div
+                            className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
+                            onClick={handleProfileImageUpload}
+                        >
+                            {preview ? (
+                                <div className="mb-3 text-center">
+                                    <p className="mb-1 text-sm">Image Preview:</p>
+                                    <img
+                                        src={preview}
+                                        alt="Preview"
+                                        className="mx-auto mb-3 h-24 w-24 rounded-full border-2 border-green-300 object-cover"
+                                        onError={(e) => {
+                                            e.currentTarget.src = `${'User'}&background=22c55e&color=fff`;
+                                        }}
+                                    />
+                                    <p className="font-medium text-green-800">Profile Image Selected</p>
+                                    <p className="text-sm text-green-600">Click to change</p>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                                        <User className="h-8 w-8 text-gray-400" />
+                                    </div>
+                                    <p className="font-medium text-gray-600">No Profile Image</p>
+                                    <p className="text-sm text-gray-500">Click to select image</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold">Personal Information</h3>
+                    </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
+                        <div className="">
                             <Label>Employee ID</Label>
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                             <Input
@@ -291,7 +232,10 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                             <InputError message={errors.firstname} />
                         </div>
                         <div>
-                            <Label>Middlename</Label>
+                            <Label>
+                                Middlename
+                                <span className="text-[10px] font-medium text-muted-foreground">(optional)</span>
+                            </Label>
                             <span className="ms-2 text-[15px] font-medium text-muted">*</span>
                             <Input
                                 type="text"
@@ -300,7 +244,6 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                                 onChange={(e) => setData('middlename', e.target.value)}
                                 className="border-green-300 focus:border-cfar-500"
                             />
-                            {/* <InputError message={errors.middlename} /> */}
                         </div>
                         <div>
                             <Label>Lastname</Label>
@@ -316,34 +259,6 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                             <InputError message={errors.lastname} />
                         </div>
                         <div>
-                            <Label>Email Address</Label>
-                            <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                            <Input
-                                type="email"
-                                placeholder="Enter email"
-                                value={data.email}
-                                onChange={(e) => setData('email', e.target.value)}
-                                className="border-green-300 focus:border-cfar-500"
-                                aria-invalid={!!errors.email}
-                            />
-                            <InputError message={errors.email} />
-                        </div>
-
-                        <div>
-                            <Label htmlFor="phone">Phone</Label>
-                            <Input
-                                id="phone"
-                                type="text"
-                                placeholder="Enter phone number..."
-                                value={data.phone}
-                                onChange={(e) => setData('phone', e.target.value)}
-                                className="border-green-300 focus:border-cfar-500"
-                                aria-invalid={!!errors.phone}
-                            />
-                            <InputError message={errors.phone} />
-                        </div>
-
-                        <div>
                             <Label htmlFor="gender">Gender</Label>
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                             <Select
@@ -358,27 +273,28 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                                     <SelectValue placeholder="Select Gender" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {genderes.map((gend) => (
-                                        <SelectItem key={gend} value={gend}>
-                                            {gend}
+                                    {genderData.map((gender) => (
+                                        <SelectItem key={gender} value={gender}>
+                                            {gender}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             <InputError message={errors.gender} />
                         </div>
-
                         <div>
                             <div className="flex flex-col gap-3">
                                 <Label htmlFor="dateBirth" className="px-1">
                                     Date of Birth
+                                    <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                                 </Label>
+
                                 <Popover open={openBirth} onOpenChange={setOpenBirth}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant="outline"
                                             id="date"
-                                            className="w-48 w-full justify-between border-green-300 font-normal focus:border-cfar-500"
+                                            className="w-full justify-between border-green-300 font-normal focus:border-cfar-500"
                                             aria-invalid={!!errors.date_of_birth}
                                         >
                                             {birth ? birth.toLocaleDateString() : 'Select birth'}
@@ -408,16 +324,16 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                         <div>
                             <div className="flex flex-col gap-3">
                                 <Label htmlFor="date" className="px-1">
-                                    Date of Service Tenure
+                                    Length of Service
+                                    <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                                 </Label>
                                 <Popover open={openService} onOpenChange={setOpenService}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant="outline"
                                             id="date"
-                                            className="w-48 w-full justify-between border-green-300 font-normal focus:border-cfar-500"
+                                            className="w-full justify-between border-green-300 font-normal focus:border-cfar-500"
                                             aria-invalid={!!errors.service_tenure}
-                                            disabled={data.work_status === 'Add Crew'}
                                         >
                                             {date ? date.toLocaleDateString() : 'Select date'}
                                             <ChevronDownIcon />
@@ -440,13 +356,9 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                                         />
                                     </PopoverContent>
                                 </Popover>
-                                {data.work_status === 'Add Crew' && (
-                                    <p className="text-xs text-gray-500">Service tenure is not applicable for Add Crew employees</p>
-                                )}
                                 <InputError message={errors.service_tenure} />
                             </div>
                         </div>
-
                         <div>
                             <Label htmlFor="work_status">Work Status</Label>
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
@@ -455,11 +367,6 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                                 onValueChange={(value) => {
                                     console.log('Selected Work Status:', value);
                                     setData('work_status', value);
-                                    // Clear date of service tenure if switching from Regular to Add Crew
-                                    if (value === 'Add Crew') {
-                                        setDate(undefined);
-                                        setData('service_tenure', '');
-                                    }
                                 }}
                                 aria-invalid={!!errors.work_status}
                             >
@@ -467,16 +374,15 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                                     <SelectValue placeholder="Select Work Status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {work_statuses.map((work_stat) => (
-                                        <SelectItem key={work_stat} value={work_stat}>
-                                            {work_stat}
+                                    {workStatusData.map((work_status) => (
+                                        <SelectItem key={work_status} value={work_status}>
+                                            {work_status}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             <InputError message={errors.work_status} />
                         </div>
-
                         <div>
                             <Label htmlFor="departments">Departments</Label>
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
@@ -492,7 +398,7 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                                     <SelectValue placeholder="Select Departments" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {departmentOptions.map((dept) => (
+                                    {departmentsData.map((dept) => (
                                         <SelectItem key={dept} value={dept}>
                                             {dept}
                                         </SelectItem>
@@ -516,7 +422,7 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                                     <SelectValue placeholder="Select Positions" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {positionOptions.map((pos) => (
+                                    {positionsData.map((pos) => (
                                         <SelectItem key={pos} value={pos}>
                                             {pos}
                                         </SelectItem>
@@ -526,31 +432,211 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                             <InputError message={errors.position} />
                         </div>
                         <div>
-                            <Label htmlFor="status">Status</Label>
+                            <Label htmlFor="marital_status">Marital Status</Label>
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                             <Select
-                                value={data.status}
+                                value={data.marital_status}
                                 onValueChange={(value) => {
-                                    console.log('Selected Status:', value);
-                                    setData('status', value);
+                                    console.log('Selected Marital Status:', value);
+                                    setData('marital_status', value);
                                 }}
-                                aria-invalid={!!errors.status}
+                                aria-invalid={!!errors.marital_status}
                             >
                                 <SelectTrigger className="border-green-300 focus:border-cfar-500">
-                                    <SelectValue placeholder="Select Status" />
+                                    <SelectValue placeholder="Select Marital Status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {statuses.map((stat) => (
-                                        <SelectItem key={stat} value={stat}>
-                                            {stat}
+                                    {maritalStatusData.map((maritalStatus) => (
+                                        <SelectItem key={maritalStatus} value={maritalStatus}>
+                                            {maritalStatus}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError message={errors.status} />
+                            <InputError message={errors.marital_status} />
+                        </div>
+                        <div>
+                            <Label>
+                                Nationality
+                                <span className="text-[10px] font-medium text-muted-foreground">(optional)</span>
+                            </Label>
+                            <Input
+                                type="text"
+                                placeholder="Enter your nationality..."
+                                value={data.nationality}
+                                onChange={(e) => setData('nationality', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                            />
                         </div>
                     </div>
-                    <div className="ml-auto flex justify-end">
+                    <div className="mt-4"></div>
+                    <div>
+                        <h3 className="text-lg font-bold">Contact Information</h3>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="">
+                            <Label>Address</Label>
+                            {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> */}
+                            <Input
+                                type="text"
+                                placeholder="Enter your address..."
+                                value={data.address}
+                                onChange={(e) => setData('address', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.address}
+                            />
+                            <InputError message={errors.address} />
+                        </div>
+                        <div>
+                            <Label>City</Label>
+                            {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> */}
+                            <Input
+                                type="text"
+                                placeholder="Enter your city..."
+                                value={data.city}
+                                onChange={(e) => setData('city', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.city}
+                            />
+                            <InputError message={errors.city} />
+                        </div>
+                        <div>
+                            <Label htmlFor="phone">
+                                Phone
+                                <span className="text-[10px] font-medium text-muted-foreground">(optional)</span>
+                            </Label>
+                            <Input
+                                id="phone"
+                                type="text"
+                                placeholder="Enter phone number..."
+                                value={data.phone}
+                                onChange={(e) => setData('phone', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.phone}
+                            />
+                            <InputError message={errors.phone} />
+                        </div>
+                        <div>
+                            <Label htmlFor="state">State</Label>
+                            <Input
+                                type="text"
+                                placeholder="Enter your state..."
+                                value={data.state}
+                                onChange={(e) => setData('state', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.state}
+                            />
+                            <InputError message={errors.state} />
+                        </div>
+                        <div>
+                            <Label htmlFor="country">Country</Label>
+                            <Input
+                                type="text"
+                                placeholder="Enter your country..."
+                                value={data.country}
+                                onChange={(e) => setData('country', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.country}
+                            />
+                            <InputError message={errors.country} />
+                        </div>
+                        <div>
+                            <Label htmlFor="zip_code">Zip Code</Label>
+                            <Input
+                                type="text"
+                                placeholder="Enter your zip code..."
+                                value={data.zip_code}
+                                onChange={(e) => setData('zip_code', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.zip_code}
+                            />
+                            <InputError message={errors.zip_code} />
+                        </div>
+                        <div>
+                            <Label>Email Address</Label>
+                            <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
+                            <Input
+                                type="email"
+                                placeholder="Enter email..."
+                                value={data.email}
+                                onChange={(e) => setData('email', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.email}
+                            />
+                            <InputError message={errors.email} />
+                        </div>
+                        <div>
+                            <Label>Password</Label>
+                            <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
+                            <Input
+                                type="text"
+                                placeholder="Enter password..."
+                                value={data.gmail_password}
+                                onChange={(e) => setData('gmail_password', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.gmail_password}
+                            />
+                            <InputError message={errors.gmail_password} />
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold">Government IDs</h3>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="">
+                            <Label>Philhealth Number</Label>
+                            {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> */}
+                            <Input
+                                type="text"
+                                placeholder="Enter your philhealth..."
+                                value={data.philhealth}
+                                onChange={(e) => setData('philhealth', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.philhealth}
+                            />
+                            <InputError message={errors.philhealth} />
+                        </div>
+                        <div>
+                            <Label>SSS Number</Label>
+                            {/* <span className="ms-2 text-[15px] font-medium text-red-600">*</span> */}
+                            <Input
+                                type="text"
+                                placeholder="Enter your sss..."
+                                value={data.sss}
+                                onChange={(e) => setData('sss', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.sss}
+                            />
+                            <InputError message={errors.sss} />
+                        </div>
+                        <div>
+                            <Label htmlFor="pag-ibig">Pag-ibig Number</Label>
+                            <Input
+                                id="pag-ibig"
+                                type="text"
+                                placeholder="Enter pag-ibig number..."
+                                value={data.pag_ibig}
+                                onChange={(e) => setData('pag_ibig', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.pag_ibig}
+                            />
+                            <InputError message={errors.pag_ibig} />
+                        </div>
+                        <div>
+                            <Label htmlFor="state">Tin Number</Label>
+                            <Input
+                                type="number"
+                                placeholder="Enter your tin_number.."
+                                value={data.tin}
+                                onChange={(e) => setData('tin', e.target.value)}
+                                className="border-green-300 focus:border-cfar-500"
+                                aria-invalid={!!errors.tin}
+                            />
+                            <InputError message={errors.tin} />
+                        </div>
+                    </div>
+
+                    <div className="mt-3 ml-auto flex justify-end">
                         <Button type="submit" tabIndex={0} variant="main" disabled={processing || !!savedEmployee}>
                             {processing ? (
                                 <>
@@ -567,60 +653,8 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                     </div>
                     {/* End of Employee Information Registration */}
 
-                    <div className="md:col-span-2">
-                        <div className="flex">
-                            <Label className="mb-3 flex items-center gap-2">
-                                <User className="h-4 w-4 text-green-600" />
-                                Profile Image
-                                <span className="text-[15px] font-medium text-muted-foreground">(optional)</span>
-                            </Label>
-                        </div>
-
-                        {/* <Input type="file" name="picture" onChange={handleFileChange} className="w-full" accept="image/*" /> */}
-                    </div>
                     {/* Optional Employee Profile Upload */}
                     <div className="space-y-4">
-                        <div
-                            className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
-                            onClick={handleProfileImageUpload}
-                        >
-                            {preview ? (
-                                <div className="mb-3 text-center">
-                                    <p className="mb-1 text-sm">Image Preview:</p>
-                                    <img
-                                        src={preview}
-                                        alt="Preview"
-                                        className="mx-auto mb-3 h-24 w-24 rounded-full border-2 border-green-300 object-cover"
-                                        onError={(e) => {
-                                            e.currentTarget.src = `${'User'}&background=22c55e&color=fff`;
-                                        }}
-                                    />
-                                    <p className="font-medium text-green-800">Profile Image Selected</p>
-                                    <p className="text-sm text-green-600">Click to change</p>
-                                </div>
-                            ) : (
-                                <div className="text-center">
-                                    <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                                        <User className="h-8 w-8 text-gray-400" />
-                                    </div>
-                                    <p className="font-medium text-gray-600">No Profile Image</p>
-                                    <p className="text-sm text-gray-500">Click to select image</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex justify-center">
-                            <Button
-                                type="button"
-                                onClick={handleProfileImageUpload}
-                                className="bg-main text-black transition duration-200 ease-in hover:bg-green-300"
-                            >
-                                <Upload className="mr-2 h-4 w-4" />
-                                Upload Profile Image
-                            </Button>
-                        </div>
-                        {/* End of Optional Employee Profile Upload */}
-
                         {/* Fingerprint Registration  */}
                         <div className="mt-4 md:col-span-2">
                             <Label className="mb-3 flex items-center gap-2">
@@ -637,6 +671,7 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                             <FingerprintCapture
                                 onFingerprintCaptured={setFingerprintData}
                                 employeeId={savedEmployee?.employeeid}
+                                employeeFingerprints={[]}
                                 onStartCapture={() => toast.info('Starting fingerprint capture...')}
                             />
                             {wsFingerprintData && (
@@ -655,24 +690,24 @@ const AddEmployeeModal = ({ isOpen, onClose, departments = [], positions = [] }:
                                     </div>
                                 </div>
                             )}
+
                             <div className="mt-4 flex justify-end">
-                                <Button
-                                    type="button"
-                                    onClick={() => closeModalWithDelay(0)}
-                                    className="bg-main font-semibold text-black transition duration-200 ease-in hover:bg-green-300"
-                                >
-                                    Done
-                                </Button>
+                                <DialogFooter>
+                                    <Button
+                                        variant="outline"
+                                        type="button"
+                                        onClick={() => closeModalWithDelay(0)}
+                                        disabled={processing || savingFingerprint}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button type="button" variant="main" onClick={() => closeModalWithDelay(0)}>
+                                        Done
+                                    </Button>
+                                </DialogFooter>
                             </div>
                         </div>
-                        {/* End of Fingerprint Registration  */}
                     </div>
-
-                    <DialogFooter>
-                        <Button variant="outline" type="button" onClick={() => closeModalWithDelay(0)} disabled={processing || savingFingerprint}>
-                            Cancel
-                        </Button>
-                    </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>

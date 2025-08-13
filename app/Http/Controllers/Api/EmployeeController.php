@@ -31,7 +31,13 @@ class EmployeeController extends Controller
         'status'        => $employee->status,
         'phone'         => $employee->phone,
         'email'         => $employee->email,
+        'pin'           => $employee->pin,
         'position'      => $employee->position,
+        'sss'           => $employee->sss,
+        'pag_ibig'      => $employee->pag_ibig,
+        'tin'           => $employee->tin,
+        'gmail_password' => $employee->gmail_password,
+        'philhealth'    => $employee->philhealth,
         'created_at'    => $employee->created_at->format('d M Y'),
         'fingerprints'  => $employee->fingerprints->map(function ($fp) {
           return [

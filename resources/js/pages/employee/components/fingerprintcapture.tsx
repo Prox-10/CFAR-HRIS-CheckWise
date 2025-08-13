@@ -1,16 +1,49 @@
-import { Button } from '@/components/ui/button';
-import { Camera, Check, Fingerprint } from 'lucide-react';
+import { Check, Fingerprint } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface FingerprintCaptureProps {
     onFingerprintCaptured: (data: any) => void;
     employeeId?: string; // Add this prop
+    onStartCapture?: () => void; // Optional callback when capture starts
+    employeeFingerprints?: any[]; // Add this prop to check existing fingerprints
 }
 
-const FingerprintCapture: React.FC<FingerprintCaptureProps> = ({ onFingerprintCaptured, employeeId }) => {
+const FingerprintCapture: React.FC<FingerprintCaptureProps> = ({ onFingerprintCaptured, employeeId, onStartCapture, employeeFingerprints = [] }) => {
     const [isCapturing, setIsCapturing] = useState(false);
     const [fingerprintData, setFingerprintData] = useState<any | null>(null);
     const ws = useRef<WebSocket | null>(null);
+
+    // Function to check if employee has fingerprints
+    const hasFingerprints = () => {
+        return employeeFingerprints && employeeFingerprints.length > 0;
+    };
+
+    // Function to get background color based on fingerprint status
+    const getBackgroundColor = () => {
+        if (hasFingerprints()) {
+            return 'bg-green-100 border-green-300 hover:bg-green-200';
+        } else {
+            return 'bg-red-100 border-red-300 hover:bg-red-200';
+        }
+    };
+
+    // Function to get text color based on fingerprint status
+    const getTextColor = () => {
+        if (hasFingerprints()) {
+            return 'text-green-800';
+        } else {
+            return 'text-red-800';
+        }
+    };
+
+    // Function to get icon color based on fingerprint status
+    const getIconColor = () => {
+        if (hasFingerprints()) {
+            return 'text-green-600';
+        } else {
+            return 'text-red-600';
+        }
+    };
 
     useEffect(() => {
         ws.current = new WebSocket('ws://localhost:8080');
@@ -36,12 +69,15 @@ const FingerprintCapture: React.FC<FingerprintCaptureProps> = ({ onFingerprintCa
             alert('Please enter Employee ID first before capturing fingerprint.');
             return;
         }
+        if (typeof onStartCapture === 'function') {
+            onStartCapture();
+        }
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send(
                 JSON.stringify({
                     type: 'start_registration',
                     employeeid: employeeId,
-                })
+                }),
             );
             setIsCapturing(true);
         }
@@ -53,23 +89,25 @@ const FingerprintCapture: React.FC<FingerprintCaptureProps> = ({ onFingerprintCa
 
     return (
         <div className="space-y-4">
+            {/* Integrated Fingerprint Capture Area with Status */}
             <div
                 className={`flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${
-                    isEmployeeIdValid ? 'border-green-300 bg-green-50 hover:bg-green-100' : 'cursor-not-allowed border-gray-300 bg-gray-50'
+                    isEmployeeIdValid ? getBackgroundColor() : 'cursor-not-allowed border-gray-300 bg-gray-50'
                 }`}
                 onClick={isEmployeeIdValid ? handleCapture : undefined}
             >
                 <div className="text-center">
                     {fingerprintData ? (
+                        // New fingerprint just captured
                         <div className="space-y-3">
                             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
                                 <Check className="h-8 w-8 text-green-600" />
                             </div>
                             <div>
-                                <p className="font-medium text-green-800">Fingerprint Captured</p>
+                                <p className="font-medium text-green-800">Fingerprint Captured!</p>
                                 <img
                                     src={`data:image/png;base64,${fingerprintData.fingerprint_image}`}
-                                    alt="Fingerprint"
+                                    alt="New Fingerprint"
                                     className="mx-auto my-2 h-32 w-32 border object-contain"
                                 />
                                 <p className="text-xs text-green-600">
@@ -78,6 +116,7 @@ const FingerprintCapture: React.FC<FingerprintCaptureProps> = ({ onFingerprintCa
                             </div>
                         </div>
                     ) : isCapturing ? (
+                        // Currently capturing
                         <div className="space-y-3">
                             <div className="mx-auto flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-green-100">
                                 <Fingerprint className="animate-user-pulse h-8 w-8 text-green-600" />
@@ -87,32 +126,57 @@ const FingerprintCapture: React.FC<FingerprintCaptureProps> = ({ onFingerprintCa
                                 <p className="text-sm text-green-600">Please place finger on sensor</p>
                             </div>
                         </div>
-                    ) : (
-                        <div className="space-y-3">
-                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                                <Fingerprint className="h-8 w-8 text-gray-400" />
+                    ) : hasFingerprints() ? (
+                        // Has existing fingerprints - show them
+                        <div className="space-y-4">
+                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                                <Fingerprint className="h-8 w-8 text-green-600" />
                             </div>
                             <div>
-                                <p className="font-medium text-gray-600">{isEmployeeIdValid ? 'No Fingerprint Captured' : 'Employee ID Required'}</p>
-                                <p className="text-sm text-gray-500">
-                                    {isEmployeeIdValid ? 'Click to capture fingerprint' : 'Please enter Employee ID first'}
+                                <p className={`font-medium ${getTextColor()}`}>
+                                    Fingerprint Registered
+                                </p>
+                                <p className="mb-3 text-sm text-green-600">Fingerprint already registered</p>
+
+                                {/* Display existing fingerprint images */}
+                                <div className="flex flex-wrap justify-center gap-3">
+                                    {employeeFingerprints.map((fp: any, idx: number) => (
+                                        <div key={fp.id || idx} className="text-center">
+                                            <img
+                                                src={fp.fingerprint_image ? `data:image/png;base64,${fp.fingerprint_image}` : '/Logo.png'}
+                                                alt={`Fingerprint ${idx + 1}`}
+                                                className="mx-auto h-40 w-40 rounded border-2 border-green-400 object-contain shadow-sm"
+                                                onError={(e) => {
+                                                    e.currentTarget.src = '/Logo.png';
+                                                }}
+                                            />
+                                            {/* <p className="mt-1 text-xs text-green-700">
+                                                {fp.finger_name
+                                                    ? fp.finger_name.charAt(0).toUpperCase() + fp.finger_name.slice(1)
+                                                    : `Finger ${idx + 1}`}
+                                            </p> */}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        // No fingerprints registered
+                        <div className="space-y-3">
+                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                                <Fingerprint className="h-8 w-8 text-red-600" />
+                            </div>
+                            <div>
+                                <p className={`font-medium ${getTextColor()}`}>
+                                    {isEmployeeIdValid ? 'No Fingerprints Registered' : 'Employee ID Required'}
+                                </p>
+                                <p className="text-sm text-red-600">
+                                    {isEmployeeIdValid ? 'Click to capture first fingerprint' : 'Please enter Employee ID first'}
                                 </p>
                             </div>
                         </div>
                     )}
                 </div>
-            </div>
-            <div className="flex justify-center">
-                <Button
-                    onClick={handleCapture}
-                    disabled={isCapturing || !isEmployeeIdValid}
-                    className={`transition duration-200 ease-in ${
-                        isEmployeeIdValid ? 'bg-main text-black hover:bg-green-300' : 'cursor-not-allowed bg-gray-300 text-gray-500'
-                    }`}
-                >
-                    <Camera className="mr-2 h-4 w-4" />
-                    {isCapturing ? 'Capturing...' : 'Capture Fingerprint'}
-                </Button>
             </div>
         </div>
     );

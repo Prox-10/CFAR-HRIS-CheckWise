@@ -16,12 +16,12 @@ class EmployeeFactory extends Factory
      */
     public function definition(): array
     {
-         $firstname = $this->faker->firstName;
+        $firstname = $this->faker->firstName;
         $middlename = $this->faker->firstName;
         $lastname = $this->faker->lastName;
 
         return [
-            'employeeid' => $this->faker->unique()->numerify('EMP1028####'),
+            'employeeid' => $this->faker->unique()->numerify('00###'),
             'firstname' => $firstname,
             'middlename' => $middlename,
             'lastname' => $lastname,
@@ -29,17 +29,13 @@ class EmployeeFactory extends Factory
             'email' => $this->faker->unique()->safeEmail,
             'phone' => $this->faker->numerify('09#########'),
             'department' => $this->faker->randomElement([
-                'Administration',
-                'Finance & Accounting',
-                'Human Resources',
-                'Quality Control',
-                'Production',
-                'Field Operations',
-                'Logistics & Distribution',
-                'Research & Development',
-                'Sales & Marketing',
-                'Maintenance',
-                'Engineering',]),
+                'Monthly',
+                'Packing',
+                'Harvest',
+                'PDC',
+                'Coop Area',
+                'Engineering',
+            ]),
             'position' => $this->faker->randomElement([
                 'Admin Assistant',
                 'Accountant',
@@ -52,13 +48,21 @@ class EmployeeFactory extends Factory
                 'R&D Specialist',
                 'Sales Executive',
                 'Maintenance Technician',
-                'P&D',]),
-            'status' => $this->faker->randomElement(['Single', 'Married', 'Divorced']),
+                'P&D',
+            ]),
+            'marital_status' => $this->faker->randomElement(['Single', 'Married', 'Divorced', 'Widowed', 'Separated']),
             'gender' => $this->faker->randomElement(['Male', 'Female']),
-            'work_status' => $this->faker->randomElement(['Regular', 'Add Crew']),
+            'work_status' => $this->faker->randomElement(['Regular', 'Add Crew','Probationary', 'Sessional']),
             'service_tenure' => $this->faker->date(),
             'date_of_birth' => $this->faker->date(),
-            'picture' => null, // or put placeholder url if needed
+            'picture' => null,
+            'address' => $this->faker->streetAddress(),
+            'city' => $this->faker->city(),
+            'state' => $this->faker->state(),
+            // Keep country consistent with project context
+            'country' => 'Philippines',
+            'zip_code' => $this->faker->postcode(),
+            'nationality' => 'Filipino',
         ];
     }
 }

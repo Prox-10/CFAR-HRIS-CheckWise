@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 use Inertia\Response;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 
 class AuthEmployeeController extends Controller
 {
@@ -578,5 +579,15 @@ class AuthEmployeeController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function logouts(Request $request): RedirectResponse
+    {
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
     }
 }

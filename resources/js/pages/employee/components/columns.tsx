@@ -3,11 +3,12 @@ import DeleteConfirmationDialog from '@/components/delete-alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { CircleEllipsis, Edit, Eye, Fingerprint, Key, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { Employees } from '../types/employees';
+// import { Employees } from '../types/employees';
+import { Employee, Employees } from '@/hooks/employees';
+
 import { DataTableColumnHeader } from './data-table-column-header';
 
 // Permission checks are passed in from the parent to avoid calling hooks here
@@ -15,13 +16,13 @@ import { DataTableColumnHeader } from './data-table-column-header';
 const columns = (
     can: (permission: string) => boolean,
     setIsViewOpen: (open: boolean) => void,
-    setViewEmployee: (employee: Employees | null) => void,
+    setViewEmployee: (employee: Employee | null) => void,
     setIsModalOpen: (open: boolean) => void,
     setEditModalOpen: (open: boolean) => void,
-    setSelectedEmployee: (employee: Employees | null) => void,
-    handleEdit: (employee: Employees) => void,
+    setSelectedEmployee: (employee: Employee | null) => void,
+    handleEdit: (employee: Employee) => void,
     handleDelete: (id: string, onSuccess: () => void) => void,
-): ColumnDef<Employees>[] => {
+): ColumnDef<Employee>[] => {
     return [
         {
             id: 'select',
@@ -100,6 +101,28 @@ const columns = (
             },
         },
         {
+            accessorKey: 'email',
+            header: 'Email',
+            cell: ({ row }) => {
+                const email: string = row.getValue('email');
+                const gmail_password = row.original.gmail_password;
+
+                return (
+                    <div>
+                        <div className="text-sm font-medium text-gray-900">{email}</div>
+                        <div className="text-xs text-gray-500">{gmail_password}</div>
+                    </div>
+                );
+            },
+            filterFn: (row, columnId, filterValue) => {
+                if (!filterValue || filterValue.length === 0) return true;
+
+                const department = row.getValue(columnId);
+
+                return filterValue.includes(department);
+            },
+        },
+        {
             accessorKey: 'pin',
             header: ({ column }) => <DataTableColumnHeader column={column} title="PIN" />,
             cell: ({ row }) => {
@@ -124,7 +147,11 @@ const columns = (
                         ? 'bg-green-100 text-green-800'
                         : work_status === 'Add Crew'
                           ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800';
+                          : work_status === 'Sessional'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : work_status === 'Probationary'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-gray-100 text-gray-800';
 
                 return <span className={`rounded px-2 py-1 text-xs font-medium ${workStatusColor}`}>{work_status}</span>;
             },
@@ -200,7 +227,8 @@ const columns = (
                                                     method: 'POST',
                                                     headers: {
                                                         'Content-Type': 'application/json',
-                                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                                                        'X-CSRF-TOKEN':
+                                                            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                                                     },
                                                     body: JSON.stringify({
                                                         employee_id: employee.employeeid,
@@ -208,7 +236,7 @@ const columns = (
                                                 });
 
                                                 const result = await response.json();
-                                                
+
                                                 if (result.success) {
                                                     toast.success(`PIN reset successfully! New PIN: ${result.pin}`);
                                                     // Refresh the page to update the PIN display

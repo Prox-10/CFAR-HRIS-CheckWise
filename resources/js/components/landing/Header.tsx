@@ -90,7 +90,7 @@ const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
                             <>
                                 <Link
                                     href={route('login')}
-                                    className="flex w-auto rounded-sm border border-transparent bg-cfar-50 px-5 py-1.5 text-lg leading-normal text-[#1b1b18] hover:border-cfar-500  dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A] hover:bg-white transition-all duration-300 ease-in-out"
+                                    className="flex w-auto rounded-sm border border-transparent bg-cfar-50 px-5 py-1.5 text-lg leading-normal text-[#1b1b18] hover:border-cfar-500  dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A] hover:bg-white transition-all duration-300 ease-in-out dark:bg-cfar-400"
                                 >
                                     <div className="flex w-auto">
                                         <Shield className="mt-1 mr-2 h-4 w-4" />

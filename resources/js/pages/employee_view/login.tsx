@@ -42,7 +42,7 @@ export default function Login({ status }: LoginProps) {
                         <Input
                             id="employee_id"
                             type="text"
-                            className="placeholder:text-white-500 text-muted-foreground focus:ring-0 focus:ring-offset-0"
+                            className="placeholder:text-white-500 text-background focus:ring-0 focus:ring-offset-0"
                             autoFocus
                             tabIndex={1}
                             autoComplete="employee_id"
@@ -72,7 +72,7 @@ export default function Login({ status }: LoginProps) {
                         <Input
                             id="pin"
                             type="password"
-                            className="placeholder:text-white-500 text-muted-foreground focus:ring-0 focus:ring-offset-0"
+                            className="placeholder:text-white-500 text-background focus:ring-0 focus:ring-offset-0"
                             tabIndex={2}
                             autoComplete="current-password"
                             value={data.pin}

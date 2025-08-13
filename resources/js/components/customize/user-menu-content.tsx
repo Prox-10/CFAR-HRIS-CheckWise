@@ -29,10 +29,8 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
     const handleLogout = () => {
         cleanup();
         if (isEmployee) {
-            // Employee logout
             router.post(route('employee_logout'));
         } else {
-            // Regular user logout
             router.flushAll();
         }
     };

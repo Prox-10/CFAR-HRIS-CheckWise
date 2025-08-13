@@ -26,10 +26,21 @@ class Employee extends Model
         'service_tenure',
         'phone',
         'work_status',
-        'status',
         'gender',
+        'marital_status',
+        'nationality',
+        'address',
+        'city',
+        'state',
+        'country',
+        'zip_code',
         'picture',
         'pin',
+        'gmail_password',
+        'sss',
+        'philhealth',
+        'tin',
+        'pag_ibig',
     ];
 
     protected static function boot()
