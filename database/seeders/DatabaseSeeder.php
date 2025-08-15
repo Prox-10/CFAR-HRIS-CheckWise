@@ -46,6 +46,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             EmployeeSeeder::class,
+            AttendanceSeeder::class,
         ]);
 
         // Then run other seeders

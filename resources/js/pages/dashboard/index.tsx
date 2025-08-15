@@ -139,7 +139,7 @@ function SidebarHoverLogic(props: Props & { months: number, loading: boolean, ha
                                         </div>
                                     </div>
                                     <Separator className="shadow-sm" />
-                                    {/* <ChartAreaInteractive /> */}
+                                    <ChartAreaInteractive />
                                     <div className="grid grid-cols-3 grid-rows-2 gap-2">
                                         <div className="col-span-2">
                                             <Card className='p-5'>
@@ -174,10 +174,10 @@ function SidebarHoverLogic(props: Props & { months: number, loading: boolean, ha
                                             </Card>
                                         </div>
                                         <div className="row-start-2">
-                                            {/* <ChartBarLabels /> */}
+                                            <ChartBarLabels />
                                         </div>
                                         <div className="row-start-2">
-                                            {/* <ChartLineLabel /> */}
+                                            <ChartLineLabel />
                                         </div>
                                     </div>
                                 </TabsContent>

@@ -44,7 +44,7 @@ export default function Index({
     totalEmployee = 0,
     prevTotalEmployee = 0,
     totalDepartment = 0,
-    prevTotalDepartment = 0, 
+    prevTotalDepartment = 0,
 }: Props) {
     const [data, setData] = useState<Attendance[]>(attendanceData);
     const [editModelOpen, setEditModalOpen] = useState(false);
@@ -137,6 +137,7 @@ export default function Index({
                                                 <div className="@container/main flex flex-1 flex-col gap-2">
                                                     <div className="flex flex-col">
                                                         <SectionCards
+                                                            attendanceData={data}
                                                             totalEmployee={totalEmployee}
                                                             prevTotalEmployee={prevTotalEmployee}
                                                             totalDepartment={totalDepartment}
