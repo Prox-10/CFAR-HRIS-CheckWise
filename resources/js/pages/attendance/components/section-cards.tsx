@@ -12,6 +12,13 @@ interface SectionCardsProps {
     prevTotalEmployee?: number;
     totalDepartment?: number;
     prevTotalDepartment?: number;
+    isSupervisor?: boolean;
+    roleContent?: {
+        attendanceLabel: string;
+        presentLabel: string;
+        lateLabel: string;
+        leaveLabel: string;
+    };
 }
 
 export function SectionCards({
@@ -20,6 +27,8 @@ export function SectionCards({
     prevTotalEmployee = 0,
     totalDepartment = 0,
     prevTotalDepartment = 0,
+    isSupervisor = false,
+    roleContent,
 }: SectionCardsProps) {
     // Function to count attendance for current day
     const getCurrentDayAttendance = () => {
@@ -119,6 +128,33 @@ export function SectionCards({
     const lateCount = useCountUp(attendanceCounts.late, 1000);
     const leaveCount = useCountUp(attendanceCounts.excuse + attendanceCounts.leave, 1000);
 
+    // Default labels
+    const labels = roleContent || {
+        attendanceLabel: 'Total Attendance',
+        presentLabel: 'Present',
+        lateLabel: 'Late Arrivals',
+        leaveLabel: 'On Leave',
+    };
+
+    // Get badge text based on role
+    const getBadgeText = (type: string) => {
+        if (isSupervisor) {
+            switch (type) {
+                case 'attendance':
+                    return 'Your';
+                case 'present':
+                    return 'Your';
+                case 'late':
+                    return 'Your';
+                case 'leave':
+                    return 'Your';
+                default:
+                    return 'Total';
+            }
+        }
+        return type === 'leave' ? 'On Leave' : 'Today';
+    };
+
     return (
         <>
             {/* Debug Information - Remove this after fixing */}
@@ -140,10 +176,10 @@ export function SectionCards({
                                 <Users className="size-6 text-green-600" />
                             </div>
                             <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">
-                                Today
+                                {getBadgeText('attendance')}
                             </Badge>
                         </div>
-                        <CardDescription className="mt-3 font-semibold text-green-700">Total Attendance</CardDescription>
+                        <CardDescription className="mt-3 font-semibold text-green-700">{labels.attendanceLabel}</CardDescription>
                         <CardTitle className="text-3xl font-bold text-green-800 tabular-nums @[250px]/card:text-4xl">
                             {totalAttendanceCount.toLocaleString()}
                         </CardTitle>
@@ -151,10 +187,10 @@ export function SectionCards({
                     <CardFooter className="flex-col items-start gap-1 text-sm">
                         <div className="line-clamp-1 flex gap-2 font-medium text-green-600">
                             <TrendingUpIcon className="size-4" />
-                            {totalEmployee > 0 ? `${((attendanceCounts.totalAttendance / totalEmployee) * 100).toFixed(1)}%` : '0%'} of total
-                            employees
+                            {totalEmployee > 0 ? `${((attendanceCounts.totalAttendance / totalEmployee) * 100).toFixed(1)}%` : '0%'} of{' '}
+                            {isSupervisor ? 'your' : 'total'} employees
                         </div>
-                        <div className="text-green-500">Active attendance today</div>
+                        <div className="text-green-500">{isSupervisor ? 'Your team attendance today' : 'Active attendance today'}</div>
                     </CardFooter>
                 </Card>
 
@@ -166,10 +202,10 @@ export function SectionCards({
                                 <CheckCircle className="size-6 text-emerald-600" />
                             </div>
                             <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
-                                On Time
+                                {getBadgeText('present')}
                             </Badge>
                         </div>
-                        <CardDescription className="mt-3 font-semibold text-emerald-700">Present</CardDescription>
+                        <CardDescription className="mt-3 font-semibold text-emerald-700">{labels.presentLabel}</CardDescription>
                         <CardTitle className="text-3xl font-bold text-emerald-800 tabular-nums @[250px]/card:text-4xl">
                             {presentCount.toLocaleString()}
                         </CardTitle>
@@ -180,9 +216,9 @@ export function SectionCards({
                             {attendanceCounts.totalAttendance > 0
                                 ? `${((attendanceCounts.present / attendanceCounts.totalAttendance) * 100).toFixed(1)}%`
                                 : '0%'}{' '}
-                            of attendees
+                            of {isSupervisor ? 'your' : 'attendees'}
                         </div>
-                        <div className="text-emerald-500">Employees on time today</div>
+                        <div className="text-emerald-500">{isSupervisor ? 'Your team on time today' : 'Employees on time today'}</div>
                     </CardFooter>
                 </Card>
 
@@ -194,10 +230,10 @@ export function SectionCards({
                                 <Clock className="size-6 text-amber-600" />
                             </div>
                             <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
-                                Late
+                                {getBadgeText('late')}
                             </Badge>
                         </div>
-                        <CardDescription className="mt-3 font-semibold text-amber-700">Late Arrivals</CardDescription>
+                        <CardDescription className="mt-3 font-semibold text-amber-700">{labels.lateLabel}</CardDescription>
                         <CardTitle className="text-3xl font-bold text-amber-800 tabular-nums @[250px]/card:text-4xl">
                             {lateCount.toLocaleString()}
                         </CardTitle>
@@ -208,9 +244,9 @@ export function SectionCards({
                             {attendanceCounts.totalAttendance > 0
                                 ? `${((attendanceCounts.late / attendanceCounts.totalAttendance) * 100).toFixed(1)}%`
                                 : '0%'}{' '}
-                            of attendees
+                            of {isSupervisor ? 'your' : 'attendees'}
                         </div>
-                        <div className="text-amber-500">Employees arrived late</div>
+                        <div className="text-amber-500">{isSupervisor ? 'Your team arrived late' : 'Employees arrived late'}</div>
                     </CardFooter>
                 </Card>
 
@@ -222,10 +258,10 @@ export function SectionCards({
                                 <Clock className="size-6 text-blue-600" />
                             </div>
                             <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
-                                On Leave
+                                {getBadgeText('leave')}
                             </Badge>
                         </div>
-                        <CardDescription className="mt-3 font-semibold text-blue-700">On Leave</CardDescription>
+                        <CardDescription className="mt-3 font-semibold text-blue-700">{labels.leaveLabel}</CardDescription>
                         <CardTitle className="text-3xl font-bold text-blue-800 tabular-nums @[250px]/card:text-4xl">
                             {leaveCount.toLocaleString()}
                         </CardTitle>
@@ -236,9 +272,9 @@ export function SectionCards({
                             {totalEmployee > 0
                                 ? `${(((attendanceCounts.excuse + attendanceCounts.leave) / totalEmployee) * 100).toFixed(1)}%`
                                 : '0%'}{' '}
-                            of total employees
+                            of {isSupervisor ? 'your' : 'total'} employees
                         </div>
-                        <div className="text-blue-500">Employees on leave or excuse</div>
+                        <div className="text-blue-500">{isSupervisor ? 'Your team on leave or excuse' : 'Employees on leave or excuse'}</div>
                     </CardFooter>
                 </Card>
             </div>

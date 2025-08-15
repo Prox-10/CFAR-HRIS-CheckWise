@@ -17,10 +17,22 @@ class AbsenceController extends Controller
      */
     public function index()
     {
-        // Fetch absences with employee relationship
-        $absences = Absence::with('employee', 'approver')
-            ->orderBy('submitted_at', 'desc')
-            ->get();
+        $user = Auth::user();
+        $isSupervisor = $user->isSupervisor();
+        $isSuperAdmin = $user->isSuperAdmin();
+
+        // Get user's supervised departments if supervisor
+        $supervisedDepartments = $isSupervisor ? $user->getEvaluableDepartments() : [];
+
+        // Base query for absences
+        $absenceQuery = Absence::with('employee', 'approver');
+
+        // Filter absences based on user role
+        if ($isSupervisor && !empty($supervisedDepartments)) {
+            $absenceQuery->whereIn('department', $supervisedDepartments);
+        }
+
+        $absences = $absenceQuery->orderBy('submitted_at', 'desc')->get();
 
         $absenceList = $absences->transform(fn($absence) => [
             'id' => $absence->id,
@@ -41,12 +53,21 @@ class AbsenceController extends Controller
             'picture' => $absence->employee ? $absence->employee->picture : null,
         ]);
 
-        // Fetch employees for the add modal dropdown
-        $employees = Employee::select('id', 'employeeid', 'employee_name', 'department', 'position')->get();
+        // Fetch employees for the add modal dropdown - filter by supervisor role
+        $employeeQuery = Employee::select('id', 'employeeid', 'employee_name', 'department', 'position');
+        if ($isSupervisor && !empty($supervisedDepartments)) {
+            $employeeQuery->whereIn('department', $supervisedDepartments);
+        }
+        $employees = $employeeQuery->get();
 
         return Inertia::render('absence/index', [
             'absences' => $absenceList,
             'employees' => $employees,
+            'user_permissions' => [
+                'is_supervisor' => $isSupervisor,
+                'is_super_admin' => $isSuperAdmin,
+                'supervised_departments' => $supervisedDepartments,
+            ],
         ]);
     }
 
@@ -104,9 +125,22 @@ class AbsenceController extends Controller
      */
     public function approve()
     {
-        $absences = Absence::with('employee', 'approver')
-            ->orderBy('submitted_at', 'desc')
-            ->get();
+        $user = Auth::user();
+        $isSupervisor = $user->isSupervisor();
+        $isSuperAdmin = $user->isSuperAdmin();
+
+        // Get user's supervised departments if supervisor
+        $supervisedDepartments = $isSupervisor ? $user->getEvaluableDepartments() : [];
+
+        // Base query for absences
+        $absenceQuery = Absence::with('employee', 'approver');
+
+        // Filter absences based on user role
+        if ($isSupervisor && !empty($supervisedDepartments)) {
+            $absenceQuery->whereIn('department', $supervisedDepartments);
+        }
+
+        $absences = $absenceQuery->orderBy('submitted_at', 'desc')->get();
 
         $absenceList = $absences->transform(fn($absence) => [
             'id' => $absence->id,
@@ -124,6 +158,11 @@ class AbsenceController extends Controller
 
         return Inertia::render('absence/absence-approve', [
             'initialRequests' => $absenceList,
+            'user_permissions' => [
+                'is_supervisor' => $isSupervisor,
+                'is_super_admin' => $isSuperAdmin,
+                'supervised_departments' => $supervisedDepartments,
+            ],
         ]);
     }
 
@@ -206,9 +245,22 @@ class AbsenceController extends Controller
 
     public function request()
     {
-        $absences = Absence::with('employee', 'approver')
-            ->orderBy('submitted_at', 'desc')
-            ->get();
+        $user = Auth::user();
+        $isSupervisor = $user->isSupervisor();
+        $isSuperAdmin = $user->isSuperAdmin();
+
+        // Get user's supervised departments if supervisor
+        $supervisedDepartments = $isSupervisor ? $user->getEvaluableDepartments() : [];
+
+        // Base query for absences
+        $absenceQuery = Absence::with('employee', 'approver');
+
+        // Filter absences based on user role
+        if ($isSupervisor && !empty($supervisedDepartments)) {
+            $absenceQuery->whereIn('department', $supervisedDepartments);
+        }
+
+        $absences = $absenceQuery->orderBy('submitted_at', 'desc')->get();
 
         $absenceList = $absences->transform(fn($absence) => [
             'id' => $absence->id,
@@ -230,6 +282,11 @@ class AbsenceController extends Controller
 
         return Inertia::render('absence/absence-approve', [
             'initialRequests' => $absenceList,
+            'user_permissions' => [
+                'is_supervisor' => $isSupervisor,
+                'is_super_admin' => $isSuperAdmin,
+                'supervised_departments' => $supervisedDepartments,
+            ],
         ]);
     }
 }

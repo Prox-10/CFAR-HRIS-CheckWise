@@ -41,9 +41,14 @@ interface Props {
     };
     leavesPerMonth: any[];
     leaveTypes: string[];
+    user_permissions?: {
+        is_super_admin: boolean;
+        is_supervisor: boolean;
+        supervised_departments: string[];
+    };
 }
 
-export default function Index({ leave, employees, leaveStats, leavesPerMonth, leaveTypes }: Props) {
+export default function Index({ leave, employees, leaveStats, leavesPerMonth, leaveTypes, user_permissions }: Props) {
     const [data, setData] = useState<Leave[]>(leave);
     const [editModelOpen, setEditModalOpen] = useState(false);
     const [isModelOpen, setIsModalOpen] = useState(false);
@@ -94,10 +99,9 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
         <SidebarProvider>
             <Head title="Leave" />
             <Toaster position="top-center" richColors />
-           
+
             <SidebarHoverLogic>
                 <SidebarInset>
-                   
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />
                     {loading ? (
                         <ContentLoading />
@@ -122,7 +126,18 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
                                             <div className="relative flex flex-1 flex-col">
                                                 <div className="@container/main flex flex-1 flex-col gap-2">
                                                     <div className="flex flex-col">
-                                                        <SectionCards leaveStats={leaveStats} />
+                                                        <SectionCards
+                                                            leaveStats={leaveStats}
+                                                            isSupervisor={user_permissions?.is_supervisor || false}
+                                                            roleContent={{
+                                                                totalLabel: user_permissions?.is_supervisor ? 'Your Leaves' : 'Total Leaves',
+                                                                approvedLabel: user_permissions?.is_supervisor ? 'Your Approved' : 'Approved',
+                                                                pendingLabel: user_permissions?.is_supervisor ? 'Your Pending' : 'Pending',
+                                                                rejectedLabel: user_permissions?.is_supervisor
+                                                                    ? 'Your Rejected'
+                                                                    : 'Rejected / Cancelled',
+                                                            }}
+                                                        />
                                                         {/* ChartBarLabel for leave per month by type */}
                                                     </div>
                                                 </div>

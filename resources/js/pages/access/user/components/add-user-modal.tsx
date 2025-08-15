@@ -9,6 +9,12 @@ import { useForm } from '@inertiajs/react';
 import { Upload, X } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
+import {
+    departments as departmentsData,
+    
+} from '@/hooks/data';
+import InputError from '@/components/input-error';
+
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -124,150 +130,120 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
-          <DialogDescription>
-            Create a new user account with roles and permissions.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-6 py-4">
-            {/* Profile Image Upload Section */}
-            <div className="flex flex-col items-center space-y-4">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer overflow-hidden">
-                  {previewImage ? (
-                    <img
-                      src={previewImage}
-                      alt="Profile preview"
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  ) : (
-                    <img
-                      src="/Logo.png"
-                      alt="Default profile"
-                      className="w-16 h-16 object-contain"
-                    />
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  disabled={processing}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Upload className="h-4 w-4 text-gray-500" />
-                <span className="text-sm text-gray-600">Upload Profile Image</span>
-              </div>
-              {previewImage && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={removeImage}
-                  className="flex items-center space-x-1"
-                  disabled={processing}
-                >
-                  <X className="h-3 w-3" />
-                  <span>Remove Image</span>
-                </Button>
-              )}
-            </div>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
+              <DialogHeader>
+                  <DialogTitle>Add New User</DialogTitle>
+                  <DialogDescription>Create a new user account with roles and permissions.</DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit}>
+                  <div className="grid gap-6 py-4">
+                      {/* Profile Image Upload Section */}
+                      <div className="flex flex-col items-center space-y-4">
+                          <div className="relative">
+                              <div className="flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100">
+                                  {previewImage ? (
+                                      <img src={previewImage} alt="Profile preview" className="h-full w-full rounded-full object-cover" />
+                                  ) : (
+                                      <img src="/Logo.png" alt="Default profile" className="h-16 w-16 object-contain" />
+                                  )}
+                              </div>
+                              <input
+                                  ref={fileInputRef}
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageUpload}
+                                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                  disabled={processing}
+                              />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                              <Upload className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm text-gray-600">Upload Profile Image</span>
+                          </div>
+                          {previewImage && (
+                              <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={removeImage}
+                                  className="flex items-center space-x-1"
+                                  disabled={processing}
+                              >
+                                  <X className="h-3 w-3" />
+                                  <span>Remove Image</span>
+                              </Button>
+                          )}
+                      </div>
 
-            {/* Name Fields */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstname">
-                  First Name *
-                </Label>
-                <Input
-                  id="firstname"
-                  value={data.firstname}
-                  onChange={(e) => setData('firstname', e.target.value)}
-                  placeholder="Enter first name"
-                  disabled={processing}
-                />
-                {errors.firstname && (
-                  <span className="text-sm text-red-500">{errors.firstname}</span>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="middlename">
-                  Middle Name
-                </Label>
-                <Input
-                  id="middlename"
-                  value={data.middlename}
-                  onChange={(e) => setData('middlename', e.target.value)}
-                  placeholder="Enter middle name"
-                  disabled={processing}
-                />
-                {errors.middlename && (
-                  <span className="text-sm text-red-500">{errors.middlename}</span>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastname">
-                  Last Name *
-                </Label>
-                <Input
-                  id="lastname"
-                  value={data.lastname}
-                  onChange={(e) => setData('lastname', e.target.value)}
-                  placeholder="Enter last name"
-                  disabled={processing}
-                />
-                {errors.lastname && (
-                  <span className="text-sm text-red-500">{errors.lastname}</span>
-                )}
-              </div>
-            </div>
+                      {/* Name Fields */}
+                      <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                              <Label htmlFor="firstname">First Name *</Label>
+                              <Input
+                                  id="firstname"
+                                  value={data.firstname}
+                                  onChange={(e) => setData('firstname', e.target.value)}
+                                  placeholder="Enter first name"
+                                  disabled={processing}
+                              />
+                              {errors.firstname && <span className="text-sm text-red-500">{errors.firstname}</span>}
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="middlename">Middle Name</Label>
+                              <Input
+                                  id="middlename"
+                                  value={data.middlename}
+                                  onChange={(e) => setData('middlename', e.target.value)}
+                                  placeholder="Enter middle name"
+                                  disabled={processing}
+                              />
+                              {errors.middlename && <span className="text-sm text-red-500">{errors.middlename}</span>}
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="lastname">Last Name *</Label>
+                              <Input
+                                  id="lastname"
+                                  value={data.lastname}
+                                  onChange={(e) => setData('lastname', e.target.value)}
+                                  placeholder="Enter last name"
+                                  disabled={processing}
+                              />
+                              {errors.lastname && <span className="text-sm text-red-500">{errors.lastname}</span>}
+                          </div>
+                      </div>
 
-            {/* Email and Password */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">
-                  Email *
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={data.email}
-                  onChange={(e) => setData('email', e.target.value)}
-                  placeholder="Enter email address"
-                  disabled={processing}
-                />
-                {errors.email && (
-                  <span className="text-sm text-red-500">{errors.email}</span>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">
-                  Password *
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={data.password}
-                  onChange={(e) => setData('password', e.target.value)}
-                  placeholder="Enter password"
-                  disabled={processing}
-                />
-                {errors.password && (
-                  <span className="text-sm text-red-500">{errors.password}</span>
-                )}
-              </div>
-            </div>
+                      {/* Email and Password */}
+                      <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                              <Label htmlFor="email">Email *</Label>
+                              <Input
+                                  id="email"
+                                  type="email"
+                                  value={data.email}
+                                  onChange={(e) => setData('email', e.target.value)}
+                                  placeholder="Enter email address"
+                                  disabled={processing}
+                              />
+                              {errors.email && <span className="text-sm text-red-500">{errors.email}</span>}
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="password">Password *</Label>
+                              <Input
+                                  id="password"
+                                  type="password"
+                                  value={data.password}
+                                  onChange={(e) => setData('password', e.target.value)}
+                                  placeholder="Enter password"
+                                  disabled={processing}
+                              />
+                              {errors.password && <span className="text-sm text-red-500">{errors.password}</span>}
+                          </div>
+                      </div>
 
-            {/* Department */}
-            <div className="space-y-2">
-              <Label htmlFor="department">
+                      {/* Department */}
+                      {/* <div className="space-y-2">
+              <Label htmlFor="department"> 
                 Department *
               </Label>
               <Select
@@ -288,49 +264,74 @@ export default function AddUserModal({ isOpen, onClose, roles }: AddUserModalPro
               {errors.department && (
                 <span className="text-sm text-red-500">{errors.department}</span>
               )}
-            </div>
+            </div> */}
 
-            {/* Roles Selection */}
-            <div className="space-y-3">
-              <Label>Select Roles</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {roles.map((role) => (
-                  <div key={role.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`role-${role.id}`}
-                      checked={data.roles.includes(role.id)}
-                      onCheckedChange={(checked) => handleRoleChange(role.id, checked as boolean)}
-                      disabled={processing}
-                    />
-                    <Label htmlFor={`role-${role.id}`} className="text-sm font-normal">
-                      {role.name}
-                    </Label>
+                      <div>
+                          <Label htmlFor="departments">Departments</Label>
+                          <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
+                          <Select
+                              value={data.department}
+                              onValueChange={(value) => {
+                                  console.log('Selected Departments:', value);
+                                  setData('department', value);
+                              }}
+                              aria-invalid={!!errors.department}
+                          >
+                              <SelectTrigger className="border-green-300 focus:border-cfar-500">
+                                  <SelectValue placeholder="Select Departments" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  {departmentsData.map((dept) => (
+                                      <SelectItem key={dept} value={dept}>
+                                          {dept}
+                                      </SelectItem>
+                                  ))}
+                              </SelectContent>
+                          </Select>
+                          <InputError message={errors.department} />
+                      </div>
+
+                      {/* Roles Selection */}
+                      <div className="space-y-3">
+                          <Label>Select Roles</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                              {roles.map((role) => (
+                                  <div key={role.id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                          id={`role-${role.id}`}
+                                          checked={data.roles.includes(role.id)}
+                                          onCheckedChange={(checked) => handleRoleChange(role.id, checked as boolean)}
+                                          disabled={processing}
+                                      />
+                                      <Label htmlFor={`role-${role.id}`} className="text-sm font-normal">
+                                          {role.name}
+                                      </Label>
+                                  </div>
+                              ))}
+                          </div>
+                          {errors.roles && <span className="text-sm text-red-500">{errors.roles}</span>}
+                      </div>
                   </div>
-                ))}
-              </div>
-              {errors.roles && (
-                <span className="text-sm text-red-500">{errors.roles}</span>
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={processing}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={processing || !data.firstname.trim() || !data.lastname.trim() || !data.email.trim() || !data.password.trim() || !data.department.trim()}
-            >
-              {processing ? 'Creating...' : 'Create User'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+                  <DialogFooter>
+                      <Button type="button" variant="outline" onClick={handleClose} disabled={processing}>
+                          Cancel
+                      </Button>
+                      <Button
+                          type="submit"
+                          disabled={
+                              processing ||
+                              !data.firstname.trim() ||
+                              !data.lastname.trim() ||
+                              !data.email.trim() ||
+                              !data.password.trim() ||
+                              !data.department.trim()
+                          }
+                      >
+                          {processing ? 'Creating...' : 'Create User'}
+                      </Button>
+                  </DialogFooter>
+              </form>
+          </DialogContent>
+      </Dialog>
   );
 } 

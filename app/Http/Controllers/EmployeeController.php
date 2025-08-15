@@ -9,6 +9,7 @@ use App\Models\Employee;
 use App\Models\Fingerprint;
 use Inertia\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class EmployeeController extends Controller
 {
@@ -17,9 +18,24 @@ class EmployeeController extends Controller
      */
     public function index(): Response
     {
-        $employees = Employee::with(['fingerprints', 'evaluations' => function ($q) {
+        $user = Auth::user();
+        $isSupervisor = $user->isSupervisor();
+        $isSuperAdmin = $user->isSuperAdmin();
+
+        // Get user's supervised departments if supervisor
+        $supervisedDepartments = $isSupervisor ? $user->getEvaluableDepartments() : [];
+
+        // Base query for employees
+        $employeeQuery = Employee::with(['fingerprints', 'evaluations' => function ($q) {
             $q->orderBy('created_at', 'desc');
-        }])->orderBy('created_at', 'desc')->get();
+        }]);
+
+        // Filter employees based on user role
+        if ($isSupervisor && !empty($supervisedDepartments)) {
+            $employeeQuery->whereIn('department', $supervisedDepartments);
+        }
+
+        $employees = $employeeQuery->orderBy('created_at', 'desc')->get();
 
         $transformedEmployees = $employees->transform(function ($employee) {
             $latestEval = $employee->evaluations->first();
@@ -31,12 +47,12 @@ class EmployeeController extends Controller
                 'lastname'      => $employee->lastname,
                 'employeeid'    => $employee->employeeid,
                 'work_status'   => $employee->work_status,
-                'service_tenure'=> $employee->service_tenure,
+                'service_tenure' => $employee->service_tenure,
                 'department'    => $employee->department,
                 'picture'       => $employee->picture,
                 'date_of_birth' => $employee->date_of_birth,
                 'gender'        => $employee->gender,
-                'marital_status'=> $employee->marital_status,
+                'marital_status' => $employee->marital_status,
                 'nationality'   => $employee->nationality,
                 'address'       => $employee->address,
                 'city'          => $employee->city,
@@ -50,7 +66,7 @@ class EmployeeController extends Controller
                 'sss'           => $employee->sss,
                 'pag_ibig'      => $employee->pag_ibig,
                 'tin'           => $employee->tin,
-                'gmail_password'=> $employee->gmail_password,
+                'gmail_password' => $employee->gmail_password,
                 'philhealth'    => $employee->philhealth,
                 'created_at'    => $employee->created_at->format('d M Y'),
                 'fingerprints'  => $employee->fingerprints->map(function ($fp) {
@@ -68,13 +84,27 @@ class EmployeeController extends Controller
                 'latest_rating' => $latestEval ? $latestEval->ratings : null,
             ];
         });
-        $totalEmployee = Employee::distinct('employeeid')->count('employeeid');
-        $totalDepartment = Employee::distinct('department')->count();
 
-        // Previous period (previous month)
+        // Calculate totals based on filtered data
+        $totalEmployee = $employees->count();
+        $totalDepartment = $isSupervisor && !empty($supervisedDepartments)
+            ? count($supervisedDepartments)
+            : Employee::distinct('department')->count();
+
+        // Previous period calculations - also filter by supervisor role
         $prevMonthStart = now()->subMonth()->startOfMonth();
-        $prevTotalEmployee = Employee::where('created_at', '<', now()->startOfMonth())->distinct('employeeid')->count('employeeid');
-        $prevTotalDepartment = Employee::where('created_at', '<', now()->startOfMonth())->distinct('department')->count('department');
+        $prevEmployeeQuery = Employee::where('created_at', '<', now()->startOfMonth());
+        $prevDepartmentQuery = Employee::where('created_at', '<', now()->startOfMonth());
+
+        if ($isSupervisor && !empty($supervisedDepartments)) {
+            $prevEmployeeQuery->whereIn('department', $supervisedDepartments);
+            $prevDepartmentQuery->whereIn('department', $supervisedDepartments);
+        }
+
+        $prevTotalEmployee = $prevEmployeeQuery->count();
+        $prevTotalDepartment = $isSupervisor && !empty($supervisedDepartments)
+            ? count($supervisedDepartments)
+            : $prevDepartmentQuery->distinct('department')->count();
 
         return Inertia::render('employee/index', [
             'employee'        => $transformedEmployees,
@@ -82,6 +112,11 @@ class EmployeeController extends Controller
             'prevTotalEmployee' => $prevTotalEmployee,
             'totalDepartment' => $totalDepartment,
             'prevTotalDepartment' => $prevTotalDepartment,
+            'user_permissions' => [
+                'is_supervisor' => $isSupervisor,
+                'is_super_admin' => $isSuperAdmin,
+                'supervised_departments' => $supervisedDepartments,
+            ],
             'departments'     => [
                 'Administration',
                 'Finance & Accounting',
@@ -193,11 +228,11 @@ class EmployeeController extends Controller
                 'date_of_birth'   => $request->date_of_birth,
                 'department'      => $request->department,
                 'position'        => $request->position,
-                'sss'=> $request->sss,
-                'philhealth'=> $request->philhealth,
+                'sss' => $request->sss,
+                'philhealth' => $request->philhealth,
                 'pag_ibig' => $request->pag_ibig,
                 'tin' => $request->tin,
-                'gmail_password' =>$request->gmail_password
+                'gmail_password' => $request->gmail_password
             ];
 
             if ($request->hasFile('picture')) {

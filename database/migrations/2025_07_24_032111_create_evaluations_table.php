@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
             $table->string('ratings');
             $table->date('rating_date');
+            $table->unsignedTinyInteger('period')->nullable(); // 1 = Jan-Jun, 2 = Jul-Dec
+            $table->unsignedSmallInteger('year')->nullable();
             $table->string('work_quality');
             $table->string('safety_compliance');
             $table->string('punctuality');
@@ -23,8 +25,6 @@ return new class extends Migration
             $table->string('organization');
             $table->string('equipment_handling');
             $table->string('comment');
-            $table->unsignedTinyInteger('quarter')->nullable();
-            $table->unsignedSmallInteger('year')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

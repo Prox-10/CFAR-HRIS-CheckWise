@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
 import { Main } from '@/components/customize/main';
-import * as React from "react";
+import * as React from 'react';
 
 import { SiteHeader } from '@/components/site-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,7 @@ import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { LayoutGrid } from 'lucide-react';
+import { Calendar, LayoutGrid } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { RecentSales } from './components/recent-sales';
 import { SectionCards } from './components/section-cards';
@@ -38,6 +38,12 @@ interface Props {
     pendingLeave: number;
     leavesPerMonth: any[]; // or the correct type
     leaveTypes: string[];
+    // New role-based props
+    userRole: string;
+    isSupervisor: boolean;
+    isSuperAdmin: boolean;
+    supervisedDepartments: string[];
+    supervisorEmployees?: any[]; // Add this prop
 }
 
 export default function Index({
@@ -48,6 +54,11 @@ export default function Index({
     leavesPerMonth,
     leaveTypes,
     months: monthsProp,
+    userRole,
+    isSupervisor,
+    isSuperAdmin,
+    supervisedDepartments,
+    supervisorEmployees,
 }: Props & { months?: number }) {
     const [loading, setLoading] = useState(false);
     const [months, setMonths] = useState(monthsProp ?? 6);
@@ -84,19 +95,59 @@ export default function Index({
                 months={months}
                 loading={loading}
                 handleMonthsChange={handleMonthsChange}
+                userRole={userRole}
+                isSupervisor={isSupervisor}
+                isSuperAdmin={isSuperAdmin}
+                supervisedDepartments={supervisedDepartments}
+                supervisorEmployees={supervisorEmployees}
             />
         </SidebarProvider>
     );
 }
 
 // SidebarHoverLogic is a helper component to keep the main export clean and context usage correct
-function SidebarHoverLogic(props: Props & { months: number, loading: boolean, handleMonthsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void }) {
+function SidebarHoverLogic(
+    props: Props & { months: number; loading: boolean; handleMonthsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void },
+) {
     const { state } = useSidebar();
     const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
 
+    // Get role-specific labels and descriptions
+    const getRoleSpecificContent = () => {
+        if (props.isSupervisor) {
+            return {
+                title: 'Supervisor Dashboard',
+                subtitle: `Managing ${props.supervisedDepartments.join(', ')} department${props.supervisedDepartments.length > 1 ? 's' : ''}`,
+                employeeLabel: 'Your Employees',
+                departmentLabel: 'Your Departments',
+                leaveLabel: 'Your Department Leaves',
+                pendingLabel: 'Pending Leaves',
+            };
+        } else if (props.isSuperAdmin) {
+            return {
+                title: 'Super Admin Dashboard',
+                subtitle: 'Manage your entire organization',
+                employeeLabel: 'Total Employees',
+                departmentLabel: 'Total Departments',
+                leaveLabel: 'Total Leaves',
+                pendingLabel: 'Pending Leaves',
+            };
+        } else {
+            return {
+                title: 'Dashboard',
+                subtitle: "Manage your organization's workforce",
+                employeeLabel: 'Total Employees',
+                departmentLabel: 'Total Departments',
+                leaveLabel: 'Total Leaves',
+                pendingLabel: 'Pending Leaves',
+            };
+        }
+    };
+
+    const roleContent = getRoleSpecificContent();
+
     return (
         <>
-        
             <SidebarHoverZone show={state === 'collapsed'} onMouseEnter={handleMouseEnter} />
             <AppSidebar onMouseLeave={handleMouseLeave} />
             <SidebarInset>
@@ -111,12 +162,44 @@ function SidebarHoverLogic(props: Props & { months: number, loading: boolean, ha
                                     <div className="ms-2 flex items-center">
                                         <LayoutGrid className="size-11" />
                                         <div className="ms-2">
-                                            <h2 className="flex text-2xl font-bold tracking-tight">Dashboard</h2>
-                                            <p className="text-muted-foreground">Manage your organization's workforce</p>
+                                            <h2 className="flex text-2xl font-bold tracking-tight">{roleContent.title}</h2>
+                                            <p className="text-muted-foreground">{roleContent.subtitle}</p>
                                         </div>
                                     </div>
                                 </div>
+                                {/* Role indicator badge */}
+                                <div className="flex items-center gap-2">
+                                    <div
+                                        className={`rounded-full px-3 py-1 text-sm font-medium ${
+                                            props.isSupervisor
+                                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                                : props.isSuperAdmin
+                                                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                                  : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                        }`}
+                                    >
+                                        {props.userRole}
+                                    </div>
+                                    {props.isSupervisor && props.supervisedDepartments.length > 0 && (
+                                        <div className="rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                            {props.supervisedDepartments.length} Dept{props.supervisedDepartments.length > 1 ? 's' : ''}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
+
+                            {/* Debug information for supervisors
+                            {props.isSupervisor && (
+                                <div className="mb-4 rounded bg-blue-50 p-4 text-sm">
+                                    <div className="font-medium text-blue-800">Supervisor Dashboard Info:</div>
+                                    <div className="text-blue-700">
+                                        <div>• Supervised Departments: {props.supervisedDepartments.join(', ') || 'None'}</div>
+                                        <div>• Total Employees: {props.totalEmployee}</div>
+                                        <div>• Total Departments: {props.totalDepartment}</div>
+                                        <div>• Employees to Display: {props.supervisorEmployees?.length || 0}</div>
+                                    </div>
+                                </div>
+                            )} */}
                             <Tabs orientation="vertical" defaultValue="overview" className="space-y-4">
                                 <div className="mt-2 w-full overflow-x-auto pb-2">
                                     <TabsList className="gap-2">
@@ -133,6 +216,8 @@ function SidebarHoverLogic(props: Props & { months: number, loading: boolean, ha
                                                         totalDepartment={props.totalDepartment}
                                                         totalLeave={props.totalLeave}
                                                         pendingLeave={props.pendingLeave}
+                                                        isSupervisor={props.isSupervisor}
+                                                        roleContent={roleContent}
                                                     />
                                                 </div>
                                             </div>
@@ -142,8 +227,14 @@ function SidebarHoverLogic(props: Props & { months: number, loading: boolean, ha
                                     <ChartAreaInteractive />
                                     <div className="grid grid-cols-3 grid-rows-2 gap-2">
                                         <div className="col-span-2">
-                                            <Card className='p-5'>
-                                                <div className="flex items-center gap-2">
+                                            <Card className="p-5">
+                                                <div className="mb-4 flex items-center gap-2">
+                                                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                                                    <h3 className="font-semibold">
+                                                        {props.isSupervisor ? 'Your Department Leave Trends' : 'Leave Trends'}
+                                                    </h3>
+                                                </div>
+                                                <div className="mb-4 flex items-center gap-2">
                                                     <label htmlFor="months-select" className="font-medium">
                                                         Show last
                                                     </label>
@@ -161,15 +252,19 @@ function SidebarHoverLogic(props: Props & { months: number, loading: boolean, ha
                                                 <ChartBarLabel chartData={props.leavesPerMonth} />
                                             </Card>
                                         </div>
-                                        <div className="row-span-2 col-start-3">
+                                        <div className="col-start-3 row-span-2">
                                             <Card>
                                                 <CardHeader>
-                                                    <CardTitle>Top Employee</CardTitle>
-                                                    <CardDescription>You made 265 sales this month.</CardDescription>
+                                                    <CardTitle>{props.isSupervisor ? 'Your Top Employees' : 'Top Employees'}</CardTitle>
+                                                    <CardDescription>
+                                                        {props.isSupervisor
+                                                            ? `Performance overview for ${props.supervisedDepartments.join(', ')} department${props.supervisedDepartments.length > 1 ? 's' : ''}`
+                                                            : 'Organization-wide performance overview'}
+                                                    </CardDescription>
                                                     <SidebarSeparator />
                                                 </CardHeader>
                                                 <CardContent>
-                                                    <RecentSales />
+                                                    <RecentSales supervisorEmployees={props.supervisorEmployees} isSupervisor={props.isSupervisor} />
                                                 </CardContent>
                                             </Card>
                                         </div>
@@ -195,7 +290,7 @@ function SidebarHoverLogic(props: Props & { months: number, loading: boolean, ha
                                     <ChartAreaInteractive />
                                     <div className="grid grid-cols-3 grid-rows-2 gap-2">
                                         <div className="col-span-2">
-                                            <Card className='p-5'>
+                                            <Card className="p-5">
                                                 <div className="flex items-center gap-2">
                                                     <label htmlFor="months-select" className="font-medium">
                                                         Show last
@@ -214,7 +309,7 @@ function SidebarHoverLogic(props: Props & { months: number, loading: boolean, ha
                                                 <ChartBarLabel chartData={props.leavesPerMonth} />
                                             </Card>
                                         </div>
-                                        <div className="row-span-2 col-start-3">
+                                        <div className="col-start-3 row-span-2">
                                             <Card>
                                                 <CardHeader>
                                                     <CardTitle>Top Employee</CardTitle>

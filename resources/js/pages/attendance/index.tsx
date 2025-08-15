@@ -36,6 +36,11 @@ interface Props {
     prevTotalEmployee: number;
     totalDepartment: number;
     prevTotalDepartment: number;
+    user_permissions?: {
+        is_super_admin: boolean;
+        is_supervisor: boolean;
+        supervised_departments: string[];
+    };
 }
 
 export default function Index({
@@ -45,6 +50,7 @@ export default function Index({
     prevTotalEmployee = 0,
     totalDepartment = 0,
     prevTotalDepartment = 0,
+    user_permissions,
 }: Props) {
     const [data, setData] = useState<Attendance[]>(attendanceData);
     const [editModelOpen, setEditModalOpen] = useState(false);
@@ -142,6 +148,15 @@ export default function Index({
                                                             prevTotalEmployee={prevTotalEmployee}
                                                             totalDepartment={totalDepartment}
                                                             prevTotalDepartment={prevTotalDepartment}
+                                                            isSupervisor={user_permissions?.is_supervisor || false}
+                                                            roleContent={{
+                                                                attendanceLabel: user_permissions?.is_supervisor
+                                                                    ? 'Your Attendance'
+                                                                    : 'Total Attendance',
+                                                                presentLabel: user_permissions?.is_supervisor ? 'Your Present' : 'Present',
+                                                                lateLabel: user_permissions?.is_supervisor ? 'Your Late' : 'Late Arrivals',
+                                                                leaveLabel: user_permissions?.is_supervisor ? 'Your Leave' : 'On Leave',
+                                                            }}
                                                         />
                                                         {/* <SectionCards totalRevenue={totalRevenue} payments={[]} totalEmployee={totalEmployee} /> */}
                                                     </div>

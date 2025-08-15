@@ -13,6 +13,45 @@ import { DataTableColumnHeader } from './data-table-column-header';
 
 // Permission checks are passed in from the parent to avoid calling hooks here
 
+// Function to calculate age from date of birth
+const calculateAge = (dateOfBirth: string | null): number => {
+    if (!dateOfBirth) return 0;
+
+    try {
+        // Handle different date formats that might come from the backend
+        let birthDate: Date;
+
+        // If it's already a Date object
+        if (dateOfBirth instanceof Date) {
+            birthDate = dateOfBirth;
+        } else if (typeof dateOfBirth === 'string') {
+            // Try to parse the date string
+            birthDate = new Date(dateOfBirth);
+
+            // Check if the date is valid
+            if (isNaN(birthDate.getTime())) {
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+
+        // Adjust age if birthday hasn't occurred yet this year
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        return age;
+    } catch (error) {
+        console.error('Error calculating age:', error);
+        return 0;
+    }
+};
+
 const columns = (
     can: (permission: string) => boolean,
     setIsViewOpen: (open: boolean) => void,
@@ -123,19 +162,59 @@ const columns = (
             },
         },
         {
-            accessorKey: 'pin',
-            header: ({ column }) => <DataTableColumnHeader column={column} title="PIN" />,
+            accessorKey: 'date_of_birth',
+            header: 'Birth',
             cell: ({ row }) => {
-                const pin = row.original.pin;
+                const date_of_birth = row.original.date_of_birth;
+                // Calculate age automatically from date of birth
+                const calculatedAge = calculateAge(date_of_birth);
 
                 return (
-                    <div className="flex items-center space-x-2">
-                        <Key className="h-4 w-4 text-gray-500" />
-                        <span className="rounded bg-gray-100 px-2 py-1 font-mono text-sm">{pin ? pin : 'Not set'}</span>
+                    <div>
+                        <div className="text-sm font-medium text-gray-900">
+                            {date_of_birth ? new Date(date_of_birth).toLocaleDateString() : 'Not set'}
+                        </div>
+                        <div className="text-xs text-gray-500">{calculatedAge > 0 ? `${calculatedAge} years old` : 'Age unknown'}</div>
                     </div>
                 );
             },
+            filterFn: (row, columnId, filterValue) => {
+                if (!filterValue || filterValue.length === 0) return true;
+
+                const date_of_birth = row.original.date_of_birth;
+                if (!date_of_birth) return false;
+
+                const age = calculateAge(date_of_birth);
+                if (age === 0) return false;
+
+                // Check if age falls within any of the selected ranges
+                return filterValue.some((range: string) => {
+                    switch (range) {
+                        case '18-20':
+                            return age >= 18 && age <= 20;
+                        case '21-25':
+                            return age >= 21 && age <= 25;
+                        case '26-30':
+                            return age >= 26 && age <= 30;
+                        case '31-35':
+                            return age >= 31 && age <= 35;
+                        case '36-40':
+                            return age >= 36 && age <= 40;
+                        case '41-45':
+                            return age >= 41 && age <= 45;
+                        case '46-49':
+                            return age >= 46 && age <= 49;
+                        case '50-55':
+                            return age >= 50 && age <= 55;
+                        case '56-60+':
+                            return age >= 56 && age <= 60;
+                        default:
+                            return false;
+                    }
+                });
+            },
         },
+
         {
             accessorKey: 'work_status',
             header: 'Work Status',
@@ -161,6 +240,20 @@ const columns = (
                 const workStatus = row.getValue(columnId);
 
                 return filterValue.includes(workStatus);
+            },
+        },
+        {
+            accessorKey: 'pin',
+            header: ({ column }) => <DataTableColumnHeader column={column} title="PIN" />,
+            cell: ({ row }) => {
+                const pin = row.original.pin;
+
+                return (
+                    <div className="flex items-center space-x-2">
+                        <Key className="h-4 w-4 text-gray-500" />
+                        <span className="rounded bg-gray-100 px-2 py-1 font-mono text-sm">{pin ? pin : 'Not set'}</span>
+                    </div>
+                );
             },
         },
         {

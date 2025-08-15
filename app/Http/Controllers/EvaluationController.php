@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Evaluation;
+use App\Models\EvaluationConfiguration;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Employee;
@@ -44,11 +45,14 @@ class EvaluationController extends Controller
                 'organization' => $latestEval ? $latestEval->organization : '',
                 'equipment_handling' => $latestEval ? $latestEval->equipment_handling : '',
                 'comment' => $latestEval ? $latestEval->comment : '',
+                'period' => $latestEval ? $latestEval->period : '',
+                'period_label' => $latestEval ? $latestEval->period_label : '',
                 'employee_name' => $employee->employee_name,
                 'picture' => $employee->picture,
                 'department' => $employee->department,
                 'position' => $employee->position,
                 'employeeid' => $employee->employeeid,
+                'evaluation_frequency' => EvaluationConfiguration::getFrequencyForDepartment($employee->department),
             ];
         });
 
@@ -151,19 +155,17 @@ class EvaluationController extends Controller
             return back()->withErrors(['evaluation' => 'You do not have permission to evaluate employees in this department.']);
         }
 
-        // Determine current quarter and year
-        $now = now();
-        $quarter = ceil($now->month / 3);
-        $year = $now->year;
-
-        // Enforce only one evaluation per employee per quarter per year
-        $exists = Evaluation::where('employee_id', $validated['employee_id'])
-            ->where('quarter', $quarter)
-            ->where('year', $year)
-            ->exists();
-        if ($exists) {
-            return back()->withErrors(['evaluation' => 'This employee has already been evaluated for this quarter.']);
+        // Check if employee can be evaluated for current period
+        if (!Evaluation::canEvaluateEmployee($validated['employee_id'], $employee->department)) {
+            $frequency = EvaluationConfiguration::getFrequencyForDepartment($employee->department);
+            $periodLabel = $frequency === 'annual' ? 'this year' : 'this period';
+            return back()->withErrors(['evaluation' => "This employee has already been evaluated for {$periodLabel}."]);
         }
+
+        // Calculate current period and year
+        $now = now();
+        $currentPeriod = Evaluation::calculatePeriod($now);
+        $currentYear = $now->year;
 
         // Calculate average
         $criteria = [
@@ -188,8 +190,8 @@ class EvaluationController extends Controller
             'ratings' => $average, // calculated here, not from request
             'comment' => $validated['comment'] ?? '',
             'rating_date' => $now->toDateString(),
-            'quarter' => $quarter,
-            'year' => $year,
+            'period' => $currentPeriod,
+            'year' => $currentYear,
         ]);
         return redirect()->route('evaluation.index')->with('success', 'Evaluation created successfully');
     }

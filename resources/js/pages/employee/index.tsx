@@ -39,6 +39,11 @@ interface Props {
     totalEmployee: number;
     departments?: string[];
     positions?: string[];
+    user_permissions?: {
+        is_super_admin: boolean;
+        is_supervisor: boolean;
+        supervised_departments: string[];
+    };
 }
 
 // Move SidebarHoverLogic outside the main component
@@ -54,7 +59,7 @@ function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
     );
 }
 
-export default function Employee({ employee, totalEmployee, totalDepartment, departments = [], positions = [] }: Props) {
+export default function Employee({ employee, totalEmployee, totalDepartment, departments = [], positions = [], user_permissions }: Props) {
     const { can } = usePermission();
     const [data, setData] = useState<Employees[]>(employee);
     const [editModelOpen, setEditModalOpen] = useState(false);
@@ -167,9 +172,23 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
                                             <div className="relative flex flex-1 flex-col">
                                                 <div className="@container/main flex flex-1 flex-col gap-2">
                                                     <div className="flex flex-col">
-                                                        <SectionCards totalEmployee={totalEmployee} employee={[]} totalDepartment={totalDepartment} />
+                                                        <SectionCards
+                                                            totalEmployee={totalEmployee}
+                                                            employee={data}
+                                                            totalDepartment={totalDepartment}
+                                                            isSupervisor={user_permissions?.is_supervisor || false}
+                                                            roleContent={{
+                                                                employeeLabel: user_permissions?.is_supervisor ? 'Your Employees' : 'Total Employee',
+                                                                departmentLabel: user_permissions?.is_supervisor ? 'Your Departments' : 'Department',
+                                                                activeLabel: user_permissions?.is_supervisor ? 'Active Team' : 'Active Accounts',
+                                                                growthLabel: user_permissions?.is_supervisor ? 'Your Growth' : 'Growth Rate',
+                                                            }}
+                                                        />
                                                         {/* <SectionCards totalRevenue={totalRevenue} payments={[]} totalEmployee={totalEmployee} /> */}
                                                     </div>
+                                                    {/* <div className="mt-6">
+                                                        <GenderStats employees={data} />
+                                                    </div> */}
                                                 </div>
                                             </div>
                                         </div>

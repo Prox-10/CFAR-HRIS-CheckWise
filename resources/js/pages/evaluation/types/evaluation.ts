@@ -10,9 +10,13 @@ export interface Evaluation {
     organization: string;
     equipment_handling: string;
     comment: string;
+    period: number;
+    period_label?: string;
+    year: number;
     employee_name: string;
     picture: string;
     department: string;
     position: string;
     employeeid: string;
-} 
+    evaluation_frequency?: string;
+}

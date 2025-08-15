@@ -35,9 +35,14 @@ interface Employee {
 interface Props {
     absences: Absence[];
     employees: Employee[];
+    user_permissions?: {
+        is_super_admin: boolean;
+        is_supervisor: boolean;
+        supervised_departments: string[];
+    };
 }
 
-export default function Index({ absences = [], employees = [] }: Props) {
+export default function Index({ absences = [], employees = [], user_permissions }: Props) {
     const [loading, setLoading] = useState(true);
 
     // State for view modal
@@ -96,7 +101,19 @@ export default function Index({ absences = [], employees = [] }: Props) {
                                     <div className="relative flex flex-1 flex-col">
                                         <div className="@container/main flex flex-1 flex-col gap-2">
                                             <div className="flex flex-col">
-                                                <SectionCards />
+                                                <SectionCards 
+                                                    isSupervisor={user_permissions?.is_supervisor || false}
+                                                    totalEmployee={employees.length}
+                                                    totalDepartment={user_permissions?.is_supervisor ? user_permissions.supervised_departments.length : 7}
+                                                    activeAccounts={employees.filter(emp => emp.status === 'active').length}
+                                                    growthRate={4.5}
+                                                    roleContent={{
+                                                        employeeLabel: user_permissions?.is_supervisor ? 'Your Employees' : 'Total Employee',
+                                                        departmentLabel: user_permissions?.is_supervisor ? 'Your Departments' : 'Department',
+                                                        activeLabel: user_permissions?.is_supervisor ? 'Active Team' : 'Active Accounts',
+                                                        growthLabel: user_permissions?.is_supervisor ? 'Your Growth' : 'Growth Rate',
+                                                    }}
+                                                />
                                             </div>
                                         </div>
                                     </div>

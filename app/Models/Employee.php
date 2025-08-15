@@ -104,4 +104,14 @@ class Employee extends Model
     {
         return $this->hasMany(ServiceTenure::class);
     }
+
+    public function leaves()
+    {
+        return $this->hasMany(Leave::class);
+    }
+
+    public function absences()
+    {
+        return $this->hasMany(Absence::class);
+    }
 }

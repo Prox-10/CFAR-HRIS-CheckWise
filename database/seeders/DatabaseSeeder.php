@@ -54,6 +54,7 @@ class DatabaseSeeder extends Seeder
             LeaveSeeder::class,
             UserSeeder::class,
             SupervisorDepartmentSeeder::class,
+            EvaluationConfigurationSeeder::class, // Add this before EvaluationSeeder
         ]);
     }
 }

@@ -24,6 +24,10 @@ class EvaluationFactory extends Factory
         $organization = $this->faker->numberBetween(1, 10);
         $criteria = [$work_quality, $safety_compliance, $punctuality, $teamwork, $equipment_handling, $organization];
         $average = number_format(array_sum($criteria) / count($criteria), 1);
+
+        // Generate random period (1 for Jan-Jun, 2 for Jul-Dec)
+        $period = $this->faker->randomElement([1, 2]);
+
         return [
             'employee_id' => \App\Models\Employee::inRandomOrder()->first()?->id ?? 1,
             'ratings' => $average,
@@ -35,6 +39,8 @@ class EvaluationFactory extends Factory
             'organization' => $organization,
             'equipment_handling' => $equipment_handling,
             'comment' => $this->faker->sentence(),
+            'period' => $period,
+            'year' => $this->faker->numberBetween(2023, 2025),
         ];
     }
 }

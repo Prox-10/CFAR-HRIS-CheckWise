@@ -28,6 +28,9 @@ class EvaluationController extends Controller
             'organization' => $evaluation->organization,
             'equipment_handling' => $evaluation->equipment_handling,
             'comment' => $evaluation->comment,
+            'period' => $evaluation->period,
+            'period_label' => $evaluation->period_label,
+            'year' => $evaluation->year,
             'created_at' => $evaluation->created_at->format('d M Y'),
             'updated_at' => $evaluation->updated_at->format('d M Y'),
           ];

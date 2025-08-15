@@ -58,6 +58,8 @@ export default function Index({ evaluations, employees, employees_all, user_perm
         employees_allCount: employees_all?.length,
         user_permissions,
         sampleEmployees: employees_all?.slice(0, 3),
+        isSupervisor: user_permissions?.is_supervisor,
+        evaluableDepartments: user_permissions?.evaluable_departments,
     });
 
     useEffect(() => {
@@ -119,6 +121,8 @@ export default function Index({ evaluations, employees, employees_all, user_perm
         organization: emp.organization || '',
         equipment_handling: emp.equipment_handling || '',
         comment: emp.comment || '',
+        period: emp.period || 1,
+        year: emp.year || new Date().getFullYear(),
         employee_name: emp.employee_name,
         picture: emp.picture,
         department: emp.department,
@@ -157,13 +161,48 @@ export default function Index({ evaluations, employees, employees_all, user_perm
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Debug information for supervisors */}
+                                {/* {user_permissions?.is_supervisor && (
+                                    <div className="mb-4 rounded bg-blue-50 p-4 text-sm">
+                                        <div className="font-medium text-blue-800">Supervisor Debug Info:</div>
+                                        <div className="text-blue-700">
+                                            <div>• Total Employees: {employees_all?.length || 0}</div>
+                                            <div>• Supervised Departments: {user_permissions.evaluable_departments?.join(', ') || 'None'}</div>
+                                            <div>• Department Count: {user_permissions.evaluable_departments?.length || 0}</div>
+                                            <div>
+                                                • Sample Employees:{' '}
+                                                {employees_all
+                                                    ?.slice(0, 3)
+                                                    .map((emp) => emp.employee_name)
+                                                    .join(', ') || 'None'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )} */}
                                 <Tabs orientation="vertical" defaultValue="overview" className="space-y-4">
                                     <TabsContent value="overview" className="space-y-4">
                                         <div className="flex flex-1 flex-col">
                                             <div className="relative flex flex-1 flex-col">
                                                 <div className="@container/main flex flex-1 flex-col gap-2">
                                                     <div className="flex flex-col">
-                                                        <SectionCards />
+                                                        <SectionCards
+                                                            isSupervisor={user_permissions?.is_supervisor || false}
+                                                            totalEmployee={employees_all?.length || 0}
+                                                            totalDepartment={
+                                                                user_permissions?.is_supervisor
+                                                                    ? user_permissions.evaluable_departments?.length || 0
+                                                                    : 7
+                                                            }
+                                                            activeAccounts={employees_all?.length || 0}
+                                                            pendingCount={evaluations?.length || 0}
+                                                            roleContent={{
+                                                                employeeLabel: user_permissions?.is_supervisor ? 'Your Employees' : 'Total Employee',
+                                                                departmentLabel: user_permissions?.is_supervisor ? 'Your Departments' : 'Department',
+                                                                activeLabel: user_permissions?.is_supervisor ? 'Active Team' : 'Active Accounts',
+                                                                pendingLabel: user_permissions?.is_supervisor ? 'Pending Reviews' : 'Pendings',
+                                                            }}
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
