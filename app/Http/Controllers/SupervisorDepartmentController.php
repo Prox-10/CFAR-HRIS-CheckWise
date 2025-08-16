@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SupervisorDepartment;
 use App\Models\User;
 use App\Models\Employee;
+use App\Models\EvaluationConfiguration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -19,8 +20,8 @@ class SupervisorDepartmentController extends Controller
   {
     $user = Auth::user();
 
-    // Only super admin can access this
-    if (!$user->isSuperAdmin()) {
+    // Allow super admin and supervisors to access
+    if (!$user->isSuperAdmin() && !$user->isSupervisor()) {
       return redirect()->route('evaluation.index')->withErrors(['error' => 'Access denied.']);
     }
 
@@ -32,10 +33,29 @@ class SupervisorDepartmentController extends Controller
 
     $assignments = SupervisorDepartment::with('user')->get();
 
+    // Get evaluation frequencies for all departments
+    $frequencies = [];
+    foreach ($departments as $department) {
+        $config = EvaluationConfiguration::where('department', $department)->first();
+        $employeeCount = Employee::where('department', $department)->count();
+
+        $frequencies[] = [
+            'department' => $department,
+            'evaluation_frequency' => $config ? $config->evaluation_frequency : 'annual',
+            'employee_count' => $employeeCount,
+        ];
+    }
+
     return Inertia::render('evaluation/supervisor-management', [
       'supervisors' => $supervisors,
       'departments' => $departments,
       'assignments' => $assignments,
+      'frequencies' => $frequencies,
+      'user_permissions' => [
+        'is_super_admin' => $user->isSuperAdmin(),
+        'is_supervisor' => $user->isSupervisor(),
+        'can_evaluate' => $user->canEvaluate(),
+      ],
     ]);
   }
 

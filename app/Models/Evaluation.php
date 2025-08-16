@@ -14,23 +14,21 @@ class Evaluation extends Model
 
     protected $fillable = [
         'employee_id',
-        'ratings',
+        'department',
+        'evaluation_frequency',
+        'evaluator',
+        'observations',
+        'total_rating',
+        'evaluation_year',
+        'evaluation_period',
         'rating_date',
-        'work_quality',
-        'safety_compliance',
-        'punctuality',
-        'teamwork',
-        'organization',
-        'equipment_handling',
-        'comment',
-        'period',
-        'year',
     ];
 
     protected $casts = [
         'rating_date' => 'date',
-        'period' => 'integer',
-        'year' => 'integer',
+        'evaluation_year' => 'integer',
+        'evaluation_period' => 'integer',
+        'total_rating' => 'decimal:1',
     ];
 
     public function employee()
@@ -38,14 +36,35 @@ class Evaluation extends Model
         return $this->belongsTo(Employee::class);
     }
 
+    // New relationships
+    public function attendance()
+    {
+        return $this->hasOne(EvaluationAttendance::class);
+    }
+
+    public function attitudes()
+    {
+        return $this->hasOne(EvaluationAttitudes::class);
+    }
+
+    public function workAttitude()
+    {
+        return $this->hasOne(EvaluationWorkAttitude::class);
+    }
+
+    public function workFunctions()
+    {
+        return $this->hasMany(EvaluationWorkFunction::class);
+    }
+
     /**
      * Get the period label (e.g., "Jan-Jun" or "Jul-Dec")
      */
     public function getPeriodLabelAttribute(): string
     {
-        if ($this->period === 1) {
+        if ($this->evaluation_period === 1) {
             return 'Jan-Jun';
-        } elseif ($this->period === 2) {
+        } elseif ($this->evaluation_period === 2) {
             return 'Jul-Dec';
         }
         return 'Unknown';
@@ -60,7 +79,7 @@ class Evaluation extends Model
         $currentPeriod = $this->calculatePeriod($now);
         $currentYear = $now->year;
 
-        return $this->period === $currentPeriod && $this->year === $currentYear;
+        return $this->evaluation_period === $currentPeriod && $this->evaluation_year === $currentYear;
     }
 
     /**
@@ -86,14 +105,118 @@ class Evaluation extends Model
         if ($frequency === 'annual') {
             // For annual, only check year
             return !static::where('employee_id', $employeeId)
-                ->where('year', $currentYear)
+                ->where('evaluation_year', $currentYear)
                 ->exists();
         } else {
             // For semi-annual, check both period and year
             return !static::where('employee_id', $employeeId)
-                ->where('period', $currentPeriod)
-                ->where('year', $currentYear)
+                ->where('evaluation_period', $currentPeriod)
+                ->where('evaluation_year', $currentYear)
                 ->exists();
         }
+    }
+
+    /**
+     * Check if an employee can be evaluated for the current period (with detailed info)
+     */
+    public static function getEvaluationStatus(int $employeeId, string $department): array
+    {
+        $now = now();
+        $currentPeriod = static::calculatePeriod($now);
+        $currentYear = $now->year;
+
+        $frequency = EvaluationConfiguration::getFrequencyForDepartment($department);
+
+        if ($frequency === 'annual') {
+            // Check annual evaluation
+            $existingEvaluation = static::where('employee_id', $employeeId)
+                ->where('evaluation_year', $currentYear)
+                ->first();
+
+            if ($existingEvaluation) {
+                return [
+                    'can_evaluate' => false,
+                    'frequency' => 'annual',
+                    'current_period' => null,
+                    'current_year' => $currentYear,
+                    'last_evaluation_date' => $existingEvaluation->rating_date,
+                    'last_evaluation_period' => null,
+                    'message' => "Already evaluated for {$currentYear}. Annual departments can only be evaluated once per year.",
+                    'next_evaluation_date' => "January 1, " . ($currentYear + 1)
+                ];
+            }
+
+            return [
+                'can_evaluate' => true,
+                'frequency' => 'annual',
+                'current_period' => null,
+                'current_year' => $currentYear,
+                'last_evaluation_date' => null,
+                'last_evaluation_period' => null,
+                'message' => "Can be evaluated for {$currentYear}",
+                'next_evaluation_date' => null
+            ];
+        } else {
+            // Check semi-annual evaluation
+            $existingEvaluation = static::where('employee_id', $employeeId)
+                ->where('evaluation_period', $currentPeriod)
+                ->where('evaluation_year', $currentYear)
+                ->first();
+
+            $periodLabel = $currentPeriod === 1 ? 'January to June' : 'July to December';
+
+            if ($existingEvaluation) {
+                $nextPeriod = $currentPeriod === 1 ? 2 : 1;
+                $nextPeriodLabel = $nextPeriod === 1 ? 'January to June' : 'July to December';
+                $nextYear = $nextPeriod === 1 ? $currentYear + 1 : $currentYear;
+                $nextDate = $nextPeriod === 1 ? "January 1, {$nextYear}" : "July 1, {$nextYear}";
+
+                return [
+                    'can_evaluate' => false,
+                    'frequency' => 'semi_annual',
+                    'current_period' => $currentPeriod,
+                    'current_year' => $currentYear,
+                    'last_evaluation_date' => $existingEvaluation->rating_date,
+                    'last_evaluation_period' => $periodLabel,
+                    'message' => "Already evaluated for {$periodLabel} {$currentYear}. Semi-annual departments can only be evaluated once per period.",
+                    'next_evaluation_date' => $nextDate
+                ];
+            }
+
+            return [
+                'can_evaluate' => true,
+                'frequency' => 'semi_annual',
+                'current_period' => $currentPeriod,
+                'current_year' => $currentYear,
+                'last_evaluation_date' => null,
+                'last_evaluation_period' => null,
+                'message' => "Can be evaluated for {$periodLabel} {$currentYear}",
+                'next_evaluation_date' => null
+            ];
+        }
+    }
+
+    /**
+     * Get the overall rating
+     */
+    public function getOverallRatingAttribute()
+    {
+        return $this->total_rating ?? 0;
+    }
+
+    /**
+     * Get the evaluation year
+     */
+    public function getEvaluationYearAttribute()
+    {
+        return $this->evaluation_year ?? now()->year;
+    }
+
+    /**
+     * Get the evaluation period
+     */
+    public function getEvaluationPeriodAttribute()
+    {
+        return $this->evaluation_period ?? 1;
     }
 }

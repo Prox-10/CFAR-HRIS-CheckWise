@@ -92,6 +92,52 @@ const columns = (
         },
     },
     {
+        accessorKey: 'evaluation_frequency',
+        header: 'Evaluation Frequency',
+        cell: ({ row }) => {
+            const frequency = row.original.evaluation_frequency;
+            const department = row.original.department;
+
+            // Enhanced debug logging
+            console.log('Frequency data:', {
+                department,
+                frequency,
+                frequencyType: typeof frequency,
+                frequencyLength: frequency ? frequency.length : 'N/A',
+                hasFrequency: !!frequency,
+                rowDataKeys: Object.keys(row.original),
+                rowData: row.original,
+            });
+
+            if (!frequency) {
+                return (
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-400">Not Set</span>
+                        <span className="text-xs text-gray-500">({department})</span>
+                    </div>
+                );
+            }
+
+            const isSemiAnnual = frequency === 'semi_annual';
+            const colorClass = isSemiAnnual ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-green-100 text-green-800 border-green-200';
+            const displayText = isSemiAnnual ? 'Semi-Annual' : 'Annual';
+            const icon = isSemiAnnual ? '🔄' : '📅';
+
+            return (
+                <div className="flex items-center gap-2">
+                    <span className="text-sm">{icon}</span>
+                    <span className={`rounded border px-2 py-1 text-xs font-medium ${colorClass}`}>{displayText}</span>
+                </div>
+            );
+        },
+        filterFn: (row, columnId, filterValue) => {
+            if (!filterValue || filterValue.length === 0) return true;
+
+            const frequency = row.getValue(columnId);
+            return filterValue.includes(frequency);
+        },
+    },
+    {
         accessorKey: 'ratings',
         header: 'Ratings',
         cell: ({ row }) => {

@@ -43,6 +43,7 @@ class PermissionSeeder extends Seeder
       'Delete Evaluation',
       'Start Evaluation Rating',
       'Refresh Evaluation List',
+      'View Evaluation By Department',
 
       // Leave permissions
       'View Leave',
@@ -122,9 +123,20 @@ class PermissionSeeder extends Seeder
         'View Evaluation',
         'Add Evaluation',
         'Update Evaluation',
+        'View Dashboard',
+        'View Employee Details',
+        'View Attendance Details',
+        'View Leave',
+        'View Evaluation By Department',
+
+
         'Delete Evaluation',
         'Start Evaluation Rating',
         'Refresh Evaluation List',
+        'View Employee Details',
+        'View Attendance Details',
+        'View Leave',
+
       ],
     ];
 

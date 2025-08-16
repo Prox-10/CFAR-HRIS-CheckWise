@@ -21,26 +21,13 @@ class SupervisorDepartmentSeeder extends Seeder
     // Create sample supervisors if they don't exist
     $supervisors = [
       [
-        'firstname' => 'John',
+        'firstname' => 'RJ Kyle',
         'lastname' => 'Labrador',
-        'email' => 'john.labrador@example.com',
-        'password' => bcrypt('password'),
-        'department' => 'Plantation',
+        'email' => 'rjkylegepolongcalabrador@gmail.com',
+        'password' => bcrypt('10282001'),
+        'department' => 'Monthly',
       ],
-      [
-        'firstname' => 'Maria',
-        'lastname' => 'Santos',
-        'email' => 'maria.santos@example.com',
-        'password' => bcrypt('password'),
-        'department' => 'Production',
-      ],
-      [
-        'firstname' => 'Carlos',
-        'lastname' => 'Garcia',
-        'email' => 'carlos.garcia@example.com',
-        'password' => bcrypt('password'),
-        'department' => 'Operations',
-      ],
+      
     ];
 
     foreach ($supervisors as $supervisorData) {

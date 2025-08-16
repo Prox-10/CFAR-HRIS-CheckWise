@@ -128,6 +128,7 @@ export default function Index({ evaluations, employees, employees_all, user_perm
         department: emp.department,
         position: emp.position,
         employeeid: emp.employeeid,
+        evaluation_frequency: emp.evaluation_frequency || 'annual', // Add the missing field
     }));
 
     // Debug logging for mapped data

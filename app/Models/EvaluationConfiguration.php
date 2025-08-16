@@ -23,8 +23,26 @@ class EvaluationConfiguration extends Model
    */
   public static function getFrequencyForDepartment(string $department): string
   {
+    // Try exact match first
     $config = static::where('department', $department)->first();
-    return $config ? $config->evaluation_frequency : 'annual'; // Default to annual
+    if ($config) {
+      return $config->evaluation_frequency;
+    }
+    
+    // Try case-insensitive match
+    $config = static::whereRaw('LOWER(department) = ?', [strtolower(trim($department))])->first();
+    if ($config) {
+      return $config->evaluation_frequency;
+    }
+    
+    // Try trimmed match
+    $config = static::where('department', trim($department))->first();
+    if ($config) {
+      return $config->evaluation_frequency;
+    }
+    
+    // Default to annual if no match found
+    return 'annual';
   }
 
   /**

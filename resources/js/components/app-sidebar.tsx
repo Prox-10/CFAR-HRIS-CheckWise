@@ -50,6 +50,11 @@ const mainNavItems: NavItem[] = [
                 permission: 'View Evaluation',
             },
             {
+                title: 'Department Evaluation',
+                href: '/evaluation/department-evaluation',
+                permission: 'View Evaluation By Department',
+            },
+            {
                 title: 'Supervisor Management',
                 href: '/evaluation/supervisor-management',
                 permission: 'View Admin',
@@ -152,7 +157,6 @@ const mainNavItems: NavItem[] = [
             },
         ],
     },
-   
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

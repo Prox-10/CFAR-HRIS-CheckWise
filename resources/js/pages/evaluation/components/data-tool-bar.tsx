@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import { Table } from '@tanstack/react-table';
-import { departments, workStatus } from '../data/data'; // Assuming departments list
+import { departments } from '../data/data';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
 
 interface DataTableToolbarProps<TData> {
@@ -23,11 +23,7 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
                 />
                 <div className="flex gap-x-2">
                     {table.getColumn('department') && (
-                        <DataTableFacetedFilter
-                            column={table.getColumn('department')}
-                            title="Department"
-                            options={departments} // Department options like ['HR', 'Finance', etc.]
-                        />
+                        <DataTableFacetedFilter column={table.getColumn('department')} title="Department" options={departments} />
                     )}
                 </div>
                 {/* <div className="flex gap-x-2">

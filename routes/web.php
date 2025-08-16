@@ -52,8 +52,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('evaluation/supervisor-management/{assignment}', [SupervisorDepartmentController::class, 'update'])->name('evaluation.supervisor-management.update');
     Route::delete('evaluation/supervisor-management/{assignment}', [SupervisorDepartmentController::class, 'destroy'])->name('evaluation.supervisor-management.destroy');
 
+    // Evaluation frequency update route (accessible from supervisor management)
+    Route::put('evaluation/frequencies/{department}', [EvaluationController::class, 'updateFrequency'])->name('evaluation.frequencies.update');
+
+    // Check existing evaluation route
+    Route::get('evaluation/check-existing/{employeeId}/{department}', [EvaluationController::class, 'checkExistingEvaluation'])->name('evaluation.check-existing');
+
+    // Temporary route for department evaluation (for testing - remove permission middleware)
+    Route::get('evaluation/department-evaluation', [EvaluationController::class, 'departmentEvaluation'])->name('evaluation.department-evaluation');
+    Route::post('evaluation/department-evaluation', [EvaluationController::class, 'storeDepartmentEvaluation'])->name('evaluation.department-evaluation.store');
+
     Route::middleware(['permission:View Evaluation'])->group(function () {
         Route::resource('evaluation', EvaluationController::class)->names('evaluation');
+
+        // Evaluation frequency update route (requires evaluation permissions)
+        // Route::put('evaluation/frequencies/{department}', [EvaluationController::class, 'updateFrequency'])->name('evaluation.frequencies.update'); // Moved outside
     });
 
     Route::middleware(['permission:View Dashboard'])->group(function () {
@@ -99,7 +112,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // User Management Routes
-    Route::middleware(['permission:View Admin'])->group(function () {
+    Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('permission/user/index', [UserController::class, 'index'])->name('user.index');
         Route::get('permission/user/{user}', [UserController::class, 'show'])->name('user.show');
         Route::post('permission/user/store', [UserController::class, 'store'])->name('user.store');

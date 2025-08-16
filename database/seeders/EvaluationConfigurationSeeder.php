@@ -19,6 +19,7 @@ class EvaluationConfigurationSeeder extends Seeder
         
         // Define default evaluation frequencies for common departments
         $defaultFrequencies = [
+            // Generic departments
             'Production' => 'semi_annual',
             'Quality Control' => 'semi_annual',
             'Maintenance' => 'semi_annual',
@@ -29,6 +30,14 @@ class EvaluationConfigurationSeeder extends Seeder
             'Sales' => 'semi_annual',
             'Marketing' => 'semi_annual',
             'Research & Development' => 'semi_annual',
+            
+            // Your specific departments (without "Department" suffix)
+            'Harvest' => 'annual',
+            'Monthly' => 'semi_annual',
+            'Engineering' => 'semi_annual',
+            'PDC' => 'semi_annual',
+            'Coop Area' => 'annual',
+            'Packing' => 'annual',
         ];
         
         foreach ($departments as $department) {

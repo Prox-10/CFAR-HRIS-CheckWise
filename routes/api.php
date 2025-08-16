@@ -45,3 +45,10 @@ Route::get('/employee/by-employeeid', function (Request $request) {
     }
     return response()->json(null, 404);
 });
+
+// Evaluation Frequency Management - REMOVED (now handled in web routes)
+// Route::middleware(['auth:sanctum'])->group(function () {
+//     Route::get('/evaluation/frequencies', [App\Http\Controllers\Api\EvaluationFrequencyController::class, 'index']);
+//     Route::get('/evaluation/frequencies/{department}', [App\Http\Controllers\Api\EvaluationFrequencyController::class, 'show']);
+//     Route::put('/evaluation/frequencies/{department}', [App\Http\Controllers\Api\EvaluationFrequencyController::class, 'update']);
+// });
