@@ -16,6 +16,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { Calendar, Download, FileText, RotateCcw, Star, User, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { Label } from '@/components/ui/label';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -567,7 +568,10 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                                             {/* Department Selection */}
                                             <div className="space-y-2">
-                                                <label className="text-sm font-medium text-gray-700">Department *</label>
+                                                <Label className="text-sm font-medium text-gray-700">
+                                                    Department
+                                                    <span className="text-red-500 ms-1 text-sm">*</span>
+                                                </Label>
                                                 <Select
                                                     value={selectedDepartment}
                                                     onValueChange={async (value) => {
@@ -611,7 +615,10 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
 
                                             {/* Employee Selection */}
                                             <div className="space-y-2">
-                                                <label className="text-sm font-medium text-gray-700">Employee *</label>
+                                                <Label className="text-sm font-medium text-gray-700">
+                                                    Employee
+                                                    <span className="text-red-500 ms-1 text-sm">*</span>
+                                                </Label>
                                                 <Select
                                                     value={selectedEmployee}
                                                     onValueChange={(value) => {
@@ -638,8 +645,8 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
 
                                             {/* Work Status Display */}
                                             <div className="space-y-2">
-                                                <label className="text-sm font-medium text-gray-700">Work Status</label>
-                                                <div className="rounded-lg border bg-gray-50 p-3">
+                                                <Label className="text-sm font-medium text-gray-700">Work Status</Label>
+                                                <div className="rounded-lg border bg-gray-50 px-3 py-2">
                                                     {selectedEmployeeData ? (
                                                         <Badge variant="secondary" className="text-sm">
                                                             {selectedEmployeeData.work_status}
@@ -1262,7 +1269,7 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                 {!selectedDepartment && (
                                     <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                         <CardContent className="p-12 text-center">
-                                            <div className="mb-4 text-6xl">🎯</div>
+                                            <div className="mb-4 text-6xl">⭐</div>
                                             <h3 className="mb-2 text-2xl font-semibold text-gray-700">Get Started with Evaluation</h3>
                                             <p className="text-gray-600">Select a department and employee above to begin the evaluation process</p>
                                         </CardContent>

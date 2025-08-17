@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Absence;
 use App\Models\Employee;
+use App\Models\LeaveCredit;
+use App\Models\AbsenceCredit;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -34,24 +36,30 @@ class AbsenceController extends Controller
 
         $absences = $absenceQuery->orderBy('submitted_at', 'desc')->get();
 
-        $absenceList = $absences->transform(fn($absence) => [
-            'id' => $absence->id,
-            'full_name' => $absence->full_name,
-            'employee_id_number' => $absence->employee_id_number,
-            'department' => $absence->department,
-            'position' => $absence->position,
-            'absence_type' => $absence->absence_type,
-            'from_date' => $absence->from_date->format('Y-m-d'),
-            'to_date' => $absence->to_date->format('Y-m-d'),
-            'is_partial_day' => $absence->is_partial_day,
-            'reason' => $absence->reason,
-            'status' => $absence->status,
-            'submitted_at' => $absence->submitted_at->format('Y-m-d'),
-            'approved_at' => $absence->approved_at?->format('Y-m-d'),
-            'days' => $absence->days,
-            'employee_name' => $absence->employee ? $absence->employee->employee_name : $absence->full_name,
-            'picture' => $absence->employee ? $absence->employee->picture : null,
-        ]);
+        $absenceList = $absences->map(function ($absence) {
+            $absenceCredits = AbsenceCredit::getOrCreateForEmployee($absence->employee_id);
+            return [
+                'id' => $absence->id,
+                'full_name' => $absence->full_name,
+                'employee_id_number' => $absence->employee_id_number,
+                'department' => $absence->department,
+                'position' => $absence->position,
+                'absence_type' => $absence->absence_type,
+                'from_date' => $absence->from_date->format('Y-m-d'),
+                'to_date' => $absence->to_date->format('Y-m-d'),
+                'is_partial_day' => $absence->is_partial_day,
+                'reason' => $absence->reason,
+                'status' => $absence->status,
+                'submitted_at' => $absence->submitted_at->format('Y-m-d'),
+                'approved_at' => $absence->approved_at?->format('Y-m-d'),
+                'days' => $absence->days,
+                'employee_name' => $absence->employee ? $absence->employee->employee_name : $absence->full_name,
+                'picture' => $absence->employee ? $absence->employee->picture : null,
+                'remaining_credits' => $absenceCredits->remaining_credits,
+                'used_credits' => $absenceCredits->used_credits,
+                'total_credits' => $absenceCredits->total_credits,
+            ];
+        })->toArray();
 
         // Fetch employees for the add modal dropdown - filter by supervisor role
         $employeeQuery = Employee::select('id', 'employeeid', 'employee_name', 'department', 'position');
@@ -60,9 +68,28 @@ class AbsenceController extends Controller
         }
         $employees = $employeeQuery->get();
 
+        // Add absence credits information for each employee
+        $employeesWithCredits = $employees->map(function ($employee) {
+            $absenceCredits = AbsenceCredit::getOrCreateForEmployee($employee->id);
+            return [
+                'id' => $employee->id,
+                'employeeid' => $employee->employeeid,
+                'employee_name' => $employee->employee_name,
+                'department' => $employee->department,
+                'position' => $employee->position,
+                'remaining_credits' => $absenceCredits->remaining_credits,
+                'used_credits' => $absenceCredits->used_credits,
+                'total_credits' => $absenceCredits->total_credits,
+            ];
+        })->toArray();
+
+        // Get monthly absence statistics for the chart
+        $monthlyAbsenceStats = $this->getMonthlyAbsenceStats($supervisedDepartments);
+
         return Inertia::render('absence/index', [
             'absences' => $absenceList,
-            'employees' => $employees,
+            'employees' => $employeesWithCredits,
+            'monthlyAbsenceStats' => $monthlyAbsenceStats,
             'user_permissions' => [
                 'is_supervisor' => $isSupervisor,
                 'is_super_admin' => $isSuperAdmin,
@@ -167,6 +194,111 @@ class AbsenceController extends Controller
     }
 
     /**
+     * Display the absence credit summary page.
+     */
+    public function creditSummary()
+    {
+        $user = Auth::user();
+        $isSupervisor = $user->isSupervisor();
+        $isSuperAdmin = $user->isSuperAdmin();
+
+        // Get user's supervised departments if supervisor
+        $supervisedDepartments = $isSupervisor ? $user->getEvaluableDepartments() : [];
+
+        // Fetch employees for the credit summary - filter by supervisor role
+        $employeeQuery = Employee::select('id', 'employeeid', 'employee_name', 'department', 'position');
+        if ($isSupervisor && !empty($supervisedDepartments)) {
+            $employeeQuery->whereIn('department', $supervisedDepartments);
+        }
+        $employees = $employeeQuery->get();
+
+        // Add absence credits information for each employee
+        $employeesWithCredits = $employees->map(function ($employee) {
+            $absenceCredits = AbsenceCredit::getOrCreateForEmployee($employee->id);
+            return [
+                'id' => $employee->id,
+                'employeeid' => $employee->employeeid,
+                'employee_name' => $employee->employee_name,
+                'department' => $employee->department,
+                'position' => $employee->position,
+                'remaining_credits' => $absenceCredits->remaining_credits,
+                'used_credits' => $absenceCredits->used_credits,
+                'total_credits' => $absenceCredits->total_credits,
+            ];
+        })->toArray();
+
+        // Get monthly absence statistics for the chart
+        $monthlyAbsenceStats = $this->getMonthlyAbsenceStats($supervisedDepartments);
+
+        return Inertia::render('absence/absence-credit', [
+            'employees' => $employeesWithCredits,
+            'monthlyAbsenceStats' => $monthlyAbsenceStats,
+            'user_permissions' => [
+                'is_supervisor' => $isSupervisor,
+                'is_super_admin' => $isSuperAdmin,
+                'supervised_departments' => $supervisedDepartments,
+            ],
+        ]);
+    }
+
+    /**
+     * Get monthly absence statistics for chart display.
+     */
+    private function getMonthlyAbsenceStats($supervisedDepartments = [])
+    {
+        // Base query for absences
+        $absenceQuery = Absence::query();
+
+        // Filter by supervised departments if supervisor
+        if (!empty($supervisedDepartments)) {
+            $absenceQuery->whereIn('department', $supervisedDepartments);
+        }
+
+        // Get absences from the last 12 months
+        $startDate = now()->subMonths(11)->startOfMonth();
+        $endDate = now()->endOfMonth();
+
+        $absences = $absenceQuery
+            ->whereBetween('from_date', [$startDate, $endDate])
+            ->where('status', 'approved')
+            ->get();
+
+        // Get total employee count for percentage calculations
+        $employeeQuery = Employee::query();
+        if (!empty($supervisedDepartments)) {
+            $employeeQuery->whereIn('department', $supervisedDepartments);
+        }
+        $totalEmployees = $employeeQuery->count();
+
+        // Group absences by month
+        $monthlyData = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $monthKey = $date->format('Y-m');
+            $monthName = $date->format('F');
+            $year = $date->year;
+
+            // Count absences for this month
+            $monthAbsences = $absences->filter(function ($absence) use ($date) {
+                return $absence->from_date->format('Y-m') === $date->format('Y-m');
+            })->count();
+
+            // Calculate percentage
+            $percentage = $totalEmployees > 0 ? round(($monthAbsences / $totalEmployees) * 100, 1) : 0;
+
+            $monthlyData[] = [
+                'month' => $monthName,
+                'year' => $year,
+                'absences' => $monthAbsences,
+                'percentage' => $percentage,
+                'date' => $date->toDateString(),
+            ];
+        }
+
+        return $monthlyData;
+    }
+
+    /**
      * Update the status of an absence request.
      */
     public function updateStatus(Request $request, Absence $absence)
@@ -176,12 +308,27 @@ class AbsenceController extends Controller
             'approval_comments' => 'nullable|string',
         ]);
 
+        $oldStatus = $absence->status;
+        $newStatus = $validated['status'];
+
         $absence->update([
-            'status' => $validated['status'],
-            'approved_at' => in_array($validated['status'], ['approved', 'rejected']) ? now() : null,
-            'approved_by' => in_array($validated['status'], ['approved', 'rejected']) ? Auth::id() : null,
+            'status' => $newStatus,
+            'approved_at' => in_array($newStatus, ['approved', 'rejected']) ? now() : null,
+            'approved_by' => in_array($newStatus, ['approved', 'rejected']) ? Auth::id() : null,
             'approval_comments' => $validated['approval_comments'] ?? null,
         ]);
+
+        // Handle credit management based on status changes
+        $absenceCredits = AbsenceCredit::getOrCreateForEmployee($absence->employee_id);
+
+        // If status changed to approved and wasn't approved before
+        if ($newStatus === 'approved' && $oldStatus !== 'approved') {
+            $absenceCredits->useCredits($absence->days); // Deduct credits equal to number of days
+        }
+        // If status changed from approved to something else (rejected)
+        elseif ($oldStatus === 'approved' && $newStatus !== 'approved') {
+            $absenceCredits->refundCredits($absence->days); // Refund credits equal to number of days
+        }
 
         // Check if this is an AJAX request
         if ($request->expectsJson()) {

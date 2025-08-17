@@ -28,6 +28,7 @@ export interface Employee {
     sss: string;
     pag_ibig: string;
     gmail_password: string;
+    recommendation_letter?: string; // URL string for display
     [key: string]: any;
 }
 
@@ -59,6 +60,7 @@ export interface Employees {
     sss: string;
     pag_ibig: string;
     gmail_password: string;
+    recommendation_letter: File | null; // File object for uploads
     [key: string]: any;
 }
 
@@ -90,4 +92,5 @@ export const initialEmployeeFormData: Employees = {
     sss: '',
     pag_ibig: '',
     gmail_password: '',
+    recommendation_letter: null,
 };

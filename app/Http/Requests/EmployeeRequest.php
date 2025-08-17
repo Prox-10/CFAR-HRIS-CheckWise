@@ -50,6 +50,7 @@ class EmployeeRequest extends FormRequest
             'philhealth' => 'nullable|string|max:255',
             'tin' => 'nullable|string|max:255',
             'gmail_password' => 'nullable|string|max:255',
+            'recommendation_letter' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,gif,bmp,tiff,txt,rtf|max:10240', // 10MB max
             'fingerprint_template'    => 'nullable|string',
             'fingerprint_image'       => 'nullable|string',
             'fingerprint_captured_at' => 'nullable|date',
@@ -71,6 +72,9 @@ class EmployeeRequest extends FormRequest
             'featured_image.image' => 'The featured image must be an image file.',
             'featured_image.mimes' => 'The featured image must be a file of type: jpeg, png, jpg, gif, webp.',
             'featured_image.max'   => 'The featured image may not be greater than 2048 KB.',
+            'recommendation_letter.file' => 'The recommendation letter must be a file.',
+            'recommendation_letter.mimes' => 'The recommendation letter must be a file of type: pdf, doc, docx, jpg, jpeg, png, gif, bmp, tiff, txt, rtf.',
+            'recommendation_letter.max' => 'The recommendation letter may not be greater than 10MB.',
         ];
     }
 }

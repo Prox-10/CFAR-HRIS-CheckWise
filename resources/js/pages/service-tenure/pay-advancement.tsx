@@ -260,7 +260,7 @@ export default function PayAdvancement({ employees = [], errors, success }: Prop
                                 <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
-                                            <PhilippinePeso className="h-5 w-5 text-green-600" />₱ Pay Advancement Form
+                                            <PhilippinePeso className="h-5 w-5 text-green-600" />Pay Advancement Form
                                         </CardTitle>
                                         <CardDescription>Submit pay advancement request for selected employee</CardDescription>
                                     </CardHeader>

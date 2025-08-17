@@ -182,72 +182,72 @@ const columns = (
             return filterValue.includes(status);    
         },
     },
-    {
-        accessorKey: 'action',
-        header: () => <div>Action</div>,
-        id: 'actions',
-        cell: ({ row }) => {
-            const employee = row.original;
+    // {
+    //     accessorKey: 'action',
+    //     header: () => <div>Action</div>,
+    //     id: 'actions',
+    //     cell: ({ row }) => {
+    //         const employee = row.original;
 
-            return (
-                <>
-                    <DropdownMenu>
-                        {/* <Toaster position="top-right" richColors /> */}
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <CircleEllipsis className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                        setSelectedEmployee(employee);
-                                        setViewEmployee(employee); // Set the employee data for the modal
-                                        setIsViewOpen(true); // Open View modal
-                                    }}
-                                    className="hover-lift w-full border-blue-300 text-blue-600 hover:bg-blue-50"
-                                >
-                                    <Eye className="h-4 w-4" />
-                                    View
-                                </Button>
-                            </DropdownMenuItem>
+    //         return (
+    //             <>
+    //                 <DropdownMenu>
+    //                     {/* <Toaster position="top-right" richColors /> */}
+    //                     <DropdownMenuTrigger asChild>
+    //                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+    //                             <span className="sr-only">Open menu</span>
+    //                             <CircleEllipsis className="h-4 w-4" />
+    //                         </Button>
+    //                     </DropdownMenuTrigger>
+    //                     <DropdownMenuContent align="end">
+    //                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+    //                         <DropdownMenuItem>
+    //                             <Button
+    //                                 size="sm"
+    //                                 variant="outline"
+    //                                 onClick={() => {
+    //                                     setSelectedEmployee(employee);
+    //                                     setViewEmployee(employee); // Set the employee data for the modal
+    //                                     setIsViewOpen(true); // Open View modal
+    //                                 }}
+    //                                 className="hover-lift w-full border-blue-300 text-blue-600 hover:bg-blue-50"
+    //                             >
+    //                                 <Eye className="h-4 w-4" />
+    //                                 View
+    //                             </Button>
+    //                         </DropdownMenuItem>
 
-                            <DropdownMenuItem>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                        setSelectedEmployee(employee);
-                                        setEditModalOpen(true);
-                                    }}
-                                    className="hover-lift w-full border-green-300 text-green-600 hover:bg-green-50"
-                                >
-                                    <Edit className="h-4 w-4" />
-                                    Update
-                                </Button>
-                            </DropdownMenuItem>
+    //                         <DropdownMenuItem>
+    //                             <Button
+    //                                 size="sm"
+    //                                 variant="outline"
+    //                                 onClick={() => {
+    //                                     setSelectedEmployee(employee);
+    //                                     setEditModalOpen(true);
+    //                                 }}
+    //                                 className="hover-lift w-full border-green-300 text-green-600 hover:bg-green-50"
+    //                             >
+    //                                 <Edit className="h-4 w-4" />
+    //                                 Update
+    //                             </Button>
+    //                         </DropdownMenuItem>
 
-                            <DropdownMenuItem asChild>
-                                <DeleteConfirmationDialog
-                                    onConfirm={() =>
-                                        handleDelete(employee.id, () => {
-                                            // Optionally handle success here
-                                            // toast.success('Employee deleted successfully!');
-                                        })
-                                    }
-                                />
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </>
-            );
-        },
-    },
+    //                         <DropdownMenuItem asChild>
+    //                             <DeleteConfirmationDialog
+    //                                 onConfirm={() =>
+    //                                     handleDelete(employee.id, () => {
+    //                                         // Optionally handle success here
+    //                                         // toast.success('Employee deleted successfully!');
+    //                                     })
+    //                                 }
+    //                             />
+    //                         </DropdownMenuItem>
+    //                     </DropdownMenuContent>
+    //                 </DropdownMenu>
+    //             </>
+    //         );
+    //     },
+    // },
 ];
 
 export { columns, type Employees };

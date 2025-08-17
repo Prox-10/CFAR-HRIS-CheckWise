@@ -68,6 +68,7 @@ class EmployeeController extends Controller
                 'tin'           => $employee->tin,
                 'gmail_password' => $employee->gmail_password,
                 'philhealth'    => $employee->philhealth,
+                'recommendation_letter' => $employee->recommendation_letter,
                 'created_at'    => $employee->created_at->format('d M Y'),
                 'fingerprints'  => $employee->fingerprints->map(function ($fp) {
                     return [
@@ -177,6 +178,10 @@ class EmployeeController extends Controller
                 'phone'         => $employee->phone,
                 'email'         => $employee->email,
                 'position'      => $employee->position,
+                'tin'           => $employee->tin,
+                'gmail_password' => $employee->gmail_password,
+                'philhealth'    => $employee->philhealth,
+                'recommendation_letter' => $employee->recommendation_letter,
                 'created_at'    => $employee->created_at->format('d M Y'),
                 'fingerprints'  => $employee->fingerprints->map(function ($fp) {
                     return [
@@ -240,6 +245,13 @@ class EmployeeController extends Controller
                 $filename = time() . '_' . $file->getClientOriginalName();
                 $path = $file->storeAs('uploads', $filename, 'public');
                 $data['picture'] = '/storage/' . $path;
+            }
+
+            if ($request->hasFile('recommendation_letter')) {
+                $file = $request->file('recommendation_letter');
+                $filename = time() . '_recommendation_' . $file->getClientOriginalName();
+                $path = $file->storeAs('uploads/recommendations', $filename, 'public');
+                $data['recommendation_letter'] = '/storage/' . $path;
             }
 
             $employee = Employee::create($data);

@@ -38,6 +38,7 @@ class EmployeeController extends Controller
         'tin'           => $employee->tin,
         'gmail_password' => $employee->gmail_password,
         'philhealth'    => $employee->philhealth,
+        'recommendation_letter' => $employee->recommendation_letter,
         'created_at'    => $employee->created_at->format('d M Y'),
         'fingerprints'  => $employee->fingerprints->map(function ($fp) {
           return [

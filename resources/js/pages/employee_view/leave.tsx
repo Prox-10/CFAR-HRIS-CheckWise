@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Head, router } from '@inertiajs/react';
-import { AlertCircle, Calendar } from 'lucide-react';
+import { AlertCircle, Calendar, CheckCircle, CreditCard } from 'lucide-react';
 import { useState } from 'react';
 import { EmployeeLayout } from './components/layout/employee-layout';
 
@@ -40,6 +40,73 @@ const leaveTypes = [
     { value: 'maternity', label: 'Maternity/Paternity Leave' },
     { value: 'other', label: 'Other' },
 ];
+
+// Credit Display Component for Employee
+function EmployeeCreditDisplay({ leaveBalance = 12 }: { leaveBalance: number }) {
+    const percentage = Math.round((leaveBalance / 12) * 100);
+
+    const getCreditStatus = () => {
+        if (leaveBalance === 0) return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', icon: AlertCircle };
+        if (leaveBalance <= 3) return { color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200', icon: AlertCircle };
+        if (leaveBalance <= 6) return { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', icon: Calendar };
+        return { color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', icon: CheckCircle };
+    };
+
+    const status = getCreditStatus();
+    const IconComponent = status.icon;
+
+    return (
+        <Card className={`${status.bg} ${status.border} mb-6 border-2`}>
+            <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <CreditCard className={`h-5 w-5 ${status.color}`} />
+                        <CardTitle className={`text-lg ${status.color}`}>Your Leave Credits</CardTitle>
+                    </div>
+                    <div className="text-main text-2xl font-bold">{leaveBalance}/12</div>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">Credit Usage</span>
+                        <span className="text-muted-foreground">{percentage}% remaining</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-gray-200">
+                        <div className="bg-main h-2 rounded-full transition-all duration-300" style={{ width: `${percentage}%` }}></div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="font-medium">Remaining</span>
+                        </div>
+                        <div className="text-2xl font-bold text-green-600">{leaveBalance}</div>
+                        <div className="text-xs text-muted-foreground">credits available</div>
+                    </div>
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-blue-600" />
+                            <span className="font-medium">Used</span>
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">{12 - leaveBalance}</div>
+                        <div className="text-xs text-muted-foreground">credits used</div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <IconComponent className="h-3 w-3" />
+                    {leaveBalance === 0 && 'No credits remaining'}
+                    {leaveBalance <= 3 && leaveBalance > 0 && 'Low credits remaining'}
+                    {leaveBalance <= 6 && leaveBalance > 3 && 'Moderate credits remaining'}
+                    {leaveBalance > 6 && 'Good credit balance'}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
 
 export default function LeavePage({ employee, leaveBalance = 12 }: LeavePageProps) {
     const [formData, setFormData] = useState<LeaveFormData>({
@@ -103,6 +170,9 @@ export default function LeavePage({ employee, leaveBalance = 12 }: LeavePageProp
                         <p className="text-gray-600">Submit your leave request for approval</p>
                     </div>
                 </div>
+
+                {/* Credit Display */}
+                <EmployeeCreditDisplay leaveBalance={leaveBalance} />
 
                 {/* Leave Application Form */}
                 <Card className="max-w-2xl">
@@ -194,8 +264,12 @@ export default function LeavePage({ employee, leaveBalance = 12 }: LeavePageProp
                                             <li>• Submit leave requests at least 2 weeks in advance when possible</li>
                                             <li>• Sick leave requires medical documentation for absences over 3 days</li>
                                             <li>• Emergency leave should be reported as soon as possible</li>
-                                            <li>• Current leave balance: {leaveBalance} days remaining</li>
-                                            {calculateLeaveDays() > 0 && <li>• Requested days: {calculateLeaveDays()} days</li>}
+                                            <li>• Current leave balance: {leaveBalance} credits remaining</li>
+                                            {calculateLeaveDays() > 0 && (
+                                                <li>
+                                                    • Requested credits: {calculateLeaveDays()} credits ({calculateLeaveDays()} days)
+                                                </li>
+                                            )}
                                         </ul>
                                     </div>
                                 </div>
@@ -203,19 +277,10 @@ export default function LeavePage({ employee, leaveBalance = 12 }: LeavePageProp
 
                             {/* Action Buttons */}
                             <div className="flex gap-4 pt-4">
-                                <Button 
-                                    type="submit" 
-                                    className="bg-green-600 hover:bg-green-700 flex-1"
-                                    disabled={!formData.leave_type || !formData.date_from || !formData.date_to || !formData.reason}
-                                >
+                                <Button type="submit" className="bg-green-600 hover:bg-green-700">
                                     Submit Leave Request
                                 </Button>
-                                <Button 
-                                    type="button" 
-                                    variant="outline" 
-                                    onClick={handleClearForm}
-                                    className="flex-1"
-                                >
+                                <Button type="button" variant="outline" onClick={handleClearForm}>
                                     Clear Form
                                 </Button>
                             </div>

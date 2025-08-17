@@ -54,6 +54,7 @@ class PermissionSeeder extends Seeder
       'Download Leave PDF',
       'Sent Email Approval',
       'Leave Status Approval',
+      'View Leave Credit Summary',
 
       // Service Tenure permissions
       'View Service Tenure Management',
@@ -101,8 +102,11 @@ class PermissionSeeder extends Seeder
       'Delete Absence',
       'Absence Request',
 
+      'View Absence Credit Summary',
       // Access Management permissions
       'View Access',
+
+      'View Resume to Work',
     ];
 
     foreach ($permissions as $permission) {

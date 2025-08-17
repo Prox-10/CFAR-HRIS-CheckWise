@@ -17,6 +17,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SupervisorDepartmentController;
+use App\Http\Controllers\ResumeToWorkController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -80,16 +81,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware(['permission:View Leave'])->group(function () {
         Route::resource('leave', LeaveController::class)->names('leave');
+        Route::get('leave/credit-summary', [LeaveController::class, 'creditSummary'])->name('leave.credit-summary');
     });
 
     // Absence routes
     Route::middleware(['permission:View Absence'])->group(function () {
         Route::get('absence', [AbsenceController::class, 'index'])->name('absence.index');
         Route::get('absence/absence-approve', [AbsenceController::class, 'request'])->name('absence.absence-approve');
+        Route::get('absence/credit-summary', [AbsenceController::class, 'creditSummary'])->name('absence.credit-summary');
         Route::post('absence', [AbsenceController::class, 'store'])->name('absence.store');
         Route::get('absence/approve', [AbsenceController::class, 'approve'])->name('absence.approve');
         Route::patch('absence/{absence}/status', [AbsenceController::class, 'updateStatus'])->name('absence.updateStatus');
         Route::delete('absence/{absence}', [AbsenceController::class, 'destroy'])->name('absence.destroy');
+    });
+
+    // Resume to Work routes
+    Route::middleware(['permission:View Resume to Work'])->group(function () {
+        Route::get('resume-to-work', [ResumeToWorkController::class, 'index'])->name('resume-to-work.index');
+        Route::post('resume-to-work', [ResumeToWorkController::class, 'store'])->name('resume-to-work.store');
+        Route::patch('resume-to-work/{resumeToWork}/process', [ResumeToWorkController::class, 'process'])->name('resume-to-work.process');
+        Route::patch('resume-to-work/{resumeToWork}/notify-supervisor', [ResumeToWorkController::class, 'markSupervisorNotified'])->name('resume-to-work.notify-supervisor');
     });
 });
 

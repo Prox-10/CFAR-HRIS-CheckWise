@@ -8,26 +8,26 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
-export const description = 'A line chart showing employee absence trends over time';
+export const description = 'A line chart showing employee leave trends over time';
 
 const chartConfig = {
-    absences: {
-        label: 'Absences',
-        color: 'var(--chart-1)',
+    leaves: {
+        label: 'Leaves',
+        color: 'var(--chart-2)',
     },
 } satisfies ChartConfig;
 
-interface ChartLineLabelProps {
+interface ChartLineLabelLeaveProps {
     data: Array<{
         month: string;
         year: number;
-        absences: number;
+        leaves: number;
         percentage: number;
         date: string;
     }>;
 }
 
-export function ChartLineLabel({ data }: ChartLineLabelProps) {
+export function ChartLineLabelLeave({ data }: ChartLineLabelLeaveProps) {
     const [monthRange, setMonthRange] = useState<6 | 12>(6);
 
     // Filter data based on selected month range
@@ -48,8 +48,8 @@ export function ChartLineLabel({ data }: ChartLineLabelProps) {
 
         if (!currentMonth || !previousMonth) return { direction: 'neutral', percentage: 0 };
 
-        const change = currentMonth.absences - previousMonth.absences;
-        const percentage = previousMonth.absences > 0 ? Math.round((change / previousMonth.absences) * 100) : 0;
+        const change = currentMonth.leaves - previousMonth.leaves;
+        const percentage = previousMonth.leaves > 0 ? Math.round((change / previousMonth.leaves) * 100) : 0;
 
         return {
             direction: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral',
@@ -73,11 +73,11 @@ export function ChartLineLabel({ data }: ChartLineLabelProps) {
     const getTrendText = () => {
         switch (trend.direction) {
             case 'up':
-                return `Absences increased by ${trend.percentage}% this month`;
+                return `Leaves increased by ${trend.percentage}% this month`;
             case 'down':
-                return `Absences decreased by ${trend.percentage}% this month`;
+                return `Leaves decreased by ${trend.percentage}% this month`;
             default:
-                return 'Absence rate remained stable this month';
+                return 'Leave rate remained stable this month';
         }
     };
 
@@ -97,13 +97,13 @@ export function ChartLineLabel({ data }: ChartLineLabelProps) {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Employee Absence Trends</CardTitle>
-                    <CardDescription>No absence data available for the selected period</CardDescription>
+                    <CardTitle>Employee Leave Trends</CardTitle>
+                    <CardDescription>No leave data available for the selected period</CardDescription>
                 </CardHeader>
                 <CardContent className="flex items-center justify-center py-12">
                     <div className="text-center text-muted-foreground">
-                        <p>No absence records found for the selected time period.</p>
-                        <p className="text-sm">Data will appear here once absence requests are approved.</p>
+                        <p>No leave records found for the selected time period.</p>
+                        <p className="text-sm">Data will appear here once leave requests are submitted.</p>
                     </div>
                 </CardContent>
             </Card>
@@ -115,9 +115,9 @@ export function ChartLineLabel({ data }: ChartLineLabelProps) {
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <div>
-                        <CardTitle>Employee Absence Trends</CardTitle>
+                        <CardTitle>Employee Leave Trends</CardTitle>
                         <CardDescription>
-                            {monthRange === 6 ? 'Last 6 months' : 'Last 12 months'} absence patterns
+                            {monthRange === 6 ? 'Last 6 months' : 'Last 12 months'} leave patterns
                             {chartData.length > 0 && (
                                 <span className="ml-1 text-muted-foreground">
                                     ({chartData[0]?.year} - {chartData[chartData.length - 1]?.year})
@@ -154,22 +154,22 @@ export function ChartLineLabel({ data }: ChartLineLabelProps) {
                                 tickLine={false}
                                 axisLine={false}
                                 tickMargin={8}
-                                label={{ value: 'Number of Absences', angle: -90, position: 'insideLeft' }}
+                                label={{ value: 'Number of Leaves', angle: -90, position: 'insideLeft' }}
                             />
                             <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
                             <Line
-                                dataKey="absences"
+                                dataKey="leaves"
                                 type="natural"
-                                stroke="var(--chart-1)"
+                                stroke="var(--chart-2)"
                                 strokeWidth={3}
                                 dot={{
-                                    fill: 'var(--chart-1)',
+                                    fill: 'var(--chart-2)',
                                     strokeWidth: 2,
                                     r: 4,
                                 }}
                                 activeDot={{
                                     r: 6,
-                                    stroke: 'var(--chart-1)',
+                                    stroke: 'var(--chart-2)',
                                     strokeWidth: 2,
                                 }}
                             >
@@ -190,18 +190,18 @@ export function ChartLineLabel({ data }: ChartLineLabelProps) {
                     {getTrendText()} {getTrendIcon()}
                 </div>
                 <div className="leading-none text-muted-foreground">
-                    Showing absence trends for {monthRange === 6 ? 'the last 6 months' : 'the last 12 months'}
+                    Showing leave trends for {monthRange === 6 ? 'the last 6 months' : 'the last 12 months'}
                 </div>
                 <div className="mt-2 grid w-full grid-cols-2 gap-4 text-xs">
                     <div className="rounded bg-muted p-2 text-center">
                         <div className="font-semibold">Current Month</div>
-                        <div className="text-lg font-bold text-foreground">{chartData[chartData.length - 1]?.absences || 0}</div>
+                        <div className="text-lg font-bold text-foreground">{chartData[chartData.length - 1]?.leaves || 0}</div>
                         <div className="text-muted-foreground">{chartData[chartData.length - 1]?.percentage || 0}% of workforce</div>
                     </div>
                     <div className="rounded bg-muted p-2 text-center">
                         <div className="font-semibold">Average</div>
                         <div className="text-lg font-bold text-foreground">
-                            {Math.round(chartData.reduce((sum, item) => sum + item.absences, 0) / chartData.length)}
+                            {Math.round(chartData.reduce((sum, item) => sum + item.leaves, 0) / chartData.length)}
                         </div>
                         <div className="text-muted-foreground">per month</div>
                     </div>

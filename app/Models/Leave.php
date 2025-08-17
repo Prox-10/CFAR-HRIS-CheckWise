@@ -23,7 +23,14 @@ class Leave extends Model
         'leave_date_approved',
         'leave_reason',
         'leave_comments',
-        'leave_status', 
+        'leave_status',
+    ];
+
+    protected $casts = [
+        'leave_start_date' => 'date',
+        'leave_end_date' => 'date',
+        'leave_date_reported' => 'date',
+        'leave_date_approved' => 'date',
     ];
 
 

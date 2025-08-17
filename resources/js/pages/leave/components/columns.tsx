@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ColumnDef } from '@tanstack/react-table';
-import { CheckCircle, Clock, Edit, Eye, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, Edit, Eye, XCircle, CreditCard } from 'lucide-react';
 // import { Employees } from '../types/employees';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@inertiajs/react';
@@ -22,6 +22,9 @@ type Leave = {
     leave_date_approved: string;
     leave_comments: string;
     picture: string;
+    remaining_credits?: number;
+    used_credits?: number;
+    total_credits?: number;
 };
 
 const columns = (
@@ -79,7 +82,34 @@ const columns = (
             );
         },
     },
+    {
+        accessorKey: 'credits',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Credits" />,
+        cell: ({ row }) => {
+            const remaining = row.original.remaining_credits || 0;
+            const used = row.original.used_credits || 0;
+            const total = row.original.total_credits || 12;
 
+            const getCreditStatus = () => {
+                if (remaining === 0) return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' };
+                if (remaining <= 3) return { color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' };
+                if (remaining <= 6) return { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' };
+                return { color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' };
+            };
+
+            const status = getCreditStatus();
+
+            return (
+                <div className="flex items-center gap-2">
+                    <CreditCard className={`h-4 w-4 ${status.color}`} />
+                    <div className="text-sm">
+                        <div className={`font-medium ${status.color}`}>{remaining}/{total}</div>
+                        <div className="text-xs text-muted-foreground">{used} used</div>
+                    </div>
+                </div>
+            );
+        },
+    },
     {
         accessorKey: 'Leave Type',
         header: 'Leave Type',
@@ -199,19 +229,17 @@ const columns = (
                             setIsViewOpen(true); // Open View modal
                         }}
                     >
-                        <span className="sr-only">View</span>
                         <Eye className="h-4 w-4" />
                     </Button>
-                    {/* <Link href={route('leave.edit', leave.id)}>
-                        <Button variant="outline" size="icon" className="h-8 w-8 p-0 px-3 hover:bg-blue-200">
-                            <span className="sr-only">Edit</span>
+                    <Link href={route('leave.edit', leave.id)}>
+                        <Button variant="outline" size="icon" className="h-8 w-8 p-0 px-3 hover:bg-green-200">
                             <Edit className="h-4 w-4" />
                         </Button>
-                    </Link> */}
+                    </Link>
                 </div>
             );
         },
     },
 ];
 
-export { columns, type Leave };
+export { columns };

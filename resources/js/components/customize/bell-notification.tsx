@@ -30,9 +30,13 @@ export function BellNotification({
                 // handle error
             }
         }
-        // Navigate to the relevant page if leave_request
+        // Navigate to the relevant page based on notification type
         if (notification.type === 'leave_request' && notification.data && notification.data.leave_id) {
             router.visit(`/leave/${notification.data.leave_id}/edit`);
+        } else if (notification.type === 'resume_to_work' && notification.data && notification.data.resume_id) {
+            router.visit(`/resume-to-work`);
+        } else if (notification.type === 'employee_returned') {
+            router.visit(`/resume-to-work`);
         }
     };
 
@@ -73,13 +77,25 @@ export function BellNotification({
                             <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                     <p className="text-sm font-medium">
-                                        {notification.type === 'leave_request' ? 'New Leave Request' : notification.title}
+                                        {notification.type === 'leave_request'
+                                            ? 'New Leave Request'
+                                            : notification.type === 'resume_to_work'
+                                              ? 'New Resume to Work Request'
+                                              : notification.type === 'employee_returned'
+                                                ? 'Employee Returned to Work'
+                                                : notification.title}
                                     </p>
                                     {!notification.read_at && <div className="h-2 w-2 rounded-full bg-blue-500" />}
                                 </div>
                                 <p className="mt-1 text-xs text-muted-foreground">
                                     {notification.data && notification.data.employee_name
-                                        ? `${notification.data.employee_name} requested ${notification.data.leave_type}`
+                                        ? notification.type === 'leave_request'
+                                            ? `${notification.data.employee_name} requested ${notification.data.leave_type}`
+                                            : notification.type === 'resume_to_work'
+                                              ? `${notification.data.employee_name} submitted resume to work form`
+                                              : notification.type === 'employee_returned'
+                                                ? `${notification.data.employee_name} has returned to work`
+                                                : notification.message
                                         : notification.message}
                                 </p>
                                 <p className="mt-1 text-xs text-muted-foreground">

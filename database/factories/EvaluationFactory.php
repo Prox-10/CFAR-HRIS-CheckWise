@@ -16,31 +16,30 @@ class EvaluationFactory extends Factory
      */
     public function definition(): array
     {
-        $work_quality = $this->faker->numberBetween(1, 10);
-        $safety_compliance = $this->faker->numberBetween(1, 10);
-        $punctuality = $this->faker->numberBetween(1, 10);
-        $teamwork = $this->faker->numberBetween(1, 10);
-        $equipment_handling = $this->faker->numberBetween(1, 10);
-        $organization = $this->faker->numberBetween(1, 10);
+        // Generate realistic evaluation scores with bias towards higher ratings for recognition
+        $work_quality = $this->faker->numberBetween(7, 10); // Higher range for recognition
+        $safety_compliance = $this->faker->numberBetween(7, 10);
+        $punctuality = $this->faker->numberBetween(7, 10);
+        $teamwork = $this->faker->numberBetween(7, 10);
+        $equipment_handling = $this->faker->numberBetween(7, 10);
+        $organization = $this->faker->numberBetween(7, 10);
         $criteria = [$work_quality, $safety_compliance, $punctuality, $teamwork, $equipment_handling, $organization];
         $average = number_format(array_sum($criteria) / count($criteria), 1);
 
         // Generate random period (1 for Jan-Jun, 2 for Jul-Dec)
         $period = $this->faker->randomElement([1, 2]);
+        $year = $this->faker->randomElement([2024, 2025]);
 
         return [
             'employee_id' => \App\Models\Employee::inRandomOrder()->first()?->id ?? 1,
-            'ratings' => $average,
-            'rating_date' => $this->faker->date(),
-            'work_quality' => $work_quality,
-            'safety_compliance' => $safety_compliance,
-            'punctuality' => $punctuality,
-            'teamwork' => $teamwork,
-            'organization' => $organization,
-            'equipment_handling' => $equipment_handling,
-            'comment' => $this->faker->sentence(),
-            'period' => $period,
-            'year' => $this->faker->numberBetween(2023, 2025),
+            'department' => $this->faker->randomElement(['Monthly', 'Packing', 'Harvest', 'PDC', 'Coop Area', 'Engineering']),
+            'evaluation_frequency' => $this->faker->randomElement(['semi_annual', 'annual']),
+            'evaluator' => $this->faker->name(),
+            'observations' => $this->faker->paragraph(),
+            'total_rating' => (float) $average,
+            'evaluation_year' => $year,
+            'evaluation_period' => $period,
+            'rating_date' => $this->faker->dateTimeBetween('-6 months', 'now')->format('Y-m-d'),
         ];
     }
 }

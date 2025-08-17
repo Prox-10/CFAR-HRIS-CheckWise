@@ -41,6 +41,7 @@ class Employee extends Model
         'philhealth',
         'tin',
         'pag_ibig',
+        'recommendation_letter',
     ];
 
     protected static function boot()
@@ -113,5 +114,56 @@ class Employee extends Model
     public function absences()
     {
         return $this->hasMany(Absence::class);
+    }
+
+    public function leaveCredits()
+    {
+        return $this->hasMany(LeaveCredit::class);
+    }
+
+    public function absenceCredits()
+    {
+        return $this->hasMany(AbsenceCredit::class);
+    }
+
+    public function resumeToWork()
+    {
+        return $this->hasMany(ResumeToWork::class);
+    }
+
+    /**
+     * Get current year's leave credits
+     */
+    public function getCurrentLeaveCredits($year = null)
+    {
+        $year = $year ?? now()->year;
+        return LeaveCredit::getOrCreateForEmployee($this->id, $year);
+    }
+
+    /**
+     * Get remaining leave credits for current year
+     */
+    public function getRemainingLeaveCredits($year = null)
+    {
+        $credits = $this->getCurrentLeaveCredits($year);
+        return $credits->remaining_credits;
+    }
+
+    /**
+     * Get current year's absence credits
+     */
+    public function getCurrentAbsenceCredits($year = null)
+    {
+        $year = $year ?? now()->year;
+        return AbsenceCredit::getOrCreateForEmployee($this->id, $year);
+    }
+
+    /**
+     * Get remaining absence credits for current year
+     */
+    public function getRemainingAbsenceCredits($year = null)
+    {
+        $credits = $this->getCurrentAbsenceCredits($year);
+        return $credits->remaining_credits;
     }
 }

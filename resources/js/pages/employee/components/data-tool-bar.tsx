@@ -40,11 +40,11 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
                         <DataTableFacetedFilter column={table.getColumn('department')} title="Department" options={departments} />
                     )}
                 </div>
-                <div className="flex gap-x-2">
+                {/* <div className="flex gap-x-2">
                     {table.getColumn('work_status') && (
                         <DataTableFacetedFilter column={table.getColumn('work_status')} title="Work Status" options={workStatus} />
                     )}
-                </div>
+                </div> */}
                 <div className="flex gap-x-2">
                     {table.getColumn('date_of_birth') && (
                         <DataTableFacetedFilter column={table.getColumn('date_of_birth')} title="Age Range" options={ageRanges} />

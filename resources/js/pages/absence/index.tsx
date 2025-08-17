@@ -1,4 +1,5 @@
 import { AppSidebar } from '@/components/app-sidebar';
+import { ChartLineLabel } from '@/components/chartlinelabel';
 import { Main } from '@/components/customize/main';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { SiteHeader } from '@/components/site-header';
@@ -30,11 +31,21 @@ interface Employee {
     employee_name: string;
     department: string;
     position: string;
+    remaining_credits?: number;
+    used_credits?: number;
+    total_credits?: number;
 }
 
 interface Props {
     absences: Absence[];
     employees: Employee[];
+    monthlyAbsenceStats?: Array<{
+        month: string;
+        year: number;
+        absences: number;
+        percentage: number;
+        date: string;
+    }>;
     user_permissions?: {
         is_super_admin: boolean;
         is_supervisor: boolean;
@@ -42,7 +53,7 @@ interface Props {
     };
 }
 
-export default function Index({ absences = [], employees = [], user_permissions }: Props) {
+export default function Index({ absences = [], employees = [], monthlyAbsenceStats = [], user_permissions }: Props) {
     const [loading, setLoading] = useState(true);
 
     // State for view modal
@@ -95,23 +106,26 @@ export default function Index({ absences = [], employees = [], user_permissions 
                                 </div>
                             </div>
                         </div>
+
                         <Tabs orientation="vertical" defaultValue="overview" className="space-y-4">
                             <TabsContent value="overview" className="space-y-4">
                                 <div className="flex flex-1 flex-col">
                                     <div className="relative flex flex-1 flex-col">
                                         <div className="@container/main flex flex-1 flex-col gap-2">
                                             <div className="flex flex-col">
-                                                <SectionCards 
+                                                <SectionCards
+                                                    absenceStats={{
+                                                        totalAbsences: absences.length,
+                                                        pendingAbsences: absences.filter((a) => a.status === 'pending').length,
+                                                        approvedAbsences: absences.filter((a) => a.status === 'approved').length,
+                                                        rejectedAbsences: absences.filter((a) => a.status === 'rejected').length,
+                                                    }}
                                                     isSupervisor={user_permissions?.is_supervisor || false}
-                                                    totalEmployee={employees.length}
-                                                    totalDepartment={user_permissions?.is_supervisor ? user_permissions.supervised_departments.length : 7}
-                                                    activeAccounts={employees.filter(emp => emp.status === 'active').length}
-                                                    growthRate={4.5}
                                                     roleContent={{
-                                                        employeeLabel: user_permissions?.is_supervisor ? 'Your Employees' : 'Total Employee',
-                                                        departmentLabel: user_permissions?.is_supervisor ? 'Your Departments' : 'Department',
-                                                        activeLabel: user_permissions?.is_supervisor ? 'Active Team' : 'Active Accounts',
-                                                        growthLabel: user_permissions?.is_supervisor ? 'Your Growth' : 'Growth Rate',
+                                                        totalLabel: user_permissions?.is_supervisor ? 'Your Absences' : 'Total Absences',
+                                                        approvedLabel: user_permissions?.is_supervisor ? 'Your Approved' : 'Approved',
+                                                        pendingLabel: user_permissions?.is_supervisor ? 'Your Pending' : 'Pending',
+                                                        rejectedLabel: user_permissions?.is_supervisor ? 'Your Rejected' : 'Rejected',
                                                     }}
                                                 />
                                             </div>
@@ -121,11 +135,14 @@ export default function Index({ absences = [], employees = [], user_permissions 
                             </TabsContent>
                             <Separator className="shadow-sm" />
                         </Tabs>
+
+                       
+
                         <div className="m-3 no-scrollbar">
                             <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                 <CardHeader>
-                                    <CardTitle>Absence List</CardTitle>
-                                    <CardDescription>List of all absence requests</CardDescription>
+                                    <CardTitle className="text-sm font-semibold">Absence List</CardTitle>
+                                    <CardDescription>List of employee absences</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <DataTable
@@ -141,22 +158,13 @@ export default function Index({ absences = [], employees = [], user_permissions 
                                         data={absences}
                                         employees={employees}
                                     />
+                                    <ViewAbsenceModal isOpen={isViewOpen} onClose={() => setIsViewOpen(false)} absence={viewAbsence} />
                                 </CardContent>
                             </Card>
                         </div>
                     </Main>
                 </SidebarInset>
             </SidebarHoverLogic>
-
-            {/* View Absence Modal */}
-            <ViewAbsenceModal
-                isOpen={isViewOpen}
-                onClose={() => {
-                    setIsViewOpen(false);
-                    setViewAbsence(null);
-                }}
-                absence={viewAbsence}
-            />
         </SidebarProvider>
     );
 }

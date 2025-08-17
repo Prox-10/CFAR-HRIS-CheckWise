@@ -66,12 +66,42 @@ const mainNavItems: NavItem[] = [
         href: '/leave',
         icon: CalendarPlus2,
         permission: 'View Leave',
+        items: [
+            {
+                title: 'Leave List',
+                href: '/leave',
+                permission: 'View Leave',
+            },
+            {
+                title: 'Leave Credit Summary',
+                href: '/leave/credit-summary',
+                permission: 'View Leave Credit Summary',
+            },
+        ],
     },
     {
         title: 'Absence',
         href: '/absence',
         icon: CalendarPlus2,
         permission: 'View Absence',
+        items: [
+            {
+                title: 'Absence List',
+                href: '/absence',
+                permission: 'View Absence',
+            },
+            {
+                title: 'Absence Credit Summary',
+                href: '/absence/credit-summary',
+                permission: 'View Absence Credit Summary',
+            },
+        ],
+    },
+    {
+        title: 'Resume to Work',
+        href: '/resume-to-work',
+        icon: CalendarPlus2,
+        permission: 'View Resume to Work',
     },
     {
         title: 'Service-Tenure',
@@ -80,30 +110,25 @@ const mainNavItems: NavItem[] = [
         permission: 'View Service Tenure Management',
         items: [
             {
-                title: 'Dashboard',
-                href: '/service-tenure/index',
-                permission: 'View Service Tenure Dashboard',
-            },
-            {
-                title: 'Employee List',
+                title: 'Service Tenure',
                 href: '/service-tenure/employee',
                 permission: 'View Service Tenure Employee',
             },
-            {
-                title: 'Service Tenure',
-                href: '/service-tenure/service-tenure',
-                permission: 'View Service Tenure',
-            },
+            // {
+            //     title: 'Service Tenure',
+            //     href: '/service-tenure/service-tenure',
+            //     permission: 'View Service Tenure',
+            // },
             {
                 title: 'Pay Advancement',
                 href: '/service-tenure/pay-advancement',
                 permission: 'View Service Tenure Pay Advancement',
             },
-            {
-                title: 'Report',
-                href: '/service-tenure/report',
-                permission: 'View Service Tenure Report',
-            },
+            // {
+            //     title: 'Report',
+            //     href: '/service-tenure/report',
+            //     permission: 'View Service Tenure Report',
+            // },
         ],
     },
     {
@@ -180,7 +205,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent className="bg-cfar-400">
-                <NavSidebar items={mainNavItems} employee_items={[]} />
+                <NavSidebar items={mainNavItems} />
 
                 {/* <NavMain navItem={data.navItem} /> */}
                 {/* <NavProjects projects={data.projects} /> */}

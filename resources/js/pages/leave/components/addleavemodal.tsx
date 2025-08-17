@@ -23,6 +23,9 @@ interface Employee {
     employee_name: string;
     department?: string;
     position?: string;
+    remaining_credits?: number;
+    used_credits?: number;
+    total_credits?: number;
 }
 
 interface AddLeaveModalProps {
@@ -113,6 +116,15 @@ const AddLeaveModal = ({ isOpen, onClose, employees = [] }: AddLeaveModalProps) 
             setReasonError('Reason is required.');
             return;
         }
+
+        // Check if employee has enough credits (credits = number of days)
+        if (selectedEmployee && selectedEmployee.remaining_credits !== undefined && data.leave_days > selectedEmployee.remaining_credits) {
+            toast.error(
+                `Insufficient leave credits. Employee has ${selectedEmployee.remaining_credits} credits remaining but requesting ${data.leave_days} days (${data.leave_days} credits).`,
+            );
+            return;
+        }
+
         post(route('leave.store'), {
             onSuccess: () => {
                 toast.success('Leave request submitted successfully!');
@@ -140,7 +152,7 @@ const AddLeaveModal = ({ isOpen, onClose, employees = [] }: AddLeaveModalProps) 
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-h-[90vh] min-w-2xl overflow-y-auto border-2 border-main shadow-2xl">
+            <DialogContent className="border-main max-h-[90vh] min-w-2xl overflow-y-auto border-2 shadow-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-green-800">Add Leave Request</DialogTitle>
                 </DialogHeader>
@@ -160,6 +172,15 @@ const AddLeaveModal = ({ isOpen, onClose, employees = [] }: AddLeaveModalProps) 
                             {selectedEmployee && (
                                 <div className="mt-1 text-sm font-semibold text-green-700">
                                     Selected: {selectedEmployee.employeeid} - {selectedEmployee.employee_name}
+                                    {selectedEmployee.remaining_credits !== undefined && (
+                                        <div className="mt-1 text-xs text-blue-600">
+                                            Leave Credits: {selectedEmployee.remaining_credits} remaining / {selectedEmployee.total_credits} total
+                                            <br />
+                                            <span className="text-orange-600">
+                                                Note: Credits are deducted based on number of days (e.g., 4 days = 4 credits)
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                             <InputError message={errors.employee_id} />

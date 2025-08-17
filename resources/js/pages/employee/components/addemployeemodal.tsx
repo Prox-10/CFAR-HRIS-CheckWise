@@ -36,6 +36,10 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
     const [preview, setPreview] = useState<string>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+    const [recommendationPreview, setRecommendationPreview] = useState<string>('');
+    const [selectedRecommendationFile, setSelectedRecommendationFile] = useState<File | null>(null);
+    const [recommendationFileName, setRecommendationFileName] = useState<string>('');
+
     const [savedEmployee, setSavedEmployee] = useState<any | null>(null); // Store created employee object
     const [fingerprintData, setFingerprintData] = useState<any | null>(null);
     const [fingerprintSaved, setFingerprintSaved] = useState(false);
@@ -99,6 +103,70 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
         input.click(); // Trigger the file input click to open file explorer
     };
 
+    const handleRecommendationLetterUpload = () => {
+        // Create a file input element to upload the recommendation letter
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.txt,.rtf'; // Allow various document and image formats
+
+        // When a file is selected, handle the file and update preview
+        input.onchange = (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            console.log('Selected recommendation file:', file);
+            if (file) {
+                // Validate file size (max 10MB)
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                if (file.size > maxSize) {
+                    toast.error('File size must be less than 10MB');
+                    return;
+                }
+
+                // Validate file type
+                const allowedTypes = [
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'image/jpeg',
+                    'image/jpg',
+                    'image/png',
+                    'image/gif',
+                    'image/bmp',
+                    'image/tiff',
+                    'text/plain',
+                    'application/rtf',
+                ];
+
+                if (!allowedTypes.includes(file.type)) {
+                    toast.error('Please select a valid file type (PDF, Word, Image, or Text)');
+                    return;
+                }
+
+                // Update the file state
+                setSelectedRecommendationFile(file);
+                setRecommendationFileName(file.name);
+
+                // Preview for images
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const result = e.target?.result as string;
+                        setRecommendationPreview(result);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // For non-image files, show file info
+                    setRecommendationPreview('');
+                }
+
+                // Attach the file to the form data
+                setData('recommendation_letter', file);
+                toast.success('Recommendation letter uploaded successfully!');
+            }
+        };
+
+        input.click(); // Trigger the file input click to open file explorer
+    };
+
     const { data, setData, errors, processing, reset, post } = useForm<Employees>(initialEmployeeFormData);
 
     const closeModalWithDelay = (delay: number = 1000) => {
@@ -109,6 +177,9 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
             setBirth(undefined); // <-- Reset Date of Birth
             setPreview('');
             setSelectedFile(null);
+            setRecommendationPreview('');
+            setSelectedRecommendationFile(null);
+            setRecommendationFileName('');
             setSavedEmployee(null);
             setFingerprintData(null);
             setFingerprintSaved(false);
@@ -634,6 +705,83 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                             />
                             <InputError message={errors.tin} />
                         </div>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold">Recommendation Letter</h3>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="col-span-2">
+                            <Label>Upload Recommendation Letter</Label>
+                            <div
+                                className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-green-300 bg-green-50 p-6 transition-colors hover:bg-green-100"
+                                onClick={handleRecommendationLetterUpload}
+                            >
+                                {selectedRecommendationFile ? (
+                                    <div className="text-center">
+                                        <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                                            <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <p className="font-medium text-green-800">File Selected</p>
+                                        <p className="text-sm text-green-600">{recommendationFileName}</p>
+                                        <p className="text-xs text-gray-500">Click to change</p>
+                                    </div>
+                                ) : (
+                                    <div className="text-center">
+                                        <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                                            <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <p className="font-medium text-gray-600">No File Selected</p>
+                                        <p className="text-sm text-gray-500">Click to select file (PDF, Word, Image, or Text)</p>
+                                        <p className="text-xs text-gray-400">Max size: 10MB</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        {recommendationPreview && (
+                            <div className="col-span-2">
+                                <div className="mb-2 font-medium text-green-800">File Preview:</div>
+                                <div className="flex items-center justify-center rounded-md border bg-gray-50 p-4">
+                                    {recommendationPreview.startsWith('data:image/') ? (
+                                        <img
+                                            src={recommendationPreview}
+                                            alt="Recommendation Letter Preview"
+                                            className="max-h-48 max-w-full rounded object-contain"
+                                        />
+                                    ) : (
+                                        <div className="flex items-center space-x-3">
+                                            <svg className="h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                />
+                                            </svg>
+                                            <div>
+                                                <p className="font-medium text-gray-900">{recommendationFileName}</p>
+                                                <p className="text-sm text-gray-500">
+                                                    {(selectedRecommendationFile?.size / 1024 / 1024).toFixed(2)} MB
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="mt-3 ml-auto flex justify-end">

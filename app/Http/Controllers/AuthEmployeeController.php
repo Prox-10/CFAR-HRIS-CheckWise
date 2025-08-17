@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\Leave;
+use App\Models\LeaveCredit;
 use App\Models\Absence;
 use App\Models\Evaluation;
 use App\Models\Attendance;
@@ -55,14 +56,9 @@ class AuthEmployeeController extends Controller
         $currentMonth = Carbon::now()->startOfMonth();
         $currentYear = Carbon::now()->year;
 
-        // Leave Balance
-        $approvedLeaves = Leave::where('employee_id', $employee->id)
-            ->where('leave_status', 'approved')
-            ->whereYear('leave_start_date', $currentYear)
-            ->sum('leave_days');
-
-        $totalLeaveDays = 15; // Assuming 15 days annual leave
-        $leaveBalance = max(0, $totalLeaveDays - $approvedLeaves);
+        // Leave Balance (using credits)
+        $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id, $currentYear);
+        $leaveBalance = $leaveCredits->remaining_credits;
 
         // Absence Count (this month)
         $absenceCount = Absence::where('employee_id', $employee->id)
@@ -389,15 +385,10 @@ class AuthEmployeeController extends Controller
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
 
-        // Calculate leave balance
+        // Calculate leave balance (using credits)
         $currentYear = Carbon::now()->year;
-        $approvedLeaves = Leave::where('employee_id', $employee->id)
-            ->where('leave_status', 'approved')
-            ->whereYear('leave_start_date', $currentYear)
-            ->sum('leave_days');
-
-        $totalLeaveDays = 15; // Assuming 15 days annual leave
-        $leaveBalance = max(0, $totalLeaveDays - $approvedLeaves);
+        $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id, $currentYear);
+        $leaveBalance = $leaveCredits->remaining_credits;
 
         return Inertia::render('employee_view/leave', [
             'employee' => [
@@ -516,15 +507,10 @@ class AuthEmployeeController extends Controller
             ->sortByDesc('submitted')
             ->values();
 
-        // Calculate summary
+        // Calculate summary (using credits)
         $currentYear = Carbon::now()->year;
-        $approvedLeaves = Leave::where('employee_id', $employee->id)
-            ->where('leave_status', 'approved')
-            ->whereYear('leave_start_date', $currentYear)
-            ->sum('leave_days');
-
-        $totalLeaveDays = 15;
-        $leaveBalance = max(0, $totalLeaveDays - $approvedLeaves);
+        $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id, $currentYear);
+        $leaveBalance = $leaveCredits->remaining_credits;
 
         $summary = [
             'leaveDaysRemaining' => $leaveBalance,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Employee;
+use App\Models\Evaluation;
 use Inertia\Response;
 use Illuminate\Support\Facades\Log;
 use App\Models\Leave;
@@ -173,6 +174,9 @@ class DashboardController extends Controller
         $userRole = $user->roles->first()?->name ?? 'User';
         $userDepartments = $isSupervisor ? $supervisedDepartments : [];
 
+        // Get employees eligible for monthly recognition (good attendance, no absences, no leaves)
+        $monthlyRecognitionEmployees = $this->getMonthlyRecognitionEmployees($supervisedDepartments, $isSupervisor);
+
         // Get employees for supervisor dashboard
         $supervisorEmployees = collect();
         if ($isSupervisor && !empty($supervisedDepartments)) {
@@ -194,6 +198,12 @@ class DashboardController extends Controller
                 });
         }
 
+        // Get monthly absence statistics for the chart
+        $monthlyAbsenceStats = $this->getMonthlyAbsenceStats($userDepartments);
+
+        // Get monthly leave statistics for the chart
+        $monthlyLeaveStats = $this->getMonthlyLeaveStats($userDepartments);
+
         return Inertia::render('dashboard/index', [
             'totalEmployee' => $totalEmployee,
             'prevTotalEmployee' => $prevTotalEmployee,
@@ -206,6 +216,8 @@ class DashboardController extends Controller
             'leavesPerMonth' => $chartData, // For monthly chart data
             'leavesPerPeriod' => $leavesPerPeriod, // For 6-month period chart data
             'months' => $monthsToShow, // Pass selected months to frontend
+            'monthlyAbsenceStats' => $monthlyAbsenceStats, // Add absence statistics
+            'monthlyLeaveStats' => $monthlyLeaveStats, // Add leave statistics
             // Add notifications for admin bell
             'notifications' => $notifications,
             'unreadNotificationCount' => $unreadCount,
@@ -216,6 +228,8 @@ class DashboardController extends Controller
             'supervisedDepartments' => $userDepartments,
             // Add supervisor employees data
             'supervisorEmployees' => $supervisorEmployees,
+            // Add monthly recognition employees data
+            'monthlyRecognitionEmployees' => $monthlyRecognitionEmployees,
         ]);
     }
 
@@ -268,6 +282,122 @@ class DashboardController extends Controller
     }
 
     /**
+     * Get monthly absence statistics for chart display.
+     */
+    private function getMonthlyAbsenceStats($supervisedDepartments = [])
+    {
+        // Base query for absences
+        $absenceQuery = \App\Models\Absence::query();
+
+        // Filter by supervised departments if supervisor
+        if (!empty($supervisedDepartments)) {
+            $absenceQuery->whereIn('department', $supervisedDepartments);
+        }
+
+        // Get absences from the last 12 months
+        $startDate = now()->subMonths(11)->startOfMonth();
+        $endDate = now()->endOfMonth();
+
+        $absences = $absenceQuery
+            ->whereBetween('from_date', [$startDate, $endDate])
+            ->where('status', 'approved')
+            ->get();
+
+        // Get total employee count for percentage calculations
+        $employeeQuery = Employee::query();
+        if (!empty($supervisedDepartments)) {
+            $employeeQuery->whereIn('department', $supervisedDepartments);
+        }
+        $totalEmployees = $employeeQuery->count();
+
+        // Group absences by month
+        $monthlyData = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $monthKey = $date->format('Y-m');
+            $monthName = $date->format('F');
+            $year = $date->year;
+
+            // Count absences for this month
+            $monthAbsences = $absences->filter(function ($absence) use ($date) {
+                return $absence->from_date->format('Y-m') === $date->format('Y-m');
+            })->count();
+
+            // Calculate percentage
+            $percentage = $totalEmployees > 0 ? round(($monthAbsences / $totalEmployees) * 100, 1) : 0;
+
+            $monthlyData[] = [
+                'month' => $monthName,
+                'year' => $year,
+                'absences' => $monthAbsences,
+                'percentage' => $percentage,
+                'date' => $date->toDateString(),
+            ];
+        }
+
+        return $monthlyData;
+    }
+
+    /**
+     * Get monthly leave statistics for chart display.
+     */
+    private function getMonthlyLeaveStats($supervisedDepartments = [])
+    {
+        // Base query for leaves
+        $leaveQuery = Leave::query();
+
+        // Filter by supervised departments if supervisor
+        if (!empty($supervisedDepartments)) {
+            $leaveQuery->whereHas('employee', function ($query) use ($supervisedDepartments) {
+                $query->whereIn('department', $supervisedDepartments);
+            });
+        }
+
+        // Get leaves from the last 12 months
+        $startDate = now()->subMonths(11)->startOfMonth();
+        $endDate = now()->endOfMonth();
+
+        $leaves = $leaveQuery
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('leave_status', 'Approved')
+            ->get();
+
+        // Get total employee count for percentage calculations
+        $employeeQuery = Employee::query();
+        if (!empty($supervisedDepartments)) {
+            $employeeQuery->whereIn('department', $supervisedDepartments);
+        }
+        $totalEmployees = $employeeQuery->count();
+
+        // Group leaves by month
+        $monthlyData = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $monthKey = $date->format('Y-m');
+            $monthName = $date->format('F');
+            $year = $date->year;
+
+            // Count leaves for this month
+            $monthLeaves = $leaves->filter(function ($leave) use ($date) {
+                return $leave->created_at->format('Y-m') === $date->format('Y-m');
+            })->count();
+
+            // Calculate percentage
+            $percentage = $totalEmployees > 0 ? round(($monthLeaves / $totalEmployees) * 100, 1) : 0;
+
+            $monthlyData[] = [
+                'month' => $monthName,
+                'year' => $year,
+                'leaves' => $monthLeaves,
+                'percentage' => $percentage,
+                'date' => $date->toDateString(),
+            ];
+        }
+
+        return $monthlyData;
+    }
+
+    /**
      * Get initials from employee name
      */
     private function getInitials(string $name): string
@@ -282,5 +412,114 @@ class DashboardController extends Controller
         }
 
         return substr($initials, 0, 2); // Return max 2 initials
+    }
+
+    /**
+     * Get employees eligible for monthly recognition based on evaluation ratings
+     */
+    private function getMonthlyRecognitionEmployees($supervisedDepartments = [], $isSupervisor = false)
+    {
+        $currentYear = now()->year;
+        $currentPeriod = Evaluation::calculatePeriod(now());
+
+        // Base query for employees
+        $employeeQuery = Employee::query();
+
+        // Filter by supervised departments if supervisor
+        if ($isSupervisor && !empty($supervisedDepartments)) {
+            $employeeQuery->whereIn('department', $supervisedDepartments);
+        }
+
+        $employees = $employeeQuery->get();
+
+        $recognitionEmployees = [];
+
+        foreach ($employees as $employee) {
+            // Get the latest evaluation for this employee
+            $latestEvaluation = Evaluation::where('employee_id', $employee->id)
+                ->where('evaluation_year', $currentYear)
+                ->where('evaluation_period', $currentPeriod)
+                ->first();
+
+            // If no evaluation for current period, check the most recent evaluation
+            if (!$latestEvaluation) {
+                $latestEvaluation = Evaluation::where('employee_id', $employee->id)
+                    ->orderBy('evaluation_year', 'desc')
+                    ->orderBy('evaluation_period', 'desc')
+                    ->first();
+            }
+
+            if ($latestEvaluation) {
+                $totalRating = $latestEvaluation->total_rating ?? 0;
+
+                // Employee is eligible for recognition if they have a high evaluation rating (8.0 or above)
+                if ($totalRating >= 8.0) {
+                    $recognitionEmployees[] = [
+                        'id' => $employee->id,
+                        'name' => $employee->employee_name,
+                        'department' => $employee->department,
+                        'position' => $employee->position,
+                        'picture' => $employee->picture,
+                        'employeeid' => $employee->employeeid,
+                        'initials' => $this->getInitials($employee->employee_name),
+                        'evaluation_rating' => $totalRating,
+                        'evaluation_date' => $latestEvaluation->rating_date,
+                        'evaluation_period' => $latestEvaluation->period_label,
+                        'evaluation_year' => $latestEvaluation->evaluation_year,
+                        'recognition_score' => $this->calculateRecognitionScore($totalRating),
+                    ];
+                }
+            }
+        }
+
+        // Sort by recognition score (highest first) and take top 5
+        usort($recognitionEmployees, function ($a, $b) {
+            return $b['recognition_score'] - $a['recognition_score'];
+        });
+
+        return array_slice($recognitionEmployees, 0, 5);
+    }
+
+    /**
+     * Calculate recognition score for ranking employees based on evaluation rating
+     */
+    private function calculateRecognitionScore($evaluationRating)
+    {
+        // Base score is the evaluation rating (1-10 scale)
+        $score = $evaluationRating;
+
+        // Bonus for excellent performance (9.0+)
+        if ($evaluationRating >= 9.0) {
+            $score += 2;
+        }
+
+        // Bonus for very good performance (8.5+)
+        elseif ($evaluationRating >= 8.5) {
+            $score += 1;
+        }
+
+        return $score;
+    }
+
+    /**
+     * Get total work days in a month (excluding weekends)
+     */
+    private function getTotalWorkDays($date)
+    {
+        $start = $date->copy()->startOfMonth();
+        $end = $date->copy()->endOfMonth();
+
+        $workDays = 0;
+        $current = $start->copy();
+
+        while ($current <= $end) {
+            // Skip weekends (Saturday = 6, Sunday = 0)
+            if ($current->dayOfWeek !== 0 && $current->dayOfWeek !== 6) {
+                $workDays++;
+            }
+            $current->addDay();
+        }
+
+        return $workDays;
     }
 }

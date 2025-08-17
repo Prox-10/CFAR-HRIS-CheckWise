@@ -19,6 +19,7 @@ import { DataTable } from './components/data-table';
 import EditEmployeeModal from './components/editemployeemodal';
 import { SectionCards } from './components/section-cards';
 import ViewLeaveDetails from './components/viewleavedetails';
+import { CreditDisplay, CreditSummary } from './components/credit-display';
 import { Leave } from './types/leave';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -28,9 +29,20 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface Employee {
+    id: string;
+    employeeid: string;
+    employee_name: string;
+    department?: string;
+    position?: string;
+    remaining_credits?: number;
+    used_credits?: number;
+    total_credits?: number;
+}
+
 interface Props {
     leave: Leave[];
-    employees: any[];
+    employees: Employee[];
     leaveStats: {
         totalLeaves: number;
         pendingLeaves: number;
@@ -120,6 +132,9 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
                                     </div>
                                     {/* <TasksPrimaryButtons /> */}
                                 </div>
+
+                               
+
                                 <Tabs orientation="vertical" defaultValue="overview" className="space-y-4">
                                     <TabsContent value="overview" className="space-y-4">
                                         <div className="flex flex-1 flex-col">
@@ -146,6 +161,9 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
                                     </TabsContent>
                                     <Separator className="shadow-sm" />
                                 </Tabs>
+
+                              
+
                                 <div className="m-3 no-scrollbar">
                                     <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                         <CardHeader>

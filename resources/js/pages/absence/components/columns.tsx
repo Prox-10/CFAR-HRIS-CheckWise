@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { Calendar, CircleEllipsis, Clock, Edit, Eye, Trash2 } from 'lucide-react';
+import { Calendar, CircleEllipsis, Clock, CreditCard, Edit, Eye, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { DataTableColumnHeader } from './data-table-column-header';
 
@@ -37,6 +37,9 @@ type Absence = {
     days: number;
     employee_name?: string;
     picture?: string;
+    remaining_credits?: number;
+    used_credits?: number;
+    total_credits?: number;
 };
 
 const columns = (
@@ -90,6 +93,36 @@ const columns = (
                     <div>
                         <div className="text-sm font-medium text-gray-900">{name}</div>
                         <div className="text-xs text-gray-500">{empid}</div>
+                    </div>
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: 'credits',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Credits" />,
+        cell: ({ row }) => {
+            const remaining = row.original.remaining_credits || 0;
+            const used = row.original.used_credits || 0;
+            const total = row.original.total_credits || 12;
+
+            const getCreditStatus = () => {
+                if (remaining === 0) return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' };
+                if (remaining <= 3) return { color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' };
+                if (remaining <= 6) return { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' };
+                return { color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' };
+            };
+
+            const status = getCreditStatus();
+
+            return (
+                <div className="flex items-center gap-2">
+                    <CreditCard className={`h-4 w-4 ${status.color}`} />
+                    <div className="text-sm">
+                        <div className={`font-medium ${status.color}`}>
+                            {remaining}/{total}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{used} used</div>
                     </div>
                 </div>
             );

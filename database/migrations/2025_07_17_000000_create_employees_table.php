@@ -40,7 +40,6 @@ return new class extends Migration
             $table->integer('tin')->nullable();
             $table->integer('gmail_password')->nullable();
 
-
             $table->softDeletes();
             $table->timestamps();
         });

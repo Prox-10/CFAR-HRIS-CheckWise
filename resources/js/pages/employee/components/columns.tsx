@@ -162,6 +162,26 @@ const columns = (
             },
         },
         {
+            accessorKey: 'gender',
+            header: 'Gender',
+            cell: ({ row }) => {
+                const gender: string = row.getValue('gender');
+
+                return (
+                    <div>
+                        <div className="text-sm font-medium text-gray-900">{gender}</div>
+                    </div>
+                );
+            },
+            filterFn: (row, columnId, filterValue) => {
+                if (!filterValue || filterValue.length === 0) return true;
+
+                const gender = row.getValue(columnId);
+
+                return filterValue.includes(gender);
+            },
+        },
+        {
             accessorKey: 'date_of_birth',
             header: 'Birth',
             cell: ({ row }) => {
