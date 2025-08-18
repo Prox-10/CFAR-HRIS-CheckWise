@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { Calendar, CalendarDays, ChartBar, ClipboardList, Clock, Download, FileText, Filter, Users } from 'lucide-react';
+import { Calendar, CalendarDays, ClipboardList, Clock, Download, FileText, Filter, Users } from 'lucide-react';
 import { Toaster } from 'sonner';
 // import { format } from 'path';
 import { AppSidebar } from '@/components/app-sidebar';
@@ -17,7 +17,8 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { ContentLoading } from '@/components/ui/loading';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -77,21 +78,76 @@ const ReportCard = ({
     );
 };
 
+// Sample analytics data
+const attendanceRateData = [
+    { month: 'Jan', rate: 95 },
+    { month: 'Feb', rate: 93 },
+    { month: 'Mar', rate: 96 },
+    { month: 'Apr', rate: 94 },
+    { month: 'May', rate: 97 },
+    { month: 'Jun', rate: 96 },
+];
+
+const leaveTypeData = [
+    { name: 'Vacation', value: 45 },
+    { name: 'Sick', value: 30 },
+    { name: 'Emergency', value: 15 },
+    { name: 'Others', value: 10 },
+];
+
+const performanceData = [
+    { rating: '5★', count: 12 },
+    { rating: '4★', count: 28 },
+    { rating: '3★', count: 34 },
+    { rating: '2★', count: 8 },
+    { rating: '1★', count: 3 },
+];
+
+const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'];
+
+type ReportTab = 'attendance' | 'employee' | 'leave' | 'evaluation' | 'analytics';
+
 const ReportPage = () => {
     // const [date, setDate] = useState<Date | undefined>(new Date());
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
     const [endDate, setEndDate] = useState<Date | undefined>(new Date());
     const [loading, setLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<ReportTab>('attendance');
+
+    const getInitialTabFromQuery = useMemo<() => ReportTab>(() => {
+        return () => {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const tab = (params.get('tab') || '').toLowerCase();
+                if (tab === 'attendance' || tab === 'employee' || tab === 'leave' || tab === 'evaluation' || tab === 'analytics') {
+                    return tab as ReportTab;
+                }
+                return 'attendance';
+            } catch {
+                return 'attendance';
+            }
+        };
+    }, []);
 
     useEffect(() => {
+        setActiveTab(getInitialTabFromQuery());
         setTimeout(() => {
             setLoading(false);
         }, 500);
-    }, []);
+    }, [getInitialTabFromQuery]);
+
+    const handleTabChange = (value: string) => {
+        const next = (value as ReportTab) || 'attendance';
+        setActiveTab(next);
+        // keep other params if added later
+        const params = new URLSearchParams(window.location.search);
+        params.set('tab', next);
+        window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    };
 
     return (
         <SidebarProvider>
-            <Head title="Leave" />
+            <Head title="Report" />
             <Toaster position="top-right" richColors />
             {/* Sidebar hover logic */}
             <SidebarHoverLogic>
@@ -178,8 +234,8 @@ const ReportPage = () => {
                                         </div>
                                     </div>
                                     <SidebarSeparator />
-                                    <Tabs defaultValue="attendance " className="space-y-4 p-5">
-                                        <TabsList className="bg-main mb-4 grid grid-cols-2 py-[5px] md:grid-cols-4">
+                                    <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 p-5">
+                                        <TabsList className="bg-main mb-4 grid grid-cols-2 py-[5px] md:grid-cols-5">
                                             <TabsTrigger className="hover:bg-main-600 mx-3 mb-5" value="attendance">
                                                 Attendance
                                             </TabsTrigger>
@@ -191,6 +247,9 @@ const ReportPage = () => {
                                             </TabsTrigger>
                                             <TabsTrigger className="hover:bg-main-600 mx-3 mb-5" value="evaluation">
                                                 Evaluation
+                                            </TabsTrigger>
+                                            <TabsTrigger className="hover:bg-main-600 mx-3 mb-5" value="analytics">
+                                                Analytics
                                             </TabsTrigger>
                                         </TabsList>
                                         <TabsContent value="attendance" className="space-y-4">
@@ -307,36 +366,71 @@ const ReportPage = () => {
                                                 />
                                             </div>
                                         </TabsContent>
-                                        <TabsContent value="payroll" className="space-y-4">
-                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                                <ReportCard
-                                                    title="Payroll Summary"
-                                                    description="Complete payroll summary for selected period"
-                                                    icon={ChartBar}
-                                                    variant="payroll"
-                                                    buttonText="Generate Payroll Summary"
-                                                />
-                                                <ReportCard
-                                                    title="Deductions Report"
-                                                    description="Breakdown of all deductions by category"
-                                                    icon={ChartBar}
-                                                    variant="payroll"
-                                                    buttonText="Generate Deductions Report"
-                                                />
-                                                <ReportCard
-                                                    title="Overtime Analysis"
-                                                    description="Analysis of overtime hours and payments"
-                                                    icon={ChartBar}
-                                                    variant="payroll"
-                                                    buttonText="Generate Overtime Report"
-                                                />
-                                                <ReportCard
-                                                    title="Payroll Comparison"
-                                                    description="Compare payroll data across periods"
-                                                    icon={ChartBar}
-                                                    variant="payroll"
-                                                    buttonText="Generate Comparison"
-                                                />
+                                        <TabsContent value="analytics" className="space-y-4">
+                                            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                                                <Card>
+                                                    <CardHeader>
+                                                        <CardTitle className="text-base">Attendance Rate (Last 6 months)</CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="h-64">
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <LineChart data={attendanceRateData}>
+                                                                <XAxis dataKey="month" />
+                                                                <YAxis domain={[0, 100]} />
+                                                                <Tooltip />
+                                                                <Legend />
+                                                                <Line
+                                                                    type="monotone"
+                                                                    dataKey="rate"
+                                                                    stroke="#10b981"
+                                                                    strokeWidth={2}
+                                                                    dot={{ r: 3 }}
+                                                                />
+                                                            </LineChart>
+                                                        </ResponsiveContainer>
+                                                    </CardContent>
+                                                </Card>
+                                                <Card>
+                                                    <CardHeader>
+                                                        <CardTitle className="text-base">Leave Usage by Type</CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="h-64">
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <PieChart>
+                                                                <Pie
+                                                                    data={leaveTypeData}
+                                                                    dataKey="value"
+                                                                    nameKey="name"
+                                                                    innerRadius={45}
+                                                                    outerRadius={65}
+                                                                    paddingAngle={2}
+                                                                >
+                                                                    {leaveTypeData.map((entry, index) => (
+                                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                                    ))}
+                                                                </Pie>
+                                                                <Tooltip />
+                                                                <Legend />
+                                                            </PieChart>
+                                                        </ResponsiveContainer>
+                                                    </CardContent>
+                                                </Card>
+                                                <Card>
+                                                    <CardHeader>
+                                                        <CardTitle className="text-base">Performance Rating Distribution</CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="h-64">
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <BarChart data={performanceData}>
+                                                                <XAxis dataKey="rating" />
+                                                                <YAxis />
+                                                                <Tooltip />
+                                                                <Legend />
+                                                                <Bar dataKey="count" fill="#8b5cf6" />
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
+                                                    </CardContent>
+                                                </Card>
                                             </div>
                                         </TabsContent>
                                     </Tabs>

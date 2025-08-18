@@ -30,7 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('request-form/leave', [LeaveController::class, 'index'])->name('request-form.index');
 
-    Route::middleware(['permission:view-report'])->group(function () {
+    Route::middleware(['permission:View Report|View Report Attendance|View Report Leave|View Report Performance|View Report Analytics'])->group(function () {
         Route::get('report', function () {
             return Inertia::render('report/index');
         })->name('report');

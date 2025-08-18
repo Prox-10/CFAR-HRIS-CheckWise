@@ -114,51 +114,15 @@ const mainNavItems: NavItem[] = [
                 href: '/service-tenure/employee',
                 permission: 'View Service Tenure Employee',
             },
-            // {
-            //     title: 'Service Tenure',
-            //     href: '/service-tenure/service-tenure',
-            //     permission: 'View Service Tenure',
-            // },
+
             {
                 title: 'Pay Advancement',
                 href: '/service-tenure/pay-advancement',
                 permission: 'View Service Tenure Pay Advancement',
             },
-            // {
-            //     title: 'Report',
-            //     href: '/service-tenure/report',
-            //     permission: 'View Service Tenure Report',
-            // },
         ],
     },
-    {
-        title: 'Reports',
-        href: '/report',
-        icon: FileText,
-        permission: 'View Report',
-        items: [
-            {
-                title: 'Attendance Reports',
-                href: '/report/attendance',
-                permission: 'View Report Attendance',
-            },
-            {
-                title: 'Leave Reports',
-                href: '/report/leave',
-                permission: 'View Report Leave',
-            },
-            {
-                title: 'Performance Reports',
-                href: '/report/performance',
-                permission: 'View Report Performance',
-            },
-            {
-                title: 'Analytics',
-                href: '/report/analytics',
-                permission: 'View Report Analytics',
-            },
-        ],
-    },
+
     {
         title: 'Access Management',
         href: '/permission/access/index',
@@ -182,11 +146,39 @@ const mainNavItems: NavItem[] = [
             },
         ],
     },
+    {
+        title: 'Reports',
+        href: '/report',
+        icon: FileText,
+        permission: 'View Report',
+        items: [
+            {
+                title: 'Attendance Reports',
+                href: '/report?tab=attendance',
+                permission: 'View Report Attendance',
+            },
+            {
+                title: 'Leave Reports',
+                href: '/report?tab=leave',
+                permission: 'View Report Leave',
+            },
+            {
+                title: 'Performance Reports',
+                href: '/report?tab=evaluation',
+                permission: 'View Report Performance',
+            },
+            {
+                title: 'Analytics',
+                href: '/report?tab=analytics',
+                permission: 'View Report Analytics',
+            },
+        ],
+    },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
-        <Sidebar collapsible="offcanvas" variant="inset" {...props}>
+        <Sidebar collapsible="icon" variant="inset" {...props}>
             <SidebarHeader className="bg-cfar-400">
                 {/* <TeamSwitcher teams={data.teams} /> */}
 
@@ -197,7 +189,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             asChild
                             className="h-auto flex-col items-center justify-center gap-1 data-[slot=sidebar-menu-button]:!p-3"
                         >
-                            <Link href="/dashboard" prefetch>
+                            <Link href="/dashboard">
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

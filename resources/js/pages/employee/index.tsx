@@ -150,7 +150,7 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />
                     {loading ? (
-                        <ContentLoading />
+                        <ContentLoading /> 
                     ) : (
                         <>
                             <Main fixed>
@@ -184,11 +184,7 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
                                                                 growthLabel: user_permissions?.is_supervisor ? 'Your Growth' : 'Growth Rate',
                                                             }}
                                                         />
-                                                        {/* <SectionCards totalRevenue={totalRevenue} payments={[]} totalEmployee={totalEmployee} /> */}
                                                     </div>
-                                                    {/* <div className="mt-6">
-                                                        <GenderStats employees={data} />
-                                                    </div> */}
                                                 </div>
                                             </div>
                                         </div>

@@ -15,10 +15,23 @@ class CheckPermission
    */
   public function handle(Request $request, Closure $next, string $permission): Response
   {
-    if (!$request->user() || !$request->user()->hasPermissionTo($permission)) {
+    $user = $request->user();
+    if (!$user) {
       abort(403, 'Unauthorized action.');
     }
 
-    return $next($request);
+    // Support multiple permissions separated by '|' or ',' (OR semantics)
+    $permissions = preg_split('/[\|,]/', $permission) ?: [];
+    foreach ($permissions as $singlePermission) {
+      $singlePermission = trim($singlePermission);
+      if ($singlePermission === '') {
+        continue;
+      }
+      if ($user->hasPermissionTo($singlePermission)) {
+        return $next($request);
+      }
+    }
+
+    abort(403, 'Unauthorized action.');
   }
 }
