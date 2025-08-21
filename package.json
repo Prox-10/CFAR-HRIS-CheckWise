@@ -15,7 +15,8 @@
         "optimize": "php artisan optimize:clear && php artisan optimize",
         "serve": "concurrently \"php artisan serve\" \"bun run vite\"",
         "pin": "php artisan make:command GenerateEmployeePins",
-        "push": "bun run scripts/push.js"
+        "push-kyle": "bun run scripts/push.js",
+        "push-main": "git merge kyleDev && git push -u origin main"
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",
