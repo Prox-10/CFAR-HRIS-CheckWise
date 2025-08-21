@@ -18,9 +18,9 @@ class EmployeeAuth
     {
         // Check if employee is logged in
         if (!Session::has('employee_id')) {
-            return redirect()->route('employee_login');
+            return redirect()->route('employeelogin');
         }
 
         return $next($request);
     }
-} 
+}

@@ -654,12 +654,13 @@ class EvaluationController extends Controller
                 'has_attendance' => $existingEvaluation->attendance ? 'Yes' : 'No',
                 'has_attitudes' => $existingEvaluation->attitudes ? 'Yes' : 'No',
                 'has_workAttitude' => $existingEvaluation->workAttitude ? 'Yes' : 'No',
-                'has_workFunctions' => $existingEvaluation->workFunctions ? 'Yes' : 'No',
-                'workFunctions_count' => $existingEvaluation->workFunctions ? $existingEvaluation->workFunctions->count() : 0,
+                // For hasMany relations, ensure we check if the collection is not empty
+                'has_workFunctions' => ($existingEvaluation->relationLoaded('workFunctions') && $existingEvaluation->workFunctions->isNotEmpty()) ? 'Yes' : 'No',
+                'workFunctions_count' => $existingEvaluation->relationLoaded('workFunctions') ? $existingEvaluation->workFunctions->count() : 0,
             ]);
 
             // Debug: Log work functions data if it exists
-            if ($existingEvaluation->workFunctions && $existingEvaluation->workFunctions->count() > 0) {
+            if ($existingEvaluation->relationLoaded('workFunctions') && $existingEvaluation->workFunctions->isNotEmpty()) {
                 Log::info('Work functions data:', $existingEvaluation->workFunctions->toArray());
             }
 
@@ -672,7 +673,7 @@ class EvaluationController extends Controller
 
             // Convert the evaluation to an array to ensure proper JSON serialization
             $evaluationArray = $existingEvaluation->toArray();
-            
+
             // Manually add the relationships as arrays
             if ($existingEvaluation->attendance) {
                 $evaluationArray['attendance'] = $existingEvaluation->attendance->toArray();
@@ -683,7 +684,8 @@ class EvaluationController extends Controller
             if ($existingEvaluation->workAttitude) {
                 $evaluationArray['workAttitude'] = $existingEvaluation->workAttitude->toArray();
             }
-            if ($existingEvaluation->workFunctions) {
+            // Only include workFunctions if there are any
+            if ($existingEvaluation->relationLoaded('workFunctions') && $existingEvaluation->workFunctions->isNotEmpty()) {
                 $evaluationArray['workFunctions'] = $existingEvaluation->workFunctions->toArray();
             }
 
@@ -701,7 +703,8 @@ class EvaluationController extends Controller
                 'has_attendance_in_array' => isset($evaluationArray['attendance']),
                 'has_attitudes_in_array' => isset($evaluationArray['attitudes']),
                 'has_workAttitude_in_array' => isset($evaluationArray['workAttitude']),
-                'has_workFunctions_in_array' => isset($evaluationArray['workFunctions']),
+                // Report presence based on actual count
+                'has_workFunctions_in_array' => isset($evaluationArray['workFunctions']) && count($evaluationArray['workFunctions']) > 0,
                 'workFunctions_count_in_array' => isset($evaluationArray['workFunctions']) ? count($evaluationArray['workFunctions']) : 0,
             ]);
 

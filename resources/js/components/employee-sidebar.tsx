@@ -11,32 +11,32 @@ import AppLogo from './customize/app-logo';
 const mainNavItems: NavItemEmployee[] = [
     {
         title: 'Dashboard',
-        href: '/employee_view',
+        href: '/employee-view',
         icon: LayoutGrid,
     },
     {
         title: 'My Profile',
-        href: '/employee_view/profile',
+        href: '/employee-view/profile',
         icon: User2,
     },
     {
         title: 'My Attendance',
-        href: '/employee_view/attendance',
+        href: '/employee-view/attendance',
         icon: Fingerprint,
     },
     {
         title: 'My Evaluations',
-        href: '/employee_view/evaluations',
+        href: '/employee-view/evaluations',
         icon: NotebookPen,
     },
     {
         title: 'My Leave',
-        href: '/employee_view/leave',
+        href: '/employee-view/leave',
         icon: CalendarPlus2,
     },
     {
         title: 'My Reports',
-        href: '/employee_view/reports',
+        href: '/employee-view/reports',
         icon: FileChartColumnIncreasing,
     },
 ];

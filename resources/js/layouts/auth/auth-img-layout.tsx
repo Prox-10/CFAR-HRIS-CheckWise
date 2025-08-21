@@ -17,14 +17,10 @@ export default function AuthImgLayout({
 }>) {
     return (
         <div className={cn('flex flex-col gap-6', className)} {...props}>
-            <Card className="overflow-hidden p-0 shadow-2xl border-none">
+            <Card className="overflow-hidden border-none p-0 shadow-2xl">
                 <CardContent className="grid p-0 md:grid-cols-2">
                     <div className="relative hidden bg-muted md:block">
-                        <img
-                            src="bgcfar.jpg"
-                            alt="Image"
-                            className="absolute inset-0 h-full w-full object-cover"
-                        />
+                        <img src="/banana.jpg" alt="Image" className="absolute inset-0 h-full w-full object-cover" />
                     </div>
                     <div className="flex flex-col gap-6 bg-cfar-500 p-6 md:p-8">
                         <div className="text-center] flex flex-col items-center">
@@ -43,10 +39,9 @@ export default function AuthImgLayout({
                 </CardContent>
             </Card>
 
-            <div className="text-center text-xs text-balance text-muted-foreground *:[a]:underline *:[a]:underline-offset-4 *:[a]:hover:text-main">
+            <div className="*:[a]:hover:text-main text-center text-xs text-balance text-muted-foreground *:[a]:underline *:[a]:underline-offset-4">
                 By clicking continue, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
             </div>
         </div>
-        
     );
 }

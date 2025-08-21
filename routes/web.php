@@ -80,8 +80,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::middleware(['permission:View Leave'])->group(function () {
-        Route::resource('leave', LeaveController::class)->names('leave');
         Route::get('leave/credit-summary', [LeaveController::class, 'creditSummary'])->name('leave.credit-summary');
+        Route::resource('leave', LeaveController::class)->names('leave');
     });
 
     // Absence routes

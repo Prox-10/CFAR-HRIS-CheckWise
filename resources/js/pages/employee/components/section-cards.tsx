@@ -3,10 +3,11 @@ import { Building2, Mars, TrendingUp, UserCheck, Users, Venus } from 'lucide-rea
 import { Badge } from '@/components/ui/badge';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
+import { Employee } from '@/hooks/employees';
 import { useCountUp } from '@/hooks/use-count-up';
 
 interface Props {
-    employee: any[];
+    employee: Employee[];
     totalDepartment: number;
     totalEmployee: number;
     isSupervisor?: boolean;
@@ -54,9 +55,9 @@ export function SectionCards({ employee, totalDepartment, totalEmployee, isSuper
     };
 
     return (
-        <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:shadow-xs lg:px-3 @xl/main:grid-cols-4 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+        <div className="grid grid-cols-1 gap-4 overflow-hidden px-4 *:data-[slot=card]:shadow-xs lg:px-3 @xl/main:grid-cols-2 @2xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
             {/* Total Employee Card */}
-            <Card className="@container/card border-l-4 border-green-500 bg-gradient-to-br from-green-50 to-white shadow-lg transition-all duration-300 hover:shadow-xl">
+            <Card className="@container/card overflow-hidden border-l-4 border-green-500 bg-gradient-to-br from-green-50 to-white shadow-lg transition-all duration-300 hover:shadow-xl">
                 <CardHeader className="relative">
                     <div className="flex items-center justify-between">
                         <div className="rounded-lg bg-green-100 p-2">
@@ -97,7 +98,7 @@ export function SectionCards({ employee, totalDepartment, totalEmployee, isSuper
             </Card>
 
             {/* Department Card */}
-            <Card className="@container/card border-l-4 border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-lg transition-all duration-300 hover:shadow-xl">
+            <Card className="@container/card border-l-4 border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-lg transition-all duration-300 hover:shadow-xl overflow-hidden">
                 <CardHeader className="relative">
                     <div className="flex items-center justify-between">
                         <div className="rounded-lg bg-emerald-100 p-2">
@@ -122,7 +123,7 @@ export function SectionCards({ employee, totalDepartment, totalEmployee, isSuper
             </Card>
 
             {/* Active Accounts Card */}
-            <Card className="@container/card border-l-4 border-amber-500 bg-gradient-to-br from-amber-50 to-white shadow-lg transition-all duration-300 hover:shadow-xl">
+            <Card className="@container/card border-l-4 border-amber-500 bg-gradient-to-br from-amber-50 to-white shadow-lg transition-all duration-300 hover:shadow-xl overflow-hidden">
                 <CardHeader className="relative">
                     <div className="flex items-center justify-between">
                         <div className="rounded-lg bg-amber-100 p-2">
@@ -145,7 +146,7 @@ export function SectionCards({ employee, totalDepartment, totalEmployee, isSuper
             </Card>
 
             {/* Growth Rate Card */}
-            <Card className="@container/card border-l-4 border-blue-500 bg-gradient-to-br from-blue-50 to-white shadow-lg transition-all duration-300 hover:shadow-xl">
+            <Card className="@container/card border-l-4 border-blue-500 bg-gradient-to-br from-blue-50 to-white shadow-lg transition-all duration-300 hover:shadow-xl overflow-hidden">
                 <CardHeader className="relative">
                     <div className="flex items-center justify-between">
                         <div className="rounded-lg bg-blue-100 p-2">

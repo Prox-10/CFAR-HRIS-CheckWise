@@ -139,28 +139,28 @@ const columns = (
                 return filterValue.includes(department);
             },
         },
-        {
-            accessorKey: 'email',
-            header: 'Email',
-            cell: ({ row }) => {
-                const email: string = row.getValue('email');
-                const gmail_password = row.original.gmail_password;
+        // {
+        //     accessorKey: 'email',
+        //     header: 'Email',
+        //     cell: ({ row }) => {
+        //         const email: string = row.getValue('email');
+        //         const gmail_password = row.original.gmail_password;
 
-                return (
-                    <div>
-                        <div className="text-sm font-medium text-gray-900">{email}</div>
-                        <div className="text-xs text-gray-500">{gmail_password}</div>
-                    </div>
-                );
-            },
-            filterFn: (row, columnId, filterValue) => {
-                if (!filterValue || filterValue.length === 0) return true;
+        //         return (
+        //             <div>
+        //                 <div className="text-sm font-medium text-gray-900">{email}</div>
+        //                 <div className="text-xs text-gray-500">{gmail_password}</div>
+        //             </div>
+        //         );
+        //     },
+        //     filterFn: (row, columnId, filterValue) => {
+        //         if (!filterValue || filterValue.length === 0) return true;
 
-                const department = row.getValue(columnId);
+        //         const department = row.getValue(columnId);
 
-                return filterValue.includes(department);
-            },
-        },
+        //         return filterValue.includes(department);
+        //     },
+        // },
         {
             accessorKey: 'gender',
             header: 'Gender',

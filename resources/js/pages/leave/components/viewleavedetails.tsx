@@ -1,14 +1,16 @@
-import LeavePDF from '@/components/pdf/leave-pdf';
+import LeavePDFTemplate from '@/components/pdf/leave-pdf-template';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 import { usePermission } from '@/hooks/user-permission';
-import { Link } from '@inertiajs/react';
-import { format, parseISO } from 'date-fns';
-import { CheckCircle, Clock, Download, Edit, Star, Trash2, XCircle } from 'lucide-react';
+import { pdf } from '@react-pdf/renderer';
+import { Briefcase, Building, Calendar, CheckCircle, Clock, Download, Star, Trash2, User, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { Leave } from '../types/leave';
+
 interface LeaveDetailsModalProps {
     leave: Leave | null;
     isOpen: boolean;
@@ -18,8 +20,8 @@ interface LeaveDetailsModalProps {
 }
 
 const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDetailsModalProps) => {
-    // if (!employee) return null;
     const { can } = usePermission();
+
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -35,7 +37,6 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
     };
 
     const [preview, setPreview] = useState<string>('');
-    const [showPDF, setShowPDF] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const [data, setData] = useState({
@@ -90,398 +91,270 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
         }
     };
 
-    const printPDF = () => {
-        // Create a new window for printing
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            toast.error('Please allow popups to print the PDF');
-            return;
+    const getStatusConfig = (status: string) => {
+        switch (status) {
+            case 'Pending':
+                return {
+                    bgColor: 'bg-yellow-50',
+                    textColor: 'text-yellow-800',
+                    borderColor: 'border-yellow-200',
+                    icon: Clock,
+                    iconColor: 'text-yellow-600',
+                };
+            case 'Approved':
+                return {
+                    bgColor: 'bg-green-50',
+                    textColor: 'text-green-800',
+                    borderColor: 'border-green-200',
+                    icon: CheckCircle,
+                    iconColor: 'text-green-600',
+                };
+            case 'Rejected':
+                return {
+                    bgColor: 'bg-red-50',
+                    textColor: 'text-red-800',
+                    borderColor: 'border-red-200',
+                    icon: XCircle,
+                    iconColor: 'text-red-600',
+                };
+            default:
+                return {
+                    bgColor: 'bg-gray-50',
+                    textColor: 'text-gray-800',
+                    borderColor: 'border-gray-200',
+                    icon: Clock,
+                    iconColor: 'text-gray-600',
+                };
         }
+    };
 
-        // Get current date for the document
-        const currentDate = new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
+    const statusConfig = getStatusConfig(data.status);
+    const StatusIcon = statusConfig.icon;
+
+    // Build absolute URLs for images to ensure PDF can access them
+    const toAbsoluteUrl = (url?: string) => {
+        if (!url) return '';
+        if (/^https?:\/\//i.test(url)) return url;
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const path = url.startsWith('/') ? url : `/${url}`;
+        return `${origin}${path}`;
+    };
+
+    const handleDownloadPDF = async () => {
+        if (!leave) return;
+        const LeaveDocument = LeavePDFTemplate({
+            leave: { ...leave, picture: toAbsoluteUrl(leave.picture) },
+            companyName: 'CFARBEMCO',
+            logoPath: toAbsoluteUrl('/Logo.png'),
         });
-
-        // Create the HTML content for the PDF
-        const pdfContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Leave Request Document</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        margin: 0;
-                        padding: 20px;
-                        line-height: 1.6;
-                        color: #333;
-                    }
-                    .header {
-                        text-align: center;
-                        border-bottom: 2px solid #333;
-                        padding-bottom: 20px;
-                        margin-bottom: 30px;
-                    }
-                    .logo {
-                        height: 90px;
-                        margin-bottom: 10px;
-                    }
-                    .company-name {
-                        font-size: 24px;
-                        font-weight: bold;
-                        margin-bottom: 5px;
-                    }
-                    .document-title {
-                        font-size: 18px;
-                        margin-bottom: 5px;
-                    }
-                    .date {
-                        font-size: 14px;
-                        color: #666;
-                    }
-                    .section {
-                        margin-bottom: 25px;
-                    }
-                    .section-title {
-                        font-size: 16px;
-                        font-weight: bold;
-                        border-bottom: 1px solid #ccc;
-                        padding-bottom: 5px;
-                        margin-bottom: 15px;
-                    }
-                    .info-grid {
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 15px;
-                        margin-bottom: 15px;
-                    }
-                    .info-item {
-                        margin-bottom: 10px;
-                    }
-                    .label {
-                        font-weight: bold;
-                        color: #555;
-                        margin-bottom: 3px;
-                    }
-                    .value {
-                        padding: 5px 10px;
-                        background-color: #f9f9f9;
-                        border: 1px solid #ddd;
-                        border-radius: 4px;
-                    }
-                    .status-approved {
-                        background-color: #d4edda;
-                        color: #155724;
-                        padding: 8px 12px;
-                        border-radius: 4px;
-                        font-weight: bold;
-                        display: inline-block;
-                    }
-                    .status-pending {
-                        background-color: #fff3cd;
-                        color: #856404;
-                        padding: 8px 12px;
-                        border-radius: 4px;
-                        font-weight: bold;
-                        display: inline-block;
-                    }
-                    .status-rejected {
-                        background-color: #f8d7da;
-                        color: #721c24;
-                        padding: 8px 12px;
-                        border-radius: 4px;
-                        font-weight: bold;
-                        display: inline-block;
-                    }
-                    .footer {
-                        margin-top: 40px;
-                        padding-top: 20px;
-                        border-top: 1px solid #ccc;
-                        text-align: center;
-                        font-size: 12px;
-                        color: #666;
-                    }
-                    @media print {
-                        body {
-                            padding: 0;
-                        }
-                        .no-print {
-                            display: none;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <img src="/Logo.png" alt="Logo" class="logo" />
-                    <div class="company-name">HRIS (CheckWise)</div>
-                    <div class="document-title">Leave Request Document</div>
-                    <div class="date">Generated on: ${currentDate}</div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">Employee Information</div>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="label">Employee ID:</div>
-                            <div class="value">${data.employeeid || 'N/A'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">Employee Name:</div>
-                            <div class="value">${data.employee_name || 'N/A'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">Department:</div>
-                            <div class="value">${data.department || 'N/A'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">Position:</div>
-                            <div class="value">${data.position || 'N/A'}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">Leave Details</div>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="label">Leave Type:</div>
-                            <div class="value">${data.leave_type || 'N/A'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">Leave Status:</div>
-                            <div class="value">
-                                <span class="status-${data.status?.toLowerCase() || 'pending'}">
-                                    ${data.status || 'Pending'}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">Start Date:</div>
-                            <div class="value">${data.leave_start_date ? format(parseISO(data.leave_start_date), 'PPP') : 'N/A'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">End Date:</div>
-                            <div class="value">${data.leave_end_date ? format(parseISO(data.leave_end_date), 'PPP') : 'N/A'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">Total Days:</div>
-                            <div class="value">${data.leave_days || 0} day(s)</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">Date Reported:</div>
-                            <div class="value">${data.leave_date_reported ? format(parseISO(data.leave_date_reported), 'PPP') : 'N/A'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">Date Approved:</div>
-                            <div class="value">${data.leave_date_approved ? format(parseISO(data.leave_date_approved), 'PPP') : 'N/A'}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">Leave Reason</div>
-                    <div class="value" style="grid-column: 1 / -1; min-height: 60px;">
-                        ${data.leave_reason || 'No reason provided'}
-                    </div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">Additional Comments</div>
-                    <div class="value" style="grid-column: 1 / -1; min-height: 60px;">
-                        ${data.leave_comments || 'No additional comments'}
-                    </div>
-                </div>
-
-                <div class="footer">
-                    <p>This document was generated automatically by the HRIS system.</p>
-                    <p>For any questions, please contact the HR department.</p>
-                </div>
-
-                <div class="no-print" style="position: fixed; top: 20px; right: 20px;">
-                    <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        Print PDF
-                    </button>
-                    <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
-                        Close
-                    </button>
-                </div>
-            </body>
-            </html>
-        `;
-
-        // Write the content to the new window
-        printWindow.document.write(pdfContent);
-        printWindow.document.close();
-
-        // Wait for content to load then trigger print
-        printWindow.onload = () => {
-            setTimeout(() => {
-                printWindow.print();
-            }, 500);
-        };
-
-        toast.success('PDF document opened in new window');
+        const instance = pdf(LeaveDocument());
+        const blob = await instance.toBlob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `leave-request-${leave.employeeid || 'employee'}-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="border-main max-w-2xl border-2">
-                <DialogHeader>
-                    <DialogTitle className="text-primary-custom">Leave Request Details</DialogTitle>
-                    <DialogDescription>Complete information about the leave request</DialogDescription>
+            <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border-2 border-cfar-400">
+                <DialogHeader className="pb-4">
+                    <DialogTitle className="text-2xl font-bold text-gray-900">Leave Request Details</DialogTitle>
+                    <DialogDescription className="text-gray-600">Complete information about the leave request</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6">
-                    <div className="flex items-center space-x-4 rounded-lg bg-green-100 p-4">
-                        <Avatar className="h-16 w-16 border-2 border-green-300">
-                            <AvatarImage src={data.picture} />
-                            <AvatarFallback className="text-main bg-green-100">
-                                {/* {data.employee_name
-                                        .split(' ')
-                                        .map((n) => n[0])
-                                        .join('')} */}
-                                <img src="Logo.png" alt="" />
-                            </AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <h3 className="text-main text-lg font-bold">{data.employee_name}</h3>
-                            {/* <p className="text-muted-foreground">{data.}</p> */}
-                            <p className="text-muted-foreground">{data.employeeid}</p>
-
-                            <p className="text-sm text-muted-foreground">
-                                {data.department} - {data.position}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-sm font-medium text-muted-foreground">Leave Type</label>
-                                <p className="font-medium">{data.leave_type}</p>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-muted-foreground">Start Date</label>
-                                <p className="font-medium">{formatDate(data.leave_start_date)}</p>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-muted-foreground">Duration</label>
-                                <p className="font-medium">{data.leave_days} days</p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="mb-1 block text-sm font-medium text-muted-foreground">Status</label>
-                                {(() => {
-                                    let statusLeaveColors = '';
-                                    let StatusIcon = null;
-                                    if (data.status === 'Pending') {
-                                        statusLeaveColors = 'bg-yellow-100 text-yellow-800 font-semibold text-lg p-3';
-                                        StatusIcon = Clock;
-                                    } else if (data.status === 'Approved') {
-                                        statusLeaveColors = 'bg-green-100 text-green-800';
-                                        StatusIcon = CheckCircle;
-                                    } else {
-                                        statusLeaveColors = 'bg-red-100 text-red-800';
-                                        StatusIcon = XCircle;
-                                    }
-                                    return (
-                                        <div className="w-24">
-                                            {' '}
-                                            {/* Tailwind: w-32 = 8rem = 128px */}
-                                            <span className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium ${statusLeaveColors}`}>
-                                                {StatusIcon && <StatusIcon className="mr-1 h-4 w-4" />}
-                                                {data.status}
-                                            </span>
+                    {/* Employee Information Card */}
+                    <Card className="border-2 border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-blue-900">
+                                <User className="h-5 w-5" />
+                                Employee Information
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-start space-x-4">
+                                <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
+                                    <AvatarImage src={data.picture} className="size-20" />
+                                    <AvatarFallback className="bg-blue-100 text-lg font-semibold text-blue-600">
+                                        {data.employee_name
+                                            ? data.employee_name
+                                                  .split(' ')
+                                                  .map((n) => n[0])
+                                                  .join('')
+                                                  .toUpperCase()
+                                            : 'EMP'}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 space-y-3">
+                                    <div>
+                                        <h3 className="text-xl font-bold text-gray-900">{data.employee_name}</h3>
+                                        <p className="text-sm text-gray-600">Employee ID: {data.employeeid}</p>
+                                    </div>
+                                    <div className="flex flex-wrap gap-4 text-sm">
+                                        <div className="flex items-center gap-2 text-gray-700">
+                                            <Building className="h-4 w-4 text-blue-600" />
+                                            <span>{data.department}</span>
                                         </div>
-                                    );
-                                })()}
+                                        <div className="flex items-center gap-2 text-gray-700">
+                                            <Briefcase className="h-4 w-4 text-blue-600" />
+                                            <span>{data.position}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Leave Details Card */}
+                    <Card className="border-2 border-green-100 bg-gradient-to-r from-green-50 to-emerald-50">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-green-900">
+                                <Calendar className="h-5 w-5" />
+                                Leave Request Details
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            {/* Status Badge */}
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-700">Request Status</span>
+                                <Badge
+                                    className={`${statusConfig.bgColor} ${statusConfig.textColor} ${statusConfig.borderColor} border px-4 py-2 text-sm font-semibold`}
+                                >
+                                    <StatusIcon className={`mr-2 h-4 w-4 ${statusConfig.iconColor}`} />
+                                    {data.status}
+                                </Badge>
+                            </div>
+
+                            <Separator />
+
+                            {/* Leave Information Grid */}
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Leave Type</p>
+                                        <p className="text-lg font-semibold text-gray-900">{data.leave_type}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Duration</p>
+                                        <p className="text-lg font-semibold text-blue-600">{data.leave_days} days</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Start Date</p>
+                                        <p className="text-lg font-semibold text-gray-900">{formatDate(data.leave_start_date)}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">End Date</p>
+                                        <p className="text-lg font-semibold text-gray-900">{formatDate(data.leave_end_date)}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Submitted On</p>
+                                        <p className="text-lg font-semibold text-gray-900">{formatDate(data.leave_date_reported)}</p>
+                                    </div>
+                                </div>
+
+                                {data.leave_date_approved && (
+                                    <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3">
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-600">Approved On</p>
+                                            <p className="text-lg font-semibold text-gray-900">{formatDate(data.leave_date_approved)}</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Reason and Comments Card */}
+                    <Card className="border-2 border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="text-lg font-semibold text-purple-900">Additional Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
                             <div>
-                                <label className="text-sm font-medium text-muted-foreground">End Date</label>
-                                <p className="font-medium">{formatDate(data.leave_end_date)}</p>
+                                <label className="mb-2 block text-sm font-medium text-gray-700">Leave Reason</label>
+                                <div className="min-h-[80px] rounded-lg border border-gray-200 bg-white p-4">
+                                    <p className="leading-relaxed text-gray-900">{data.leave_reason || 'No reason provided'}</p>
+                                </div>
                             </div>
-                            <div>
-                                <label className="text-sm font-medium text-muted-foreground">Submitted Date</label>
-                                <p className="font-medium">{formatDate(data.leave_date_reported)}</p>
-                            </div>
-                        </div>
-                        <div className="col-span-2">
-                            <label className="text-sm font-medium text-muted-foreground">Reason</label>
-                            <p className="mt-1 rounded-lg bg-muted/50 p-3 font-medium">{data.leave_reason}</p>
-                        </div>
-                        {data.leave_comments && (
-                            <div className="col-span-2">
-                                <label className="text-sm font-medium text-muted-foreground">Comments</label>
-                                <p className="mt-1 rounded-lg bg-muted/50 p-3 font-medium">{data.leave_comments}</p>
-                            </div>
-                        )}
-                    </div>
+
+                            {data.leave_comments && (
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">Comments</label>
+                                    <div className="min-h-[80px] rounded-lg border border-gray-200 bg-white p-4">
+                                        <p className="leading-relaxed text-gray-900">{data.leave_comments}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
 
-                <div className="mt-5 ml-auto flex gap-2">
+                {/* Action Buttons */}
+                <div className="mt-8 flex justify-end gap-3 border-t border-gray-200 pt-4">
                     {can('Download Leave PDF') && (
                         <Button
                             variant="outline"
-                            onClick={() => setShowPDF(true)}
-                            className="border-blue-500 bg-blue-50 text-blue-600 hover:scale-105 hover:bg-blue-100"
+                            onClick={handleDownloadPDF}
+                            className="border-blue-500 bg-blue-50 text-blue-600 transition-transform hover:scale-105 hover:bg-blue-100"
                         >
                             <Download className="mr-2 h-4 w-4" />
                             Download PDF
                         </Button>
                     )}
-                    {can('Update Leave') && (
+                    {/* {can('Update Leave') && (
                         <Link href={route('leave.edit', data.id)}>
                             <Button
                                 variant="outline"
-                                // onClick={() => handleEditLeave(selectedLeave)}
-                                className="border-main text-main-500 bg-green-50 hover:scale-105 hover:bg-green-100"
+                                className="border-green-500 bg-green-50 text-green-600 transition-transform hover:scale-105 hover:bg-green-100"
                             >
                                 <Edit className="mr-2 h-4 w-4" />
-                                Update
+                                
                             </Button>
                         </Link>
-                    )}
+                    )} */}
                     {can('Delete Leave') && (
                         <Button
                             variant="outline"
                             onClick={() => setShowDeleteConfirm(true)}
-                            className="border-destructive/20 text-destructive hover:scale-105 hover:bg-red-100"
+                            className="border-red-500 bg-red-50 text-red-600 transition-transform hover:scale-105 hover:bg-red-100"
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            Delete Request
                         </Button>
                     )}
-                    {/* <Button
-                            variant="outline"
-                            onClick={() => setIsViewDialogOpen(false)}
-                        >
-                            Close
-                        </Button> */}
                 </div>
             </DialogContent>
-            {/* PDF Modal */}
-            <Dialog open={showPDF} onOpenChange={setShowPDF}>
-                <DialogContent className="max-w-3xl">{leave && <LeavePDF leave={leave} />}</DialogContent>
-            </Dialog>
+
             {/* Delete Confirmation Modal */}
             <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Confirm Deletion</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className="text-red-600">Confirm Deletion</DialogTitle>
+                        <DialogDescription className="text-gray-600">
                             {data.employee_name || data.employeeid
                                 ? `Are you sure you want to delete the leave request for ${data.employee_name ? data.employee_name : ''}${data.employeeid ? ` (ID: ${data.employeeid})` : ''}? This action cannot be undone.`
                                 : 'Are you sure you want to delete this leave request? This action cannot be undone.'}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="mt-4 flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <Button variant="outline" onClick={() => setShowDeleteConfirm(false)} className="border-gray-300">
                             Cancel
                         </Button>
                         {can('Delete Leave') && (
@@ -491,7 +364,9 @@ const ViewLeaveDetails = ({ isOpen, onClose, leave, onEdit, onDelete }: LeaveDet
                                     handleDelete();
                                     setShowDeleteConfirm(false);
                                 }}
+                                className="bg-red-600 hover:bg-red-700"
                             >
+                                <Trash2 className="mr-2 h-4 w-4" />
                                 Delete
                             </Button>
                         )}

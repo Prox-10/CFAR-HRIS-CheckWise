@@ -1,10 +1,9 @@
-import LeavePDF from '@/components/pdf/leave-pdf';
+import LeavePDFTemplate from '@/components/pdf/leave-pdf-template';
 import TextLink from '@/components/text-link';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePermission } from '@/hooks/user-permission';
 import { cn } from '@/lib/utils';
 import { router, useForm, usePage } from '@inertiajs/react';
+import { pdf } from '@react-pdf/renderer';
 import { differenceInDays, format, parseISO } from 'date-fns';
 import {
     AlertCircle,
@@ -61,7 +61,6 @@ export default function LeaveEditPage() {
     });
 
     const [openApproved, setOpenApproved] = useState(false);
-    const [showPDF, setShowPDF] = useState(false);
 
     // Calculate leave days when start and end dates change
     useEffect(() => {
@@ -104,6 +103,57 @@ export default function LeaveEditPage() {
 
     const handleBack = () => {
         router.visit(route('leave.index'));
+    };
+
+    // Build absolute URLs for images to ensure PDF can access them
+    const toAbsoluteUrl = (url?: string) => {
+        if (!url) return '';
+        if (/^https?:\/\//i.test(url)) return url;
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const path = url.startsWith('/') ? url : `/${url}`;
+        return `${origin}${path}`;
+    };
+
+    const handlePreviewPDF = async () => {
+        // Create a leave object with the current form data
+        const leaveData = {
+            id: leave.id,
+            leave_start_date: data.leave_start_date,
+            employee_name: data.employee_name,
+            leave_type: data.leave_type,
+            leave_end_date: data.leave_end_date,
+            leave_days: data.leave_days.toString(),
+            status: data.leave_status,
+            leave_reason: data.leave_reason,
+            leave_date_reported: data.leave_date_reported,
+            leave_date_approved: data.leave_date_approved,
+            leave_comments: data.leave_comments,
+            picture: data.picture,
+            department: data.department,
+            position: data.position,
+            employeeid: data.employeeid,
+        };
+
+        const LeaveDocument = LeavePDFTemplate({
+            leave: { ...leaveData, picture: toAbsoluteUrl(data.picture) },
+            companyName: 'CFARBEMCO',
+            logoPath: toAbsoluteUrl('/Logo.png'),
+        });
+
+        const instance = pdf(LeaveDocument());
+        const blob = await instance.toBlob();
+        const url = URL.createObjectURL(blob);
+
+        // Open PDF in new tab
+        const newWindow = window.open(url, '_blank');
+        if (newWindow) {
+            newWindow.document.title = `Leave Request - ${data.employee_name}`;
+        }
+
+        // Clean up the blob URL after a delay to ensure the new tab loads
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+        }, 1000);
     };
 
     // DatePicker component for useForm (string date)
@@ -178,9 +228,9 @@ export default function LeaveEditPage() {
                     Back
                 </Button>
                 {can('Download Leave PDF') && (
-                    <Button type="button" variant="main" className="flex items-center gap-2" onClick={() => setShowPDF(true)}>
+                    <Button type="button" variant="main" className="flex items-center gap-2" onClick={handlePreviewPDF}>
                         <Download className="h-4 w-4" />
-                        Download PDF
+                        Preview PDF
                     </Button>
                 )}
             </div>
@@ -515,9 +565,6 @@ export default function LeaveEditPage() {
                     )}
                 </div>
             </div>
-            <Dialog open={showPDF} onOpenChange={setShowPDF}>
-                <DialogContent className="max-w-3xl">{leave && <LeavePDF leave={leave} />}</DialogContent>
-            </Dialog>
         </form>
     );
 }

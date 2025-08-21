@@ -5,8 +5,11 @@ export const styles = StyleSheet.create({
         backgroundColor: '#fff',
         color: '#262626',
         fontFamily: 'Helvetica',
-        fontSize: '12px',
-        padding: '30px 50px',
+        fontSize: 12,
+        paddingTop: 30,
+        paddingBottom: 30,
+        paddingLeft: 50,
+        paddingRight: 50,
     },
     header: {
         flexDirection: 'row',
@@ -18,28 +21,5 @@ export const styles = StyleSheet.create({
     },
     textBold: {
         fontFamily: 'Helvetica-Bold',
-    },
-    spaceY: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '2px',
-    },
-    billTo: {
-        marginBottom: 10,
-    },
-    table: {
-        width: '100%',
-        borderColor: '1px solid #f3f4f6',
-        margin: '20px 0',
-    },
-    tableHeader: {
-        backgroundColor: '#e5e5e5',
-    },
-    td: {
-        padding: 6,
-    },
-    totals: {
-        display: 'flex',
-        alignItems: 'flex-end',
     },
 });

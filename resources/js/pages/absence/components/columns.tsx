@@ -100,11 +100,11 @@ const columns = (
     },
     {
         accessorKey: 'credits',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Credits" />,
+        header: "Credits" ,
         cell: ({ row }) => {
             const remaining = row.original.remaining_credits || 0;
             const used = row.original.used_credits || 0;
-            const total = row.original.total_credits || 12;
+            const total = row.original.total_credits || 12; 
 
             const getCreditStatus = () => {
                 if (remaining === 0) return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' };
@@ -130,7 +130,7 @@ const columns = (
     },
     {
         accessorKey: 'department',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Department & Position" />,
+        header: "Department" ,
         cell: ({ row }) => {
             const department: string = row.getValue('department');
             const position = row.original.position;
@@ -150,7 +150,7 @@ const columns = (
     },
     {
         accessorKey: 'absence_type',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Absence Type" />,
+        header: "Absence Type" ,
         cell: ({ row }) => {
             const absenceType: string = row.getValue('absence_type');
 
@@ -174,8 +174,8 @@ const columns = (
         },
     },
     {
-        accessorKey: 'from_date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Date Range" />,
+        // accessorKey: 'from_date',
+        header: "Date Range" ,
         cell: ({ row }) => {
             const fromDate = row.original.from_date;
             const toDate = row.original.to_date;
@@ -211,7 +211,7 @@ const columns = (
     },
     {
         accessorKey: 'status',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+        header: "Status" ,
         cell: ({ row }) => {
             const status: string = row.getValue('status');
 
@@ -233,7 +233,7 @@ const columns = (
     },
     {
         accessorKey: 'submitted_at',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Submitted" />,
+        header: "Submitted" ,
         cell: ({ row }) => {
             const submittedAt = row.original.submitted_at;
             return <div className="text-sm text-gray-600">{format(new Date(submittedAt), 'MMM dd, yyyy')}</div>;
@@ -272,7 +272,7 @@ const columns = (
                             </Button>
                         </DropdownMenuItem>
 
-                        {absence.status === 'pending' && (
+                        {/* {absence.status === 'pending' && (
                             <DropdownMenuItem>
                                 <Button
                                     size="sm"
@@ -287,7 +287,7 @@ const columns = (
                                     Edit
                                 </Button>
                             </DropdownMenuItem>
-                        )}
+                        )} */}
 
                         <DropdownMenuItem asChild>
                             <AlertDialog>

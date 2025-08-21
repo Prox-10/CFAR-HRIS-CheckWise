@@ -1,12 +1,9 @@
-
-import { Button } from "@/components/ui/button";
-import { Users, Shield } from "lucide-react";
-import { Head, Link, usePage } from '@inertiajs/react';
-import { type SharedData } from '@/types';
-import * as motion from "motion/react-client";
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from "react";
- 
+import { type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import { Shield, Users } from 'lucide-react';
+import * as motion from 'motion/react-client';
+import { useEffect, useState } from 'react';
 
 interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
     fixed?: boolean;
@@ -15,7 +12,7 @@ interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
 
 const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
     const { auth } = usePage<SharedData>().props;
-     const [offset, setOffset] = useState(0);
+    const [offset, setOffset] = useState(0);
 
     useEffect(() => {
         const onScroll = () => {
@@ -34,7 +31,9 @@ const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
             className={cn(
                 'flex h-16 items-center gap-3 p-4 sm:gap-4',
                 fixed && 'header-fixed peer/header fixed top-0 right-0 left-0 z-50',
-                offset > 10 && fixed ? 'bg-cfar-400 shadow-sm transition-all duration-300 ease-in-out' : 'shadow-none transition-all duration-300 ease-in-out',
+                offset > 10 && fixed
+                    ? 'bg-cfar-400 shadow-sm transition-all duration-300 ease-in-out'
+                    : 'shadow-none transition-all duration-300 ease-in-out',
                 className,
             )}
         >
@@ -52,7 +51,7 @@ const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
                                 Check
                                 <span className="text-cfar-50">Wise</span>
                             </h1>
-                            <p className="motion-rotate-in-45 text-xs text-black font-semibold">by CFARBEMCO</p>
+                            <p className="motion-rotate-in-45 text-xs font-semibold text-black">by CFARBEMCO</p>
                         </div>
                     </div>
                 </div>
@@ -70,9 +69,8 @@ const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
                         }}
                     >
                         <Link
-                            href={route('employee_login')}
-                            className="m flex w-auto rounded-md border border-transparent bg-main-600 p-2 px-5 py-1.5 text-lg leading-normal text-white font-semibold transition-all duration-300 ease-in-out hover:border-green-700 hover:bg-main dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
-                           
+                            href={route('employeelogin')}
+                            className="m bg-main-600 hover:bg-main flex w-auto rounded-md border border-transparent p-2 px-5 py-1.5 text-lg leading-normal font-semibold text-white transition-all duration-300 ease-in-out hover:border-green-700 dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
                         >
                             <div className="flex w-auto">
                                 <Users className="animate-shield-glow motion-rotate-in-45 mt-1 mr-2 h-4 w-4 text-cfar-400" />
@@ -82,7 +80,7 @@ const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
                         {auth.user ? (
                             <Link
                                 href={route('dashboard.index')}
-                                className="inline-block rounded-sm border border-background px-5 py-1.5 text-lg leading-normal text-background hover:text-main hover:border-cfar-400 dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+                                className="hover:text-main inline-block rounded-sm border border-background px-5 py-1.5 text-lg leading-normal text-background hover:border-cfar-400 dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
                             >
                                 Dashboard
                             </Link>
@@ -90,7 +88,7 @@ const Header = ({ className, fixed, children, ...props }: HeaderProps) => {
                             <>
                                 <Link
                                     href={route('login')}
-                                    className="flex w-auto rounded-sm border border-transparent bg-cfar-50 px-5 py-1.5 text-lg leading-normal text-[#1b1b18] hover:border-cfar-500  dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A] hover:bg-white transition-all duration-300 ease-in-out dark:bg-cfar-400"
+                                    className="flex w-auto rounded-sm border border-transparent bg-cfar-50 px-5 py-1.5 text-lg leading-normal text-[#1b1b18] transition-all duration-300 ease-in-out hover:border-cfar-500 hover:bg-white dark:bg-cfar-400 dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
                                 >
                                     <div className="flex w-auto">
                                         <Shield className="mt-1 mr-2 h-4 w-4" />
