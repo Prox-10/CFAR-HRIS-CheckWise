@@ -45,13 +45,13 @@ class AbsenceController extends Controller
                 'department' => $absence->department,
                 'position' => $absence->position,
                 'absence_type' => $absence->absence_type,
-                'from_date' => $absence->from_date->format('Y-m-d'),
-                'to_date' => $absence->to_date->format('Y-m-d'),
+                'from_date' => $absence->from_date->format('d M Y'),
+                'to_date' => $absence->to_date->format('d M Y'),
                 'is_partial_day' => $absence->is_partial_day,
                 'reason' => $absence->reason,
                 'status' => $absence->status,
-                'submitted_at' => $absence->submitted_at->format('Y-m-d'),
-                'approved_at' => $absence->approved_at?->format('Y-m-d'),
+                'submitted_at' => $absence->submitted_at->format('d M Y'),
+                'approved_at' => $absence->approved_at?->format('d M Y'),
                 'days' => $absence->days,
                 'employee_name' => $absence->employee ? $absence->employee->employee_name : $absence->full_name,
                 'picture' => $absence->employee ? $absence->employee->picture : null,
@@ -328,6 +328,28 @@ class AbsenceController extends Controller
         // If status changed from approved to something else (rejected)
         elseif ($oldStatus === 'approved' && $newStatus !== 'approved') {
             $absenceCredits->refundCredits($absence->days); // Refund credits equal to number of days
+        }
+
+        // Create notification for employee if status changed
+        if ($oldStatus !== $newStatus) {
+            $employee = $absence->employee;
+            if ($employee) {
+                \App\Models\Notification::create([
+                    'type' => 'absence_request_update',
+                    'data' => [
+                        'absence_id' => $absence->id,
+                        'employee_name' => $employee->employee_name,
+                        'absence_type' => $absence->absence_type,
+                        'from_date' => $absence->from_date->format('Y-m-d'),
+                        'to_date' => $absence->to_date->format('Y-m-d'),
+                        'old_status' => $oldStatus,
+                        'new_status' => $newStatus,
+                        'updated_by' => Auth::user()->firstname . ' ' . Auth::user()->lastname,
+                        'updated_at' => now()->format('Y-m-d H:i:s'),
+                        'approval_comments' => $validated['approval_comments'] ?? null,
+                    ],
+                ]);
+            }
         }
 
         // Check if this is an AJAX request

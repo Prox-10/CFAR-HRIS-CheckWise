@@ -197,7 +197,7 @@ const columns = (
                             <span className="sr-only">View</span>
                             <Eye className="h-4 w-4" />
                         </Button>
-                        {canEvaluateThisEmployee && can('Start Evaluation Rating') && (
+                        {/* {canEvaluateThisEmployee && can('Start Evaluation Rating') && (
                             <Button
                                 variant="main"
                                 size="icon"
@@ -210,7 +210,7 @@ const columns = (
                                 <span className="sr-only">Add Rating</span>
                                 <Star className="h-4 w-4" />
                             </Button>
-                        )}
+                        )} */}
                     </div>
                 </>
             );

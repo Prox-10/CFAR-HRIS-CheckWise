@@ -28,13 +28,13 @@ class LeaveController extends Controller
             $leaveCredits = LeaveCredit::getOrCreateForEmployee($leave->employee_id);
             return [
                 'id'                  => $leave->id,
-                'leave_type'          => $leave->leave_type,
-                'leave_start_date'    => $leave->leave_start_date,
-                'leave_end_date'      => $leave->leave_end_date,
+                'leave_type'          => $leave->leave_type, 
+                'leave_start_date'    => $leave->leave_start_date->format('d M Y'),
+                'leave_end_date'      => $leave->leave_end_date->format('d M Y'),
                 'leave_days'          => $leave->leave_days,
                 'status'              => $leave->leave_status,
                 'leave_reason'        => $leave->leave_reason,
-                'leave_date_reported' => $leave->leave_date_reported,
+                'leave_date_reported' => $leave->leave_date_reported->format('d M Y'),
                 'leave_date_approved' => $leave->leave_date_approved,
                 'leave_comments'      => $leave->leave_comments,
                 'created_at'          => $leave->created_at->format('d M Y'),
@@ -250,6 +250,27 @@ class LeaveController extends Controller
                 // If status changed from approved to something else (rejected/cancelled)
                 elseif ($oldStatus === 'Approved' && $newStatus !== 'Approved') {
                     $leaveCredits->refundCredits($leave->leave_days); // Refund credits equal to number of days
+                }
+
+                // Create notification for employee if status changed
+                if ($oldStatus !== $newStatus) {
+                    $employee = $leave->employee;
+                    if ($employee) {
+                        Notification::create([
+                            'type' => 'leave_request_update',
+                            'data' => [
+                                'leave_id' => $leave->id,
+                                'employee_name' => $employee->employee_name,
+                                'leave_type' => $leave->leave_type,
+                                'leave_start_date' => $leave->leave_start_date,
+                                'leave_end_date' => $leave->leave_end_date,
+                                'old_status' => $oldStatus,
+                                'new_status' => $newStatus,
+                                'updated_by' => Auth::user()->firstname . ' ' . Auth::user()->lastname,
+                                'updated_at' => now()->format('Y-m-d H:i:s'),
+                            ],
+                        ]);
+                    }
                 }
 
                 // Log::info('[DEBUG]Leave updated info: ',  $leave);

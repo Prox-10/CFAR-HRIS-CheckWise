@@ -11,16 +11,19 @@ const sidebarNavItems: NavItem[] = [
         title: 'Profile',
         href: '/settings/profile',
         icon: null,
+        permission: 'settings.profile',
     },
     {
         title: 'Password',
         href: '/settings/password',
         icon: null,
+        permission: 'settings.password',
     },
     {
         title: 'Appearance',
         href: '/settings/appearance',
         icon: null,
+        permission: 'settings.appearance',
     },
 ];
 

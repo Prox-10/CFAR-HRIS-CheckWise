@@ -3,6 +3,7 @@ import { Main } from '@/components/customize/main';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
+import type { Employee } from '@/hooks/employees';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Tabs, TabsContent } from '@radix-ui/react-tabs';
@@ -14,7 +15,6 @@ import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import EditEmployeeModal from './components/editemployeemodal';
 import { SectionCards } from './components/section-cards';
-import { Employees } from './types/employees';
 // import { Employees } from './components/columns';
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { SiteHeader } from '@/components/site-header';
@@ -34,7 +34,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface Props {
-    employee: Employees[];
+    employee: Employee[];
     totalDepartment: number;
     totalEmployee: number;
     departments?: string[];
@@ -50,10 +50,13 @@ interface Props {
 function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
     const { state } = useSidebar();
     const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
+
     return (
         <>
+            {/* Show hover zone only when sidebar is collapsed to icons */}
             <SidebarHoverZone show={state === 'collapsed'} onMouseEnter={handleMouseEnter} />
-            <AppSidebar onMouseLeave={handleMouseLeave} />
+            {/* AppSidebar will handle its own hover behavior */}
+            <AppSidebar />
             {children}
         </>
     );
@@ -61,14 +64,14 @@ function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
 
 export default function Employee({ employee, totalEmployee, totalDepartment, departments = [], positions = [], user_permissions }: Props) {
     const { can } = usePermission();
-    const [data, setData] = useState<Employees[]>(employee);
+    const [data, setData] = useState<Employee[]>(employee);
     const [editModelOpen, setEditModalOpen] = useState(false);
     const [isModelOpen, setIsModalOpen] = useState(false);
-    const [selectedEmployee, setSelectedEmployee] = useState<Employees | null>(null);
+    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
     const [isViewOpen, setIsViewOpen] = useState(false);
-    const [viewEmployee, setViewEmployee] = useState<Employees | null>(null);
+    const [viewEmployee, setViewEmployee] = useState<Employee | null>(null);
     const [loading, setLoading] = useState(true);
-    const [registerFingerprintEmployee, setRegisterFingerprintEmployee] = useState<Employees | null>(null);
+    const [registerFingerprintEmployee, setRegisterFingerprintEmployee] = useState<Employee | null>(null);
     const [isRegisterFingerprintOpen, setIsRegisterFingerprintOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -81,7 +84,7 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
 
     // Expose handler for table button
     useLayoutEffect(() => {
-        (window as any).onRegisterFingerprint = (employee: Employees) => {
+        (window as any).onRegisterFingerprint = (employee: Employee) => {
             setRegisterFingerprintEmployee(employee);
             setIsRegisterFingerprintOpen(true);
             toast.info(`Register fingerprint for ${employee.employee_name}`);
@@ -91,17 +94,17 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
         };
     }, []);
 
-    const handleRegisterFingerprint = (employee: Employees) => {
+    const handleRegisterFingerprint = (employee: Employee) => {
         setRegisterFingerprintEmployee(employee);
         setIsRegisterFingerprintOpen(true);
         toast.info(`Register fingerprint for ${employee.employee_name}`);
     };
 
-    const handleUpdate = (updatedEmployee: Employees) => {
-        setData((prevData) => prevData.map((employee) => (employee.id === updatedEmployee.id ? updatedEmployee : employee)));
+    const handleUpdate = (updatedEmployee: Employee) => {
+        setData((prevData) => prevData.map((employee) => (employee.employeeid === updatedEmployee.employeeid ? updatedEmployee : employee)));
     };
 
-    const handleEdit = (employee: Employees) => {
+    const handleEdit = (employee: Employee) => {
         // Logic for editing the employee (open the edit modal, prefill the data, etc.)
         console.log('Editing employee', employee);
         // You can set the state to open an edit modal, like:
@@ -131,7 +134,7 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
     const handleRefresh = async () => {
         setRefreshing(true);
         try {
-            const res = await axios.get<Employees[]>('/api/employee/all');
+            const res = await axios.get<Employee[]>('/api/employee/all');
             setData(res.data);
             toast.success('Employee list refreshed!');
         } catch (err) {
@@ -150,10 +153,10 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
                 <SidebarInset>
                     <SiteHeader breadcrumbs={breadcrumbs} title={''} />
                     {loading ? (
-                        <ContentLoading /> 
+                        <ContentLoading />
                     ) : (
                         <>
-                            <Main fixed>
+                            <Main fixed className="overflow-hidden">
                                 <div className="mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4">
                                     <div>
                                         <div className="ms-2 flex items-center">
@@ -170,8 +173,8 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
                                     <TabsContent value="overview" className="space-y-4">
                                         <div className="flex flex-1 flex-col">
                                             <div className="relative flex flex-1 flex-col">
-                                                <div className="@container/main flex flex-1 flex-col gap-2">
-                                                    <div className="flex flex-col">
+                                                <div className="@container/main flex flex-1 flex-col gap-2 overflow-hidden">
+                                                    <div className="flex flex-col overflow-hidden">
                                                         <SectionCards
                                                             totalEmployee={totalEmployee}
                                                             employee={data}
@@ -192,12 +195,12 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
                                     <Separator className="shadow-sm" />
                                 </Tabs>
                                 <div className="m-3 no-scrollbar">
-                                    <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
+                                    <Card className="border-main dark:bg-backgrounds overflow-hidden bg-background drop-shadow-lg">
                                         <CardHeader>
                                             <CardTitle>Employee List</CardTitle>
                                             <CardDescription>List of employee</CardDescription>
                                         </CardHeader>
-                                        <CardContent>
+                                        <CardContent className="overflow-x-auto">
                                             {/* Replace with your data */}
                                             <DataTable
                                                 columns={columns(
@@ -220,8 +223,6 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
                                                 onClose={() => setEditModalOpen(false)}
                                                 employee={selectedEmployee}
                                                 onUpdate={handleUpdate}
-                                                departments={departments}
-                                                positions={positions}
                                             />
                                             <ViewEmployeeDetails
                                                 isOpen={isViewOpen}
@@ -231,12 +232,7 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
                                                 onDelete={handleDelete}
                                                 onRegisterFingerprint={handleRegisterFingerprint}
                                             />
-                                            <AddEmployeeModal
-                                                isOpen={isModelOpen}
-                                                onClose={() => setIsModalOpen(false)}
-                                                departments={departments}
-                                                positions={positions}
-                                            />
+                                            <AddEmployeeModal isOpen={isModelOpen} onClose={() => setIsModalOpen(false)} />
                                             <RegisterFingerprintModal
                                                 isOpen={isRegisterFingerprintOpen}
                                                 onClose={() => setIsRegisterFingerprintOpen(false)}

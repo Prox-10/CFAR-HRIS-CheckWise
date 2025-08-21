@@ -26,7 +26,7 @@ export default function Welcome() {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('bgcfar.jpg')`
+          backgroundImage: `url('/bgcfar.jpg')`
         }}
       >
         {/* Overlay */}

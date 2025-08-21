@@ -700,7 +700,7 @@ const AddEmployeeModal = ({ isOpen, onClose }: EmployeeDetails) => {
                                 placeholder="Enter your tin_number.."
                                 value={data.tin}
                                 onChange={(e) => setData('tin', e.target.value)}
-                                className="border-green-300 focus:border-cfar-500"
+                                className="border-green-300 focus:border-cfar-500 "
                                 aria-invalid={!!errors.tin}
                             />
                             <InputError message={errors.tin} />

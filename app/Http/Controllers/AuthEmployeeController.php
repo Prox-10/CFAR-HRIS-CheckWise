@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\Leave;
 use App\Models\LeaveCredit;
 use App\Models\Absence;
+use App\Models\AbsenceCredit;
 use App\Models\Evaluation;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
@@ -27,13 +28,13 @@ class AuthEmployeeController extends Controller
 
         if (!$employee) {
             Session::forget(['employee_id', 'employee_name']);
-            return redirect()->route('employee_login');
+            return redirect()->route('employeelogin');
         }
 
         // Get real data for dashboard
         $dashboardData = $this->getDashboardData($employee);
 
-        return Inertia::render('employee_view/index', [
+        return Inertia::render('employee-view/dashboard', [
             'employee' => [
                 'id' => $employee->id,
                 'employeeid' => $employee->employeeid,
@@ -59,6 +60,9 @@ class AuthEmployeeController extends Controller
         // Leave Balance (using credits)
         $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id, $currentYear);
         $leaveBalance = $leaveCredits->remaining_credits;
+
+        // Absence Credits
+        $absenceCredits = AbsenceCredit::getOrCreateForEmployee($employee->id);
 
         // Absence Count (this month)
         $absenceCount = Absence::where('employee_id', $employee->id)
@@ -91,6 +95,65 @@ class AuthEmployeeController extends Controller
         // Recent Activities
         $recentActivities = $this->getRecentActivities($employee);
 
+        // Get Leave Requests
+        $leaveRequests = Leave::where('employee_id', $employee->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($leave) {
+                return [
+                    'id' => $leave->id,
+                    'leave_type' => $leave->leave_type,
+                    'leave_start_date' => $leave->leave_start_date->format('Y-m-d'),
+                    'leave_end_date' => $leave->leave_end_date->format('Y-m-d'),
+                    'leave_days' => $leave->leave_days,
+                    'leave_status' => $leave->leave_status,
+                    'leave_reason' => $leave->leave_reason,
+                    'created_at' => $leave->created_at->format('Y-m-d H:i:s'),
+                ];
+            });
+
+        // Get Absence Requests
+        $absenceRequests = Absence::where('employee_id', $employee->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($absence) {
+                return [
+                    'id' => $absence->id,
+                    'absence_type' => $absence->absence_type,
+                    'from_date' => $absence->from_date->format('Y-m-d'),
+                    'to_date' => $absence->to_date->format('Y-m-d'),
+                    'days' => $absence->days,
+                    'status' => $absence->status,
+                    'reason' => $absence->reason,
+                    'created_at' => $absence->created_at->format('Y-m-d H:i:s'),
+                ];
+            });
+
+        // Get Notifications for Employee
+        $notifications = \App\Models\Notification::where('type', 'like', '%employee%')
+            ->orWhere('type', 'like', '%leave%')
+            ->orWhere('type', 'like', '%absence%')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'type' => $notification->type,
+                    'data' => $notification->data,
+                    'read_at' => $notification->read_at ? $notification->read_at->format('Y-m-d H:i:s') : null,
+                    'created_at' => $notification->created_at->format('Y-m-d H:i:s'),
+                ];
+            });
+
+        $unreadNotificationCount = \App\Models\Notification::whereNull('read_at')
+            ->where(function ($query) {
+                $query->where('type', 'like', '%employee%')
+                    ->orWhere('type', 'like', '%leave%')
+                    ->orWhere('type', 'like', '%absence%');
+            })
+            ->count();
+
         return [
             'leaveBalance' => $leaveBalance,
             'absenceCount' => $absenceCount,
@@ -99,6 +162,21 @@ class AuthEmployeeController extends Controller
             'attendancePercentage' => $attendancePercentage,
             'productivity' => $productivity,
             'recentActivities' => $recentActivities,
+            // Enhanced data
+            'leaveCredits' => [
+                'remaining' => $leaveCredits->remaining_credits,
+                'used' => $leaveCredits->used_credits,
+                'total' => $leaveCredits->total_credits,
+            ],
+            'absenceCredits' => [
+                'remaining' => $absenceCredits->remaining_credits,
+                'used' => $absenceCredits->used_credits,
+                'total' => $absenceCredits->total_credits,
+            ],
+            'leaveRequests' => $leaveRequests,
+            'absenceRequests' => $absenceRequests,
+            'notifications' => $notifications,
+            'unreadNotificationCount' => $unreadNotificationCount,
         ];
     }
 
@@ -175,9 +253,10 @@ class AuthEmployeeController extends Controller
         foreach ($recentLeaves as $leave) {
             $activities[] = [
                 'id' => 'leave_' . $leave->id,
-                'title' => ucfirst($leave->leave_type) . ' request ' . $leave->leave_status,
+                'title' => ucfirst($leave->leave_type) . ' Leave request ' . $leave->leave_status,
                 'timeAgo' => $leave->created_at->diffForHumans(),
-                'status' => $leave->leave_status === 'approved' ? 'approved' : ($leave->leave_status === 'rejected' ? 'completed' : 'pending')
+                'status' => strtolower($leave->leave_status), // Convert to lowercase for consistent status mapping
+                'type' => 'leave'
             ];
         }
 
@@ -190,9 +269,10 @@ class AuthEmployeeController extends Controller
         foreach ($recentAbsences as $absence) {
             $activities[] = [
                 'id' => 'absence_' . $absence->id,
-                'title' => ucfirst($absence->absence_type) . ' request ' . $absence->status,
+                'title' => ucfirst($absence->absence_type) . ' Absence request ' . $absence->status,
                 'timeAgo' => $absence->created_at->diffForHumans(),
-                'status' => $absence->status
+                'status' => strtolower($absence->status), // Convert to lowercase for consistent status mapping
+                'type' => 'absence'
             ];
         }
 
@@ -207,7 +287,8 @@ class AuthEmployeeController extends Controller
                 'id' => 'evaluation_' . $evaluation->id,
                 'title' => 'Performance evaluation completed',
                 'timeAgo' => Carbon::parse($evaluation->rating_date)->diffForHumans(),
-                'status' => 'completed'
+                'status' => 'completed',
+                'type' => 'evaluation'
             ];
         }
 
@@ -224,7 +305,7 @@ class AuthEmployeeController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('employee_view/login');
+        return Inertia::render('employee-view/login');
     }
 
     /**
@@ -255,7 +336,7 @@ class AuthEmployeeController extends Controller
         Session::put('employee_id', $employee->employeeid);
         Session::put('employee_name', $employee->employee_name);
 
-        return redirect()->route('employee_view');
+        return redirect()->route('employee-view');
     }
 
     /**
@@ -265,7 +346,7 @@ class AuthEmployeeController extends Controller
     {
         Session::forget(['employee_id', 'employee_name']);
         Session::flush(); // Clear all session data
-        return redirect()->route('employee_login')->with('status', 'You have been successfully logged out.');
+        return redirect()->route('employeelogin')->with('status', 'You have been successfully logged out.');
     }
 
     /**
@@ -302,7 +383,7 @@ class AuthEmployeeController extends Controller
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
 
-        return Inertia::render('employee_view/profile', [
+        return Inertia::render('employee-view/profile', [
             'employee' => [
                 'id' => $employee->id,
                 'employeeid' => $employee->employeeid,
@@ -326,7 +407,7 @@ class AuthEmployeeController extends Controller
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
 
-        return Inertia::render('employee_view/attendance', [
+        return Inertia::render('employee-view/attendance', [
             'employee' => [
                 'id' => $employee->id,
                 'employeeid' => $employee->employeeid,
@@ -352,7 +433,7 @@ class AuthEmployeeController extends Controller
             ->orderBy('rating_date', 'desc')
             ->first();
 
-        return Inertia::render('employee_view/evaluations', [
+        return Inertia::render('employee-view/evaluations', [
             'employee' => [
                 'id' => $employee->id,
                 'employeeid' => $employee->employeeid,
@@ -390,7 +471,7 @@ class AuthEmployeeController extends Controller
         $leaveCredits = LeaveCredit::getOrCreateForEmployee($employee->id, $currentYear);
         $leaveBalance = $leaveCredits->remaining_credits;
 
-        return Inertia::render('employee_view/leave', [
+        return Inertia::render('employee-view/request-form/leave/index', [
             'employee' => [
                 'id' => $employee->id,
                 'employeeid' => $employee->employeeid,
@@ -412,7 +493,7 @@ class AuthEmployeeController extends Controller
     {
         $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
 
-        return Inertia::render('employee_view/absence', [
+        return Inertia::render('employee-view/request-form/absence/index', [
             'employee' => [
                 'id' => $employee->id,
                 'employeeid' => $employee->employeeid,
@@ -448,7 +529,7 @@ class AuthEmployeeController extends Controller
                 ];
             });
 
-        return Inertia::render('employee_view/return-work', [
+        return Inertia::render('employee-view/request-form/return-request/absence', [
             'employee' => [
                 'id' => $employee->id,
                 'employeeid' => $employee->employeeid,
@@ -519,7 +600,7 @@ class AuthEmployeeController extends Controller
             'pending' => $allRecords->where('status', 'pending')->count(),
         ];
 
-        return Inertia::render('employee_view/records', [
+        return Inertia::render('employee-view/records', [
             'employee' => [
                 'id' => $employee->id,
                 'employeeid' => $employee->employeeid,
@@ -574,6 +655,144 @@ class AuthEmployeeController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('home');
+    }
+
+    /**
+     * Display employee profile settings page
+     */
+    public function profileSettings()
+    {
+        $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
+
+        return Inertia::render('employee-view/profile-settings', [
+            'employee' => [
+                'id' => $employee->id,
+                'employeeid' => $employee->employeeid,
+                'employee_name' => $employee->employee_name,
+                'firstname' => $employee->firstname,
+                'lastname' => $employee->lastname,
+                'department' => $employee->department,
+                'position' => $employee->position,
+                'picture' => $employee->picture,
+                'email' => $employee->email,
+                'phone' => $employee->phone,
+            ]
+        ]);
+    }
+
+    /**
+     * Update employee profile (name and picture)
+     */
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'firstname' => 'required|string|max:100',
+            'lastname' => 'required|string|max:100',
+            'profile_image' => 'nullable|image|max:5120',
+        ]);
+
+        $employee = Employee::where('employeeid', Session::get('employee_id'))->firstOrFail();
+
+        $employee->firstname = $request->firstname;
+        $employee->lastname = $request->lastname;
+        $employee->employee_name = trim($request->firstname . ' ' . $request->lastname);
+
+        if ($request->hasFile('profile_image')) {
+            $file = $request->file('profile_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $employee->picture = '/storage/' . $path;
+        }
+
+        $employee->save();
+
+        return back()->with('status', 'Profile updated successfully.');
+    }
+
+    /**
+     * Update employee password/PIN
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:4|confirmed',
+        ]);
+
+        $employee = Employee::where('employeeid', Session::get('employee_id'))->firstOrFail();
+
+        if ($employee->pin !== $request->current_password) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+        }
+
+        $employee->pin = $request->new_password;
+        $employee->save();
+
+        return back()->with('status', 'Password updated successfully.');
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public function markNotificationAsRead(Request $request)
+    {
+        $request->validate([
+            'notification_id' => 'required|string',
+        ]);
+
+        $notification = \App\Models\Notification::find($request->notification_id);
+
+        if ($notification) {
+            $notification->update(['read_at' => now()]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Mark all notifications as read
+     */
+    public function markAllNotificationsAsRead(Request $request)
+    {
+        $employee = Employee::where('employeeid', Session::get('employee_id'))->firstOrFail();
+
+        \App\Models\Notification::whereNull('read_at')
+            ->where(function ($query) {
+                $query->where('type', 'like', '%employee%')
+                    ->orWhere('type', 'like', '%leave%')
+                    ->orWhere('type', 'like', '%absence%');
+            })
+            ->update(['read_at' => now()]);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Refresh dashboard data for real-time updates
+     */
+    public function refreshDashboard()
+    {
+        $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
+
+        if (!$employee) {
+            return response()->json(['error' => 'Employee not found'], 404);
+        }
+
+        $dashboardData = $this->getDashboardData($employee);
+
+        return response()->json([
+            'dashboardData' => $dashboardData,
+            'employee' => [
+                'id' => $employee->id,
+                'employeeid' => $employee->employeeid,
+                'employee_name' => $employee->employee_name,
+                'firstname' => $employee->firstname,
+                'lastname' => $employee->lastname,
+                'department' => $employee->department,
+                'position' => $employee->position,
+                'picture' => $employee->picture,
+            ]
+        ]);
     }
 }

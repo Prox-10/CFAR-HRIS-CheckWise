@@ -11,10 +11,13 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
+    useSidebar,
 } from '@/components/ui/sidebar';
+import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type NavItem } from '@/types';
 import AppLogo from './customize/app-logo';
 import { NavSidebar } from './nav-sidebar';
+import SidebarHoverZone from './sidebar-hover-zone';
 import { User } from './user';
 
 // This is sample data.
@@ -177,36 +180,42 @@ const mainNavItems: NavItem[] = [
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const { state, isMobile } = useSidebar();
+    const { handleMouseEnter } = useSidebarHover();
+
     return (
-        <Sidebar collapsible="icon" variant="inset" {...props}>
-            <SidebarHeader className="bg-cfar-400">
-                {/* <TeamSwitcher teams={data.teams} /> */}
+        <>
+            <SidebarHoverZone show={!isMobile && state === 'collapsed'} onMouseEnter={handleMouseEnter} />
+            <Sidebar collapsible="icon" variant="inset" onMouseEnter={handleMouseEnter} {...props}>
+                <SidebarHeader className="bg-cfar-400">
+                    {/* <TeamSwitcher teams={data.teams} /> */}
 
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            size="lg"
-                            asChild
-                            className="h-auto flex-col items-center justify-center gap-1 data-[slot=sidebar-menu-button]:!p-3"
-                        >
-                            <Link href="/dashboard">
-                                <AppLogo />
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            </SidebarHeader>
-            <SidebarContent className="bg-cfar-400">
-                <NavSidebar items={mainNavItems} />
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                size="lg"
+                                asChild
+                                className="h-auto flex-col items-center justify-center gap-1 data-[slot=sidebar-menu-button]:!p-3"
+                            >
+                                <Link href="/dashboard">
+                                    <AppLogo />
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarHeader>
+                <SidebarContent className="bg-cfar-400">
+                    <NavSidebar items={mainNavItems} />
 
-                {/* <NavMain navItem={data.navItem} /> */}
-                {/* <NavProjects projects={data.projects} /> */}
-            </SidebarContent>
-            <SidebarFooter className="bg-cfar-400">
-                {/* <NavUser user={data.user} /> */}
-                <User />
-            </SidebarFooter>
-            <SidebarRail />
-        </Sidebar>
+                    {/* <NavMain navItem={data.navItem} /> */}
+                    {/* <NavProjects projects={data.projects} /> */}
+                </SidebarContent>
+                <SidebarFooter className="bg-cfar-400">
+                    {/* <NavUser user={data.user} /> */}
+                    <User />
+                </SidebarFooter>
+                <SidebarRail />
+            </Sidebar>
+        </>
     );
 }

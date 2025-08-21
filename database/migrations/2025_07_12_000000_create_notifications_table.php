@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // If a notifications table already exists (e.g., UUID-based from earlier migration), do not attempt to recreate.
+        if (Schema::hasTable('notifications')) {
+            return;
+        }
+
         Schema::create('notifications', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('type');
             $table->json('data');
             $table->timestamp('read_at')->nullable();
@@ -27,4 +32,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('notifications');
     }
-}; 
+};

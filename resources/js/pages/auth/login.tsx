@@ -119,7 +119,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                 onClick={() => router.visit(route('home'))}
             >
                 Cancel
-            </Button></div>
+            </Button>
+            </div>
            
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
         </AuthLayout>

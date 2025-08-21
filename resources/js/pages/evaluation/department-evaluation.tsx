@@ -5,6 +5,7 @@ import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { ContentLoading } from '@/components/ui/loading';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
@@ -12,11 +13,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Employees } from '@/hooks/employees';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { Calendar, Download, FileText, RotateCcw, Star, User, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
-import { Label } from '@/components/ui/label';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -143,6 +143,16 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
     // State for existing evaluation
     const [existingEvaluation, setExistingEvaluation] = useState<any>(null);
     const [isFormReadOnly, setIsFormReadOnly] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+
+    // Allowed departments based on role/permissions
+    const allowedDepartments = useMemo(() => {
+        if (user_permissions?.is_super_admin) return departments;
+        if (Array.isArray(user_permissions?.evaluable_departments) && user_permissions.evaluable_departments.length > 0) {
+            return departments.filter((dept) => user_permissions.evaluable_departments.includes(dept));
+        }
+        return departments;
+    }, [departments, user_permissions]);
 
     // Filter employees by selected department
     const filteredEmployees = useMemo(() => {
@@ -152,7 +162,8 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
 
     // Get selected employee details
     const selectedEmployeeData = useMemo(() => {
-        return employees_all.find((emp) => emp.id === selectedEmployee);
+        const matchId = (emp: any) => String((emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid) === String(selectedEmployee);
+        return employees_all.find((emp: any) => matchId(emp));
     }, [selectedEmployee, employees_all]);
 
     // Check for existing evaluation when employee is selected
@@ -230,8 +241,7 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
             } else {
                 setExistingEvaluation(null);
                 setIsFormReadOnly(false);
-                // Reset form to initial state
-                handleReset();
+                // Keep current selections and initialized form; do not reset on no existing evaluation
             }
         } catch (error) {
             console.error('Error checking existing evaluation:', error);
@@ -389,20 +399,18 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
 
     // Sync all evaluation data with Inertia form when it changes
     useEffect(() => {
-        if (existingEvaluation) {
-            // Sync when we have existing evaluation data (both read-only and editable)
-            setData((prev) => ({
-                ...prev,
-                attendance: evaluationData.attendance,
-                attitudeSupervisor: evaluationData.attitudeSupervisor,
-                attitudeCoworker: evaluationData.attitudeCoworker,
-                workAttitude: evaluationData.workAttitude,
-                workFunctions: evaluationData.workFunctions,
-                observations: evaluationData.observations,
-                evaluator: evaluationData.evaluator,
-            }));
-        }
-    }, [existingEvaluation, evaluationData]); // Include evaluationData in dependencies
+        // Keep Inertia form data in sync with component state at all times
+        setData((prev) => ({
+            ...prev,
+            attendance: evaluationData.attendance,
+            attitudeSupervisor: evaluationData.attitudeSupervisor,
+            attitudeCoworker: evaluationData.attitudeCoworker,
+            workAttitude: evaluationData.workAttitude,
+            workFunctions: evaluationData.workFunctions,
+            observations: evaluationData.observations,
+            evaluator: evaluationData.evaluator,
+        }));
+    }, [evaluationData, setData]);
 
     const handleSubmit = () => {
         if (isFormReadOnly) {
@@ -426,8 +434,7 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
             return;
         }
 
-        // Update Inertia form data with current values
-        setData({
+        const payload = {
             department: selectedDepartment,
             employee_id: selectedEmployee,
             attendance: evaluationData.attendance,
@@ -437,21 +444,33 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
             workFunctions: evaluationData.workFunctions,
             observations: evaluationData.observations,
             evaluator: evaluationData.evaluator,
-        });
+        } as const;
 
-        // Use setTimeout to ensure setData completes before post
-        setTimeout(() => {
-            post('/evaluation/department-evaluation', {
+        setSubmitting(true);
+        const submitPromise = new Promise<void>((resolve, reject) => {
+            router.post('/evaluation/department-evaluation', payload, {
                 onSuccess: () => {
-                    toast.success('Evaluation submitted successfully!');
+                    setSubmitting(false);
+                    resolve();
                     handleReset();
                 },
                 onError: (errors: any) => {
-                    toast.error('Failed to submit evaluation. Please check your inputs.');
+                    setSubmitting(false);
                     console.error('Form errors:', errors);
+                    reject(errors);
                 },
+                onFinish: () => {
+                    setSubmitting(false);
+                },
+                preserveScroll: true,
             });
-        }, 0);
+        });
+
+        toast.promise(submitPromise, {
+            loading: 'Submitting evaluation... calculating ratings...',
+            success: 'Evaluation submitted successfully!',
+            error: 'Failed to submit evaluation. Please check your inputs.',
+        });
     };
 
     const handleReset = () => {
@@ -570,7 +589,7 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                             <div className="space-y-2">
                                                 <Label className="text-sm font-medium text-gray-700">
                                                     Department
-                                                    <span className="text-red-500 ms-1 text-sm">*</span>
+                                                    <span className="ms-1 text-sm text-red-500">*</span>
                                                 </Label>
                                                 <Select
                                                     value={selectedDepartment}
@@ -604,7 +623,7 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                                         <SelectValue placeholder="Select Department" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {departments.map((dept) => (
+                                                        {allowedDepartments.map((dept) => (
                                                             <SelectItem key={dept} value={dept}>
                                                                 {dept}
                                                             </SelectItem>
@@ -617,7 +636,7 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                             <div className="space-y-2">
                                                 <Label className="text-sm font-medium text-gray-700">
                                                     Employee
-                                                    <span className="text-red-500 ms-1 text-sm">*</span>
+                                                    <span className="ms-1 text-sm text-red-500">*</span>
                                                 </Label>
                                                 <Select
                                                     value={selectedEmployee}
@@ -634,8 +653,11 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                                         />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {filteredEmployees.map((emp) => (
-                                                            <SelectItem key={emp.id} value={emp.id}>
+                                                        {filteredEmployees.map((emp: any) => (
+                                                            <SelectItem
+                                                                key={String((emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid)}
+                                                                value={String((emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid)}
+                                                            >
                                                                 {emp.employee_name} - {emp.position}
                                                             </SelectItem>
                                                         ))}
@@ -1227,11 +1249,11 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                             {!isFormReadOnly ? (
                                                 <Button
                                                     onClick={handleSubmit}
-                                                    disabled={processing}
-                                                    className="bg-gradient-to-r from-green-600 to-emerald-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:from-green-700 hover:to-emerald-700 hover:shadow-xl"
+                                                    className="bg-gradient-to-r from-green-600 to-emerald-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:from-green-700 hover:to-emerald-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+                                                    disabled={processing || submitting}
                                                 >
-                                                    <FileText className="mr-2 h-5 w-5" />
-                                                    {processing ? 'Submitting...' : 'Submit Evaluation'}
+                                                    <FileText className={`${processing || submitting ? 'animate-spin' : ''} mr-2 h-5 w-5`} />
+                                                    {processing || submitting ? 'Submitting...' : 'Submit Evaluation'}
                                                 </Button>
                                             ) : (
                                                 <Button

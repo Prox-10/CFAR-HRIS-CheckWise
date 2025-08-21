@@ -123,7 +123,7 @@ class UserSeeder extends Seeder
         'middlename' => 'A.',
         'lastname' => 'Basang',
         'email' => 'meshelbasang@gmail.com',
-        'roles' => ['HR', 'Manager']
+        'roles' => ['Manager']
       ]
     ];
 
