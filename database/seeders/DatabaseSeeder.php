@@ -18,9 +18,8 @@ class DatabaseSeeder extends Seeder
         // Run PermissionSeeder FIRST to create roles and permissions
         $this->call(PermissionSeeder::class);
 
-        // Create the main developer user AFTER roles exist
-        $developer = User::firstOrCreate(
-            ['email' => 'kyledev10282001@gmail.com'],
+        // Create the main developer users AFTER roles exist
+        $users = [
             [
                 'firstname' => 'Kyle',
                 'middlename' => 'Dev',
@@ -28,12 +27,27 @@ class DatabaseSeeder extends Seeder
                 'email' => 'kyledev10282001@gmail.com',
                 'password' => Hash::make('10282001'),
                 'email_verified_at' => now(),
-            ]
-        );
+            ],
+            [
+                'firstname' => 'Philip Roy',
+                'middlename' => 'Q',
+                'lastname' => 'Concha',
+                'email' => 'philiproyconcha@gmail.com',
+                'password' => Hash::make('10282001'),
+                'email_verified_at' => now(),
+            ],
+        ];
 
-        // Assign role only if it exists
-        if (\Spatie\Permission\Models\Role::where('name', 'Super Admin')->exists()) {
-            $developer->assignRole('Super Admin');
+        foreach ($users as $userData) {
+            $user = User::firstOrCreate(
+                ['email' => $userData['email']],
+                $userData
+            );
+
+            // Assign Super Admin role to both users if the role exists
+            if (\Spatie\Permission\Models\Role::where('name', 'Super Admin')->exists()) {
+                $user->assignRole('Super Admin');
+            }
         }
 
         // Seed employees first if not present
