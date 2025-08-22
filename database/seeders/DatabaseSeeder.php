@@ -36,7 +36,14 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('10282001'),
                 'email_verified_at' => now(),
             ],
-            
+            [
+                'firstname' => 'John',
+                'middlename' => 'A',
+                'lastname' => 'Smith',
+                'email' => 'john.smith@example.com',
+                'password' => Hash::make('10282001'),
+                'email_verified_at' => now(),
+            ],
         ];
 
         foreach ($users as $userData) {
