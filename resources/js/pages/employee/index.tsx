@@ -162,7 +162,7 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
                                         <div className="ms-2 flex items-center">
                                             <Users className="size-11" />
                                             <div className="ms-2">
-                                                <h2 className="flex text-2xl font-bold tracking-tight">Concha</h2>
+                                                <h2 className="flex text-2xl font-bold tracking-tight">Employee</h2>
                                                 <p className="text-muted-foreground">Manage your organization's workforce</p>
                                             </div>
                                         </div>
