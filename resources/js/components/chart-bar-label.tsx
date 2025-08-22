@@ -10,8 +10,14 @@ interface ChartBarLabelProps {
     mode?: 'month' | 'period'; // 'month' for monthly, 'period' for 6-month period
 }
 
+interface TooltipProps {
+    active?: boolean;
+    payload?: Array<{ value: number }>;
+    label?: string;
+}
+
 // Custom tooltip for the chart
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
         return (
             <div className="rounded bg-white p-2 shadow">
@@ -31,7 +37,6 @@ export function ChartBarLabel({ chartData, mode = 'month' }: ChartBarLabelProps)
 
     return (
         <Card>
-            
             <CardHeader>
                 <CardTitle>{title}</CardTitle>
                 <CardDescription>{description}</CardDescription>

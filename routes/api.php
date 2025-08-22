@@ -52,3 +52,20 @@ Route::get('/employee/by-employeeid', function (Request $request) {
 //     Route::get('/evaluation/frequencies/{department}', [App\Http\Controllers\Api\EvaluationFrequencyController::class, 'show']);
 //     Route::put('/evaluation/frequencies/{department}', [App\Http\Controllers\Api\EvaluationFrequencyController::class, 'update']);
 // });
+
+Route::get('/attendance/test', function () {
+    $data = \App\Models\Attendance::select('attendance_date', 'attendance_status')
+        ->limit(10)
+        ->get()
+        ->map(function ($item) {
+            return [
+                'attendanceDate' => $item->attendance_date,
+                'attendanceStatus' => $item->attendance_status,
+            ];
+        });
+
+    return response()->json([
+        'count' => \App\Models\Attendance::count(),
+        'sample_data' => $data
+    ]);
+});

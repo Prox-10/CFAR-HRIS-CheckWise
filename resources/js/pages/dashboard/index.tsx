@@ -274,7 +274,7 @@ function SidebarHoverLogic(
                                                     />
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> 
                                     </div>
                                     <Separator className="shadow-sm" />
                                     <ChartAreaInteractive />

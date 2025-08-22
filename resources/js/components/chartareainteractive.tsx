@@ -1,145 +1,244 @@
 'use client';
 
 import * as React from 'react';
-import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export const description = 'An interactive area chart';
 
-const chartData = [
-    { date: '2024-04-01', desktop: 222, mobile: 150 },
-    { date: '2024-04-02', desktop: 97, mobile: 180 },
-    { date: '2024-04-03', desktop: 167, mobile: 120 },
-    { date: '2024-04-04', desktop: 242, mobile: 260 },
-    { date: '2024-04-05', desktop: 373, mobile: 290 },
-    { date: '2024-04-06', desktop: 301, mobile: 340 },
-    { date: '2024-04-07', desktop: 245, mobile: 180 },
-    { date: '2024-04-08', desktop: 409, mobile: 320 },
-    { date: '2024-04-09', desktop: 59, mobile: 110 },
-    { date: '2024-04-10', desktop: 261, mobile: 190 },
-    { date: '2024-04-11', desktop: 327, mobile: 350 },
-    { date: '2024-04-12', desktop: 292, mobile: 210 },
-    { date: '2024-04-13', desktop: 342, mobile: 380 },
-    { date: '2024-04-14', desktop: 137, mobile: 220 },
-    { date: '2024-04-15', desktop: 120, mobile: 170 },
-    { date: '2024-04-16', desktop: 138, mobile: 190 },
-    { date: '2024-04-17', desktop: 446, mobile: 360 },
-    { date: '2024-04-18', desktop: 364, mobile: 410 },
-    { date: '2024-04-19', desktop: 243, mobile: 180 },
-    { date: '2024-04-20', desktop: 89, mobile: 150 },
-    { date: '2024-04-21', desktop: 137, mobile: 200 },
-    { date: '2024-04-22', desktop: 224, mobile: 170 },
-    { date: '2024-04-23', desktop: 138, mobile: 230 },
-    { date: '2024-04-24', desktop: 387, mobile: 290 },
-    { date: '2024-04-25', desktop: 215, mobile: 250 },
-    { date: '2024-04-26', desktop: 75, mobile: 130 },
-    { date: '2024-04-27', desktop: 383, mobile: 420 },
-    { date: '2024-04-28', desktop: 122, mobile: 180 },
-    { date: '2024-04-29', desktop: 315, mobile: 240 },
-    { date: '2024-04-30', desktop: 454, mobile: 380 },
-    { date: '2024-05-01', desktop: 165, mobile: 220 },
-    { date: '2024-05-02', desktop: 293, mobile: 310 },
-    { date: '2024-05-03', desktop: 247, mobile: 190 },
-    { date: '2024-05-04', desktop: 385, mobile: 420 },
-    { date: '2024-05-05', desktop: 481, mobile: 390 },
-    { date: '2024-05-06', desktop: 498, mobile: 520 },
-    { date: '2024-05-07', desktop: 388, mobile: 300 },
-    { date: '2024-05-08', desktop: 149, mobile: 210 },
-    { date: '2024-05-09', desktop: 227, mobile: 180 },
-    { date: '2024-05-10', desktop: 293, mobile: 330 },
-    { date: '2024-05-11', desktop: 335, mobile: 270 },
-    { date: '2024-05-12', desktop: 197, mobile: 240 },
-    { date: '2024-05-13', desktop: 197, mobile: 160 },
-    { date: '2024-05-14', desktop: 448, mobile: 490 },
-    { date: '2024-05-15', desktop: 473, mobile: 380 },
-    { date: '2024-05-16', desktop: 338, mobile: 400 },
-    { date: '2024-05-17', desktop: 499, mobile: 420 },
-    { date: '2024-05-18', desktop: 315, mobile: 350 },
-    { date: '2024-05-19', desktop: 235, mobile: 180 },
-    { date: '2024-05-20', desktop: 177, mobile: 230 },
-    { date: '2024-05-21', desktop: 82, mobile: 140 },
-    { date: '2024-05-22', desktop: 81, mobile: 120 },
-    { date: '2024-05-23', desktop: 252, mobile: 290 },
-    { date: '2024-05-24', desktop: 294, mobile: 220 },
-    { date: '2024-05-25', desktop: 201, mobile: 250 },
-    { date: '2024-05-26', desktop: 213, mobile: 170 },
-    { date: '2024-05-27', desktop: 420, mobile: 460 },
-    { date: '2024-05-28', desktop: 233, mobile: 190 },
-    { date: '2024-05-29', desktop: 78, mobile: 130 },
-    { date: '2024-05-30', desktop: 340, mobile: 280 },
-    { date: '2024-05-31', desktop: 178, mobile: 230 },
-    { date: '2024-06-01', desktop: 178, mobile: 200 },
-    { date: '2024-06-02', desktop: 470, mobile: 410 },
-    { date: '2024-06-03', desktop: 103, mobile: 160 },
-    { date: '2024-06-04', desktop: 439, mobile: 380 },
-    { date: '2024-06-05', desktop: 88, mobile: 140 },
-    { date: '2024-06-06', desktop: 294, mobile: 250 },
-    { date: '2024-06-07', desktop: 323, mobile: 370 },
-    { date: '2024-06-08', desktop: 385, mobile: 320 },
-    { date: '2024-06-09', desktop: 438, mobile: 480 },
-    { date: '2024-06-10', desktop: 155, mobile: 200 },
-    { date: '2024-06-11', desktop: 92, mobile: 150 },
-    { date: '2024-06-12', desktop: 492, mobile: 420 },
-    { date: '2024-06-13', desktop: 81, mobile: 130 },
-    { date: '2024-06-14', desktop: 426, mobile: 380 },
-    { date: '2024-06-15', desktop: 307, mobile: 350 },
-    { date: '2024-06-16', desktop: 371, mobile: 310 },
-    { date: '2024-06-17', desktop: 475, mobile: 520 },
-    { date: '2024-06-18', desktop: 107, mobile: 170 },
-    { date: '2024-06-19', desktop: 341, mobile: 290 },
-    { date: '2024-06-20', desktop: 408, mobile: 450 },
-    { date: '2024-06-21', desktop: 169, mobile: 210 },
-    { date: '2024-06-22', desktop: 317, mobile: 270 },
-    { date: '2024-06-23', desktop: 480, mobile: 530 },
-    { date: '2024-06-24', desktop: 132, mobile: 180 },
-    { date: '2024-06-25', desktop: 141, mobile: 190 },
-    { date: '2024-06-26', desktop: 434, mobile: 380 },
-    { date: '2024-06-27', desktop: 448, mobile: 490 },
-    { date: '2024-06-28', desktop: 149, mobile: 200 },
-    { date: '2024-06-29', desktop: 103, mobile: 160 },
-    { date: '2024-06-30', desktop: 446, mobile: 400 },
+// Fallback data for testing
+const fallbackData = [
+    { date: '2025-08-15', present: 85, late: 12, absent: 3 },
+    { date: '2025-08-16', present: 88, late: 10, absent: 2 },
+    { date: '2025-08-17', present: 82, late: 15, absent: 3 },
+    { date: '2025-08-18', present: 90, late: 8, absent: 2 },
+    { date: '2025-08-19', present: 87, late: 11, absent: 2 },
+    { date: '2025-08-20', present: 84, late: 13, absent: 3 },
+    { date: '2025-08-21', present: 89, late: 9, absent: 2 },
+    { date: '2025-08-22', present: 86, late: 12, absent: 2 },
 ];
 
-const chartConfig = {
-    visitors: {
-        label: 'Visitors',
-    },
-    desktop: {
-        label: 'Desktop',
-        color: 'var(--chart-1)',
-    },
-    mobile: {
-        label: 'Mobile',
-        color: 'var(--chart-2)',
-    },
-} satisfies ChartConfig;
+// Custom tooltip component
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
+                <div className="font-medium">
+                    {new Date(label).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                    })}
+                </div>
+                <div className="grid gap-1.5">
+                    {payload.map((entry: any, index: number) => {
+                        const colors = {
+                            present: '#22c55e',
+                            late: '#eab308',
+                            absent: '#ef4444',
+                        };
+                        const labels = {
+                            present: 'Present',
+                            late: 'Late',
+                            absent: 'Absent',
+                        };
+
+                        return (
+                            <div key={index} className="flex items-center gap-2">
+                                <div
+                                    className="h-2.5 w-2.5 rounded-[2px]"
+                                    style={{ backgroundColor: colors[entry.dataKey as keyof typeof colors] }}
+                                />
+                                <span className="text-muted-foreground">{labels[entry.dataKey as keyof typeof labels]}</span>
+                                <span className="font-mono font-medium text-foreground tabular-nums">{entry.value}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
+
+// Custom legend component
+const CustomLegend = ({ payload }: any) => {
+    if (!payload || payload.length === 0) return null;
+
+    const colors = {
+        present: '#22c55e',
+        late: '#eab308',
+        absent: '#ef4444',
+    };
+    const labels = {
+        present: 'Present',
+        late: 'Late',
+        absent: 'Absent',
+    };
+
+    return (
+        <div className="flex items-center justify-center gap-4 pt-3">
+            {payload.map((entry: any) => (
+                <div key={entry.value} className="flex items-center gap-1.5">
+                    <div className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: colors[entry.dataKey as keyof typeof colors] }} />
+                    {labels[entry.dataKey as keyof typeof labels]}
+                </div>
+            ))}
+        </div>
+    );
+};
 
 export function ChartAreaInteractive() {
     const [timeRange, setTimeRange] = React.useState('90d');
+    const [data, setData] = React.useState<{ date: string; present: number; late: number; absent: number }[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
 
-    const filteredData = chartData.filter((item) => {
-        const date = new Date(item.date);
-        const referenceDate = new Date('2024-06-30');
-        let daysToSubtract = 90;
-        if (timeRange === '30d') {
-            daysToSubtract = 30;
-        } else if (timeRange === '7d') {
-            daysToSubtract = 7;
+    React.useEffect(() => {
+        const controller = new AbortController();
+
+        async function load() {
+            try {
+                setLoading(true);
+                setError(null);
+
+                // Use the correct API endpoint
+                const res = await fetch('/api/attendance/all', { signal: controller.signal });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+
+                const items: Array<{
+                    attendanceDate: string;
+                    attendanceStatus: string;
+                }> = await res.json();
+
+                console.log('Raw attendance data:', items); // Debug log
+
+                // Group by date and count Present/Late/Absent
+                const map = new Map<string, { present: number; late: number; absent: number }>();
+                for (const it of items) {
+                    const dateKey = new Date(it.attendanceDate).toISOString().slice(0, 10);
+                    if (!map.has(dateKey)) map.set(dateKey, { present: 0, late: 0, absent: 0 });
+                    const entry = map.get(dateKey)!;
+                    const status = (it.attendanceStatus || '').toLowerCase();
+                    if (status === 'present') entry.present += 1;
+                    else if (status === 'late') entry.late += 1;
+                    else if (status === 'absent') entry.absent += 1;
+                }
+
+                console.log('Grouped data:', Array.from(map.entries())); // Debug log
+
+                // Create a continuous series between min and max date within ~120 days window
+                const dates = Array.from(map.keys()).sort();
+                const today = new Date();
+                const earliest = dates.length > 0 ? new Date(dates[0]) : new Date(today);
+                const start = new Date(Math.max(earliest.getTime(), new Date(today.getTime() - 120 * 24 * 60 * 60 * 1000).getTime()));
+                const series: { date: string; present: number; late: number; absent: number }[] = [];
+
+                for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+                    const key = d.toISOString().slice(0, 10);
+                    const counts = map.get(key) ?? { present: 0, late: 0, absent: 0 };
+                    series.push({ date: key, ...counts });
+                }
+
+                console.log('Final chart data:', series); // Debug log
+
+                // If we have data, use it; otherwise use fallback
+                if (series.length > 0 && series.some((item) => item.present > 0 || item.late > 0 || item.absent > 0)) {
+                    setData(series);
+                } else {
+                    console.log('No real data found, using fallback data');
+                    setData(fallbackData);
+                }
+            } catch (err) {
+                console.error('Error loading attendance data:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load data');
+                // Use fallback data on error
+                setData(fallbackData);
+            } finally {
+                setLoading(false);
+            }
         }
+
+        load();
+        return () => controller.abort();
+    }, []);
+
+    const filteredData = React.useMemo(() => {
+        const referenceDate = new Date();
+        let daysToSubtract = 90;
+        if (timeRange === '30d') daysToSubtract = 30;
+        else if (timeRange === '7d') daysToSubtract = 7;
         const startDate = new Date(referenceDate);
-        startDate.setDate(startDate.getDate() - daysToSubtract);
-        return date >= startDate;
-    });
+        startDate.setDate(startDate.getDate() - daysToSubtract + 1);
+        return data.filter((item) => new Date(item.date) >= startDate);
+    }, [data, timeRange]);
+
+    console.log('Filtered data for chart:', filteredData); // Debug log
+
+    if (loading) {
+        return (
+            <Card className="pt-0">
+                <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+                    <div className="grid flex-1 gap-1">
+                        <CardTitle>Attendance - Interactive</CardTitle>
+                        <CardDescription>Loading attendance data...</CardDescription>
+                    </div>
+                </CardHeader>
+                <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+                    <div className="flex h-[250px] items-center justify-center">
+                        <div className="text-muted-foreground">Loading...</div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (error) {
+        return (
+            <Card className="pt-0">
+                <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+                    <div className="grid flex-1 gap-1">
+                        <CardTitle>Attendance - Interactive</CardTitle>
+                        <CardDescription>Error loading data</CardDescription>
+                    </div>
+                </CardHeader>
+                <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+                    <div className="flex h-[250px] items-center justify-center">
+                        <div className="text-destructive">Error: {error}</div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (filteredData.length === 0) {
+        return (
+            <Card className="pt-0">
+                <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+                    <div className="grid flex-1 gap-1">
+                        <CardTitle>Attendance - Interactive</CardTitle>
+                        <CardDescription>No data available</CardDescription>
+                    </div>
+                </CardHeader>
+                <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+                    <div className="flex h-[250px] items-center justify-center">
+                        <div className="text-muted-foreground">No attendance data found</div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <Card className="pt-0">
             <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
                 <div className="grid flex-1 gap-1">
-                    <CardTitle>Area Chart - Interactive</CardTitle>
-                    <CardDescription>Showing total visitors for the last 3 months</CardDescription>
+                    <CardTitle>Attendance - Interactive</CardTitle>
+                    <CardDescription>Showing Present, Late, and Absent</CardDescription>
                 </div>
                 <Select value={timeRange} onValueChange={setTimeRange}>
                     <SelectTrigger className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex" aria-label="Select a value">
@@ -159,52 +258,46 @@ export function ChartAreaInteractive() {
                 </Select>
             </CardHeader>
             <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-                <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-                    <AreaChart data={filteredData}>
-                        <defs>
-                            <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--color-desktop)" stopOpacity={0.8} />
-                                <stop offset="95%" stopColor="var(--color-desktop)" stopOpacity={0.1} />
-                            </linearGradient>
-                            <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--color-mobile)" stopOpacity={0.8} />
-                                <stop offset="95%" stopColor="var(--color-mobile)" stopOpacity={0.1} />
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                            dataKey="date"
-                            tickLine={false}
-                            axisLine={false}
-                            tickMargin={8}
-                            minTickGap={32}
-                            tickFormatter={(value) => {
-                                const date = new Date(value);
-                                return date.toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                });
-                            }}
-                        />
-                        <ChartTooltip
-                            cursor={false}
-                            content={
-                                <ChartTooltipContent
-                                    labelFormatter={(value) => {
-                                        return new Date(value).toLocaleDateString('en-US', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                        });
-                                    }}
-                                    indicator="dot"
-                                />
-                            }
-                        />
-                        <Area dataKey="mobile" type="natural" fill="url(#fillMobile)" stroke="var(--color-mobile)" stackId="a" />
-                        <Area dataKey="desktop" type="natural" fill="url(#fillDesktop)" stroke="var(--color-desktop)" stackId="a" />
-                        <ChartLegend content={<ChartLegendContent />} />
-                    </AreaChart>
-                </ChartContainer>
+                <div className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={filteredData}>
+                            <defs>
+                                <linearGradient id="fillPresent" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1} />
+                                </linearGradient>
+                                <linearGradient id="fillLate" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#eab308" stopOpacity={0.1} />
+                                </linearGradient>
+                                <linearGradient id="fillAbsent" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid vertical={false} />
+                            <XAxis
+                                dataKey="date"
+                                tickLine={false}
+                                axisLine={false}
+                                tickMargin={8}
+                                minTickGap={32}
+                                tickFormatter={(value) => {
+                                    const date = new Date(value);
+                                    return date.toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                    });
+                                }}
+                            />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Area dataKey="present" type="natural" fill="url(#fillPresent)" stroke="#22c55e" stackId="a" />
+                            <Area dataKey="late" type="natural" fill="url(#fillLate)" stroke="#eab308" stackId="a" />
+                            <Area dataKey="absent" type="natural" fill="url(#fillAbsent)" stroke="#ef4444" stackId="a" />
+                            <Legend content={<CustomLegend />} />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
             </CardContent>
         </Card>
     );
