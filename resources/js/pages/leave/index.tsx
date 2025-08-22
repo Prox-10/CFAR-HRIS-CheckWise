@@ -125,7 +125,7 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
                                         <div className="ms-2 flex items-center">
                                             <Users className="size-11" />
                                             <div className="ms-2">
-                                                <h2 className="flex text-2xl font-bold tracking-tight">Concha Management</h2>
+                                                <h2 className="flex text-2xl font-bold tracking-tight">Leave Management</h2>
                                                 <p className="text-muted-foreground">Manage employee leave requests and absences</p>
                                             </div>
                                         </div>
