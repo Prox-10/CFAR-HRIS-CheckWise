@@ -123,7 +123,7 @@ export function SectionCards({ employee, totalDepartment, totalEmployee, isSuper
             </Card>
 
             {/* Active Accounts Card */}
-            <Card className="@container/card border-l-4 border-amber-500 bg-gradient-to-br from-amber-50 to-white shadow-lg transition-all duration-300 hover:shadow-xl overflow-hidden">
+            <Card className="@container/card border-l-4 border-amber-500 bg-gradient-to-br from-red-500 to-white shadow-lg transition-all duration-300 hover:shadow-xl overflow-hidden">
                 <CardHeader className="relative">
                     <div className="flex items-center justify-between">
                         <div className="rounded-lg bg-amber-100 p-2">
