@@ -235,7 +235,7 @@ export default function LeaveCredit({ employees = [], monthlyLeaveStats = [], us
                                         <CardDescription>Summary of leave credits across all employees</CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        <CreditSummary employees={employees} creditType="leave" />
+                                        {/* <CreditSummary employees={employees} creditType="leave" /> */}
                                     </CardContent>
                                 </Card>
                             </div>
