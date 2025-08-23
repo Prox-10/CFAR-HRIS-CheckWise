@@ -10,6 +10,7 @@ import { ContentLoading } from '@/components/ui/loading';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
+import { departments as globalDepartments } from '@/hooks/data';
 import { Employees } from '@/hooks/employees';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type BreadcrumbItem } from '@/types';
@@ -17,6 +18,8 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { Calendar, Download, FileText, RotateCcw, Star, User, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { WorkFunctionsSection } from './components/work-functions-section';
+import { getAllWorkFunctions, getCriteriaLabel, getDefaultDepartmentSettings, getDepartmentSettings } from './settings/evaluation-settings';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -74,51 +77,8 @@ interface EvaluationData {
     evaluator: string;
 }
 
-// Department-specific work functions
-const departmentWorkFunctions = {
-    Monthly: [
-        'Encode workers daily time & accomplishment report (WDTAR)',
-        'Prepare the payroll of periodic paid employees, COOP leave, honorarium and hired workers',
-        'Maintain files of timesheets and other source documents',
-        'Update generation of documents for remittance/payment schedules',
-        'Prepare and furnish the bookkeeper summary of beneficiary deductions',
-    ],
-    Packing: [
-        'Package products according to quality standards',
-        'Maintain packaging material inventory',
-        'Ensure proper labeling and documentation',
-        'Follow safety protocols during packaging',
-        'Meet daily packaging targets and deadlines',
-    ],
-    Harvest: [
-        'Harvest crops at optimal maturity',
-        'Sort and grade harvested produce',
-        'Maintain harvest equipment and tools',
-        'Follow sustainable harvesting practices',
-        'Coordinate with logistics for timely delivery',
-    ],
-    PDC: [
-        'Process and package dried crops',
-        'Maintain drying facility equipment',
-        'Monitor moisture content and quality',
-        'Ensure proper storage conditions',
-        'Coordinate with quality control team',
-    ],
-    'Coop Area': [
-        'Manage cooperative area operations',
-        'Coordinate with member farmers',
-        'Maintain cooperative facilities',
-        'Process member applications and records',
-        'Organize cooperative meetings and events',
-    ],
-    Engineering: [
-        'Repair & Maintenance of Vehicles/Equipment',
-        'Assist in Farm Equipment Needs',
-        'Machine Operation and Troubleshooting',
-        'Equipment Safety Inspections',
-        'Perform Other Duties as Assigned',
-    ],
-};
+// Department-specific work functions are now managed through evaluation settings
+// See: ./settings/evaluation-settings.tsx
 
 export default function DepartmentEvaluation({ departments, employees_all, evaluation_configs, user_permissions }: Props) {
     const [selectedDepartment, setSelectedDepartment] = useState<string>('');
@@ -145,14 +105,17 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
     const [isFormReadOnly, setIsFormReadOnly] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
+    // Use global departments instead of prop departments
+    const availableDepartments = globalDepartments;
+
     // Allowed departments based on role/permissions
     const allowedDepartments = useMemo(() => {
-        if (user_permissions?.is_super_admin) return departments;
+        if (user_permissions?.is_super_admin) return availableDepartments;
         if (Array.isArray(user_permissions?.evaluable_departments) && user_permissions.evaluable_departments.length > 0) {
-            return departments.filter((dept) => user_permissions.evaluable_departments.includes(dept));
+            return availableDepartments.filter((dept) => user_permissions.evaluable_departments.includes(dept));
         }
-        return departments;
-    }, [departments, user_permissions]);
+        return availableDepartments;
+    }, [availableDepartments, user_permissions]);
 
     // Filter employees by selected department
     const filteredEmployees = useMemo(() => {
@@ -210,15 +173,13 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
 
                     // Handle work functions separately to ensure proper structure
                     // First, initialize with department's default work functions
-                    if (departmentWorkFunctions[department as keyof typeof departmentWorkFunctions]) {
-                        const functions = departmentWorkFunctions[department as keyof typeof departmentWorkFunctions];
-                        functions.forEach((func) => {
-                            (newEvaluationData.workFunctions as any)[func] = {
-                                workQuality: 0,
-                                workEfficiency: 0,
-                            };
-                        });
-                    }
+                    const allFunctions = getAllWorkFunctions(department);
+                    allFunctions.forEach((func: string) => {
+                        (newEvaluationData.workFunctions as any)[func] = {
+                            workQuality: 0,
+                            workEfficiency: 0,
+                        };
+                    });
 
                     // Then, overlay any existing work functions data
                     if (data.evaluation.workFunctions && Array.isArray(data.evaluation.workFunctions)) {
@@ -272,11 +233,12 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
 
     // Initialize work functions when department changes
     useEffect(() => {
-        if (selectedDepartment && departmentWorkFunctions[selectedDepartment as keyof typeof departmentWorkFunctions]) {
-            const functions = departmentWorkFunctions[selectedDepartment as keyof typeof departmentWorkFunctions];
+        if (selectedDepartment) {
+            const departmentSettings = getDepartmentSettings(selectedDepartment) || getDefaultDepartmentSettings(selectedDepartment);
+            const allFunctions = getAllWorkFunctions(selectedDepartment);
             const initialWorkFunctions: { [key: string]: { workQuality: number; workEfficiency: number } } = {};
 
-            functions.forEach((func) => {
+            allFunctions.forEach((func: string) => {
                 // Always initialize with default values - existing data will be loaded separately
                 initialWorkFunctions[func] = { workQuality: 0, workEfficiency: 0 };
             });
@@ -285,7 +247,7 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
             setEvaluationData((prev) => {
                 // Only initialize if work functions are empty or don't match the current department
                 const currentWorkFunctions = prev.workFunctions || {};
-                const expectedFunctions = departmentWorkFunctions[selectedDepartment as keyof typeof departmentWorkFunctions] || [];
+                const expectedFunctions = allFunctions || [];
 
                 // Check if we need to initialize (empty or different structure)
                 const needsInitialization =
@@ -784,12 +746,12 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                             </Card>
                                         )}
 
-                                        {/* 1. Attendance */}
+                                        {/* Attendance */}
                                         <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                             <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
                                                 <CardTitle className="flex items-center gap-2">
                                                     <Calendar className="h-5 w-5" />
-                                                    1. Attendance
+                                                    {getCriteriaLabel(selectedDepartment, 'attendance') || '1. Attendance'}
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="p-6">
@@ -880,7 +842,8 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                             <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
                                                 <CardTitle className="flex items-center gap-2">
                                                     <User className="h-5 w-5" />
-                                                    2. Attitude Towards Supervisor
+                                                    {getCriteriaLabel(selectedDepartment, 'attitudeTowardsSupervisor') ||
+                                                        '2. Attitude Towards Supervisor'}
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="p-6">
@@ -918,55 +881,68 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                             </CardContent>
                                         </Card>
 
-                                        {/* 3. Attitude Towards Co-worker */}
-                                        <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
-                                            <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                                                <CardTitle className="flex items-center gap-2">
-                                                    <User className="h-5 w-5" />
-                                                    3. Attitude Towards Co-worker
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="p-6">
-                                                <div className="space-y-4">
-                                                    <div>
-                                                        <label className="mb-2 block text-sm font-medium text-gray-700">Rating</label>
-                                                        <StarRating
-                                                            rating={evaluationData.attitudeCoworker.rating}
-                                                            onRatingChange={(rating) =>
-                                                                setEvaluationData((prev) => ({
-                                                                    ...prev,
-                                                                    attitudeCoworker: { ...prev.attitudeCoworker, rating },
-                                                                }))
-                                                            }
-                                                            disabled={isFormReadOnly}
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-sm font-medium text-gray-700">Remarks</label>
-                                                        <Textarea
-                                                            placeholder="Enter remarks about attitude towards co-workers..."
-                                                            value={evaluationData.attitudeCoworker.remarks}
-                                                            onChange={(e) =>
-                                                                setEvaluationData((prev) => ({
-                                                                    ...prev,
-                                                                    attitudeCoworker: { ...prev.attitudeCoworker, remarks: e.target.value },
-                                                                }))
-                                                            }
-                                                            className="resize-none"
-                                                            readOnly={isFormReadOnly}
-                                                            disabled={isFormReadOnly}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                        {/* Attitude Towards Co-worker */}
+                                        {(() => {
+                                            const departmentSettings =
+                                                getDepartmentSettings(selectedDepartment) || getDefaultDepartmentSettings(selectedDepartment);
+                                            if (departmentSettings.showAttitudeTowardsCoworker !== false) {
+                                                return (
+                                                    <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
+                                                        <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                                                            <CardTitle className="flex items-center gap-2">
+                                                                <User className="h-5 w-5" />
+                                                                {getCriteriaLabel(selectedDepartment, 'attitudeTowardsCoworker') ||
+                                                                    '3. Attitude Towards Co-worker'}
+                                                            </CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent className="p-6">
+                                                            <div className="space-y-4">
+                                                                <div>
+                                                                    <label className="mb-2 block text-sm font-medium text-gray-700">Rating</label>
+                                                                    <StarRating
+                                                                        rating={evaluationData.attitudeCoworker.rating}
+                                                                        onRatingChange={(rating) =>
+                                                                            setEvaluationData((prev) => ({
+                                                                                ...prev,
+                                                                                attitudeCoworker: { ...prev.attitudeCoworker, rating },
+                                                                            }))
+                                                                        }
+                                                                        disabled={isFormReadOnly}
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="text-sm font-medium text-gray-700">Remarks</label>
+                                                                    <Textarea
+                                                                        placeholder="Enter remarks about attitude towards co-workers..."
+                                                                        value={evaluationData.attitudeCoworker.remarks}
+                                                                        onChange={(e) =>
+                                                                            setEvaluationData((prev) => ({
+                                                                                ...prev,
+                                                                                attitudeCoworker: {
+                                                                                    ...prev.attitudeCoworker,
+                                                                                    remarks: e.target.value,
+                                                                                },
+                                                                            }))
+                                                                        }
+                                                                        className="resize-none"
+                                                                        readOnly={isFormReadOnly}
+                                                                        disabled={isFormReadOnly}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
 
-                                        {/* 4. Work Attitude/Performance */}
+                                        {/* Work Attitude/Performance */}
                                         <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                             <CardHeader className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
                                                 <CardTitle className="flex items-center gap-2">
                                                     <FileText className="h-5 w-5" />
-                                                    4. Work Attitude/Performance
+                                                    {getCriteriaLabel(selectedDepartment, 'workAttitude') || '4. Work Attitude/Performance'}
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="p-6">
@@ -1063,74 +1039,130 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                             </CardContent>
                                         </Card>
 
-                                        {/* 5. Work Functions - Department Specific */}
-                                        {selectedDepartment && (
-                                            <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
-                                                <CardHeader className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white">
-                                                    <CardTitle className="flex items-center gap-2">
-                                                        <FileText className="h-5 w-5" />
-                                                        5. Work Functions - {selectedDepartment} Department
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="p-6">
-                                                    <div className="space-y-6">
-                                                        {departmentWorkFunctions[selectedDepartment as keyof typeof departmentWorkFunctions]?.map(
-                                                            (workFunction, index) => (
-                                                                <div key={index} className="rounded-lg border bg-gray-50 p-4">
-                                                                    <h4 className="mb-4 font-medium text-gray-800">{workFunction}</h4>
-                                                                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                                                        <div>
-                                                                            <label className="mb-2 block text-sm font-medium text-gray-700">
-                                                                                Work Quality (1-10)
-                                                                            </label>
-                                                                            <StarRating
-                                                                                rating={evaluationData.workFunctions[workFunction]?.workQuality || 0}
-                                                                                onRatingChange={(rating) =>
-                                                                                    setEvaluationData((prev) => ({
-                                                                                        ...prev,
-                                                                                        workFunctions: {
-                                                                                            ...prev.workFunctions,
-                                                                                            [workFunction]: {
-                                                                                                ...prev.workFunctions[workFunction],
-                                                                                                workQuality: rating,
-                                                                                            },
-                                                                                        },
-                                                                                    }))
-                                                                                }
-                                                                                disabled={isFormReadOnly}
-                                                                            />
+                                        {/* 4. Work Operations - For Coop Area Department */}
+                                        {(() => {
+                                            const departmentSettings =
+                                                getDepartmentSettings(selectedDepartment) || getDefaultDepartmentSettings(selectedDepartment);
+                                            if (
+                                                departmentSettings.showWorkFunctions === false &&
+                                                departmentSettings.workFunctions &&
+                                                typeof departmentSettings.workFunctions === 'object' &&
+                                                'sections' in departmentSettings.workFunctions
+                                            ) {
+                                                return (
+                                                    <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
+                                                        <CardHeader className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white">
+                                                            <CardTitle className="flex items-center gap-2">
+                                                                <FileText className="h-5 w-5" />
+                                                                {getCriteriaLabel(selectedDepartment, 'workOperations') || '4. Work Operations'}
+                                                            </CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent className="p-6">
+                                                            {/* Department Description */}
+                                                            <div className="mb-6 rounded-lg border border-teal-200 bg-teal-50 p-4">
+                                                                <p className="text-sm text-teal-700">{departmentSettings.description}</p>
+                                                            </div>
+
+                                                            {/* Render structured work functions */}
+                                                            <div className="space-y-8">
+                                                                {departmentSettings.workFunctions.sections.map(
+                                                                    (section: any, sectionIndex: number) => (
+                                                                        <div key={sectionIndex} className="space-y-4">
+                                                                            <h3 className="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-800">
+                                                                                {section.title}
+                                                                            </h3>
+                                                                            <div className="space-y-4">
+                                                                                {section.items.map((workFunction: string, index: number) => (
+                                                                                    <div key={index} className="rounded-lg border bg-gray-50 p-4">
+                                                                                        <h4 className="mb-4 font-medium text-gray-800">
+                                                                                            {workFunction}
+                                                                                        </h4>
+                                                                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                                                            <div>
+                                                                                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                                                                                    Work Quality (1-10)
+                                                                                                </label>
+                                                                                                <StarRating
+                                                                                                    rating={
+                                                                                                        evaluationData.workFunctions[workFunction]
+                                                                                                            ?.workQuality || 0
+                                                                                                    }
+                                                                                                    onRatingChange={(rating) =>
+                                                                                                        setEvaluationData((prev: any) => ({
+                                                                                                            ...prev,
+                                                                                                            workFunctions: {
+                                                                                                                ...prev.workFunctions,
+                                                                                                                [workFunction]: {
+                                                                                                                    ...prev.workFunctions[
+                                                                                                                        workFunction
+                                                                                                                    ],
+                                                                                                                    workQuality: rating,
+                                                                                                                },
+                                                                                                            },
+                                                                                                        }))
+                                                                                                    }
+                                                                                                    disabled={isFormReadOnly}
+                                                                                                />
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                                                                                    Work Efficiency (1-10)
+                                                                                                </label>
+                                                                                                <StarRating
+                                                                                                    rating={
+                                                                                                        evaluationData.workFunctions[workFunction]
+                                                                                                            ?.workEfficiency || 0
+                                                                                                    }
+                                                                                                    onRatingChange={(rating) =>
+                                                                                                        setEvaluationData((prev: any) => {
+                                                                                                            return {
+                                                                                                                ...prev,
+                                                                                                                workFunctions: {
+                                                                                                                    ...prev.workFunctions,
+                                                                                                                    [workFunction]: {
+                                                                                                                        ...prev.workFunctions[
+                                                                                                                            workFunction
+                                                                                                                        ],
+                                                                                                                        workEfficiency: rating,
+                                                                                                                    },
+                                                                                                                },
+                                                                                                            };
+                                                                                                        })
+                                                                                                    }
+                                                                                                    disabled={isFormReadOnly}
+                                                                                                />
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
                                                                         </div>
-                                                                        <div>
-                                                                            <label className="mb-2 block text-sm font-medium text-gray-700">
-                                                                                Work Efficiency (1-10)
-                                                                            </label>
-                                                                            <StarRating
-                                                                                rating={
-                                                                                    evaluationData.workFunctions[workFunction]?.workEfficiency || 0
-                                                                                }
-                                                                                onRatingChange={(rating) =>
-                                                                                    setEvaluationData((prev) => ({
-                                                                                        ...prev,
-                                                                                        workFunctions: {
-                                                                                            ...prev.workFunctions,
-                                                                                            [workFunction]: {
-                                                                                                ...prev.workFunctions[workFunction],
-                                                                                                workEfficiency: rating,
-                                                                                            },
-                                                                                        },
-                                                                                    }))
-                                                                                }
-                                                                                disabled={isFormReadOnly}
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            ),
-                                                        )}
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        )}
+                                                                    ),
+                                                                )}
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
+
+                                        {/* 5. Work Functions/Operations - Department Specific */}
+                                        {(() => {
+                                            const departmentSettings =
+                                                getDepartmentSettings(selectedDepartment) || getDefaultDepartmentSettings(selectedDepartment);
+                                            if (departmentSettings.showWorkFunctions !== false) {
+                                                return (
+                                                    <WorkFunctionsSection
+                                                        selectedDepartment={selectedDepartment}
+                                                        evaluationData={evaluationData}
+                                                        setEvaluationData={setEvaluationData}
+                                                        isFormReadOnly={isFormReadOnly}
+                                                    />
+                                                );
+                                            }
+                                            return null;
+                                        })()}
 
                                         {/* Total Rating */}
                                         <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">

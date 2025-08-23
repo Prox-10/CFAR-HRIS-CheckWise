@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { departments as globalDepartments } from '@/hooks/data';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -88,6 +89,9 @@ export default function SupervisorManagement({ supervisors, departments, assignm
         department: '',
         can_evaluate: true,
     });
+
+    // Use global departments instead of prop departments
+    const availableDepartments = globalDepartments;
 
     const isAdmin = user_permissions?.is_super_admin || false;
     const isSupervisor = user_permissions?.is_supervisor || false;
@@ -169,10 +173,6 @@ export default function SupervisorManagement({ supervisors, departments, assignm
                                         Evaluation Frequencies
                                     </TabsTrigger>
                                 )}
-                                {/* <TabsTrigger value="evaluations" className="flex items-center gap-2">
-                                    <Star className="h-4 w-4" />
-                                    Evaluations
-                                </TabsTrigger> */}
                             </TabsList>
 
                             {/* Supervisors Tab */}
@@ -214,7 +214,7 @@ export default function SupervisorManagement({ supervisors, departments, assignm
                                                             <SelectValue placeholder="Select department" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {departments.map((department) => (
+                                                            {availableDepartments.map((department) => (
                                                                 <SelectItem key={department} value={department}>
                                                                     {department}
                                                                 </SelectItem>
@@ -307,6 +307,13 @@ export default function SupervisorManagement({ supervisors, departments, assignm
                             {isAdmin && (
                                 <TabsContent value="frequencies" className="space-y-6">
                                     <EvaluationFrequencyManager isAdmin={isAdmin} frequencies={frequencies} />
+                                </TabsContent>
+                            )}
+
+                            {/* Evaluation Settings Tab */}
+                            {isAdmin && (
+                                <TabsContent value="settings" className="space-y-6">
+                                    <EvaluationSettingsManager isAdmin={isAdmin} />
                                 </TabsContent>
                             )}
 

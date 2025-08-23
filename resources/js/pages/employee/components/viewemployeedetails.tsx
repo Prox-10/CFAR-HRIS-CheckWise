@@ -274,7 +274,9 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                                 <div className="flex min-w-0 items-center space-x-3">
                                     <User className="h-5 w-5 flex-shrink-0 text-green-600" />
                                     <span className="flex-shrink-0 text-sm font-medium text-gray-600">Nationality:</span>
-                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.nationality}</Badge>
+                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">
+                                        {data.nationality || 'Not specified'}
+                                    </Badge>
                                 </div>
                             </div>
                         </div>
@@ -333,8 +335,6 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
                                     {fingerprintStatus.status}
                                 </Badge>
                             </div>
-
-                            
 
                             {/* Fingerprint Capture Component - Added from editemployeemodal.tsx */}
                             <div className="mt-6 space-y-4">

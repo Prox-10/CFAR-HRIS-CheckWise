@@ -312,8 +312,8 @@ class EvaluationController extends Controller
     {
         $user = Auth::user();
 
-        // Get all departments from the data hook
-        $departments = ['Monthly', 'Packing', 'Harvest', 'PDC', 'Coop Area', 'Engineering'];
+        // Get all departments from the global departments list
+        $departments = ['Monthly', 'Packing Plant', 'Harvesting', 'Pest & Decease', 'Coop Area', 'Engineering', 'Admin', 'Utility'];
 
         // Get employees based on user role and permissions
         $employees = $this->getEmployeesForUser($user);
@@ -721,7 +721,7 @@ class EvaluationController extends Controller
     public function getFrequencies()
     {
         try {
-            $departments = ['Monthly', 'Packing', 'Harvest', 'PDC', 'Coop Area', 'Engineering'];
+            $departments = ['Monthly', 'Packing Plant', 'Harvesting', 'Pest & Decease', 'Coop Area', 'Engineering', 'Admin', 'Utility'];
             $frequencies = [];
 
             foreach ($departments as $department) {
@@ -777,5 +777,9 @@ class EvaluationController extends Controller
             Log::error('Failed to update evaluation frequency: ' . $e->getMessage());
             return back()->withErrors(['evaluation' => 'Failed to update frequency']);
         }
+    }
+
+    public function evaluationSettings(){
+        return Inertia::render('evaluation/evaluation-settings');
     }
 }

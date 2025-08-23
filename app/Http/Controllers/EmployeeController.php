@@ -321,7 +321,7 @@ class EmployeeController extends Controller
                 'department' => 'string|max:100',
                 'position' => 'string|max:100',
                 'marital_status' => 'string|max:50',
-                'nationality' => 'string|max:50',
+                'nationality' => 'nullable|string|max:50',
                 'address' => 'string|max:100',
                 'city' => 'string|max:100',
                 'state' => 'string|max:100',
@@ -366,7 +366,7 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             Log::error('Employee Update Failed: ' . $e->getMessage());
             Log::info('Request all:', $request->all());
-            return response()->json(['message' => 'Failed to update employee'], 500);
+            return redirect()->back()->with('error', 'Failed to create employee Server error.');
         }
     }
 

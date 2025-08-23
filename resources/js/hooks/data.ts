@@ -2,11 +2,13 @@
 
 export const departments: string[] = [
     'Monthly',
-    'Packing', 
-    'Harvest', 
-    'PDC', 
+    'Packing Plant', 
+    'Harvesting', 
+    'Pest & Decease', 
     'Coop Area', 
     'Engineering',
+    'Admin',
+    'Utility',
 ];
 
 export const positions: string[] = [
@@ -21,6 +23,7 @@ export const positions: string[] = [
     'R&D Specialist',
     'Sales Executive',
     'Maintenance Technician',
+    'P&D',
     'P&D',
 ];
 

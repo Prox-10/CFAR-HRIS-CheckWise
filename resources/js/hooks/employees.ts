@@ -22,7 +22,7 @@ export interface Employee {
     state: string;
     country: string;
     zip_code: string;
-    nationality: string;
+    nationality?: string;
     philhealth: string;
     tin: string;
     sss: string;
@@ -54,7 +54,7 @@ export interface Employees {
     state: string;
     country: string;
     zip_code: string;
-    nationality: string;
+    nationality?: string;
     philhealth: string;
     tin: string;
     sss: string;
@@ -86,7 +86,7 @@ export const initialEmployeeFormData: Employees = {
     picture: null,
     country: '',
     zip_code: '',
-    nationality: '',
+    nationality: undefined,
     philhealth: '',
     tin: '',
     sss: '',

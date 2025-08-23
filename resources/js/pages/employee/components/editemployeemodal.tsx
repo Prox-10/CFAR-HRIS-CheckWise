@@ -469,9 +469,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 value={data.nationality}
                                 onChange={(e) => setData('nationality', e.target.value)}
                                 className="border-green-300 focus:border-cfar-500"
-                                aria-invalid={!!errors.nationality}
                             />
-                            <InputError message={errors.nationality} />
                         </div>
                     </div>
                     <div>

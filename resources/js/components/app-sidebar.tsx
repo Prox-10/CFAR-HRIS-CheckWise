@@ -60,7 +60,12 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Supervisor Management',
                 href: '/evaluation/supervisor-management',
-                permission: 'View Admin',
+                permission: 'View Supervisor Management',
+            },
+            {
+                title: 'Evaluation Settings',
+                href: '/evaluation/evaluation-settings',
+                permission: 'View Evaluation Settings',
             },
         ],
     },
