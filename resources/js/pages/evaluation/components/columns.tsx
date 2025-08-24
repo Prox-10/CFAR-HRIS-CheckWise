@@ -141,23 +141,24 @@ const columns = (
         accessorKey: 'ratings',
         header: 'Ratings',
         cell: ({ row }) => {
-            // const ratings: string = row.getValue('ratings');
             const ratings = row.original.ratings;
-            let display = ratings;
-            let colorClass = '';
-            if (!ratings || ratings === '0' || ratings === '0.0') {
-                display = 'No Rating';
-                colorClass = 'bg-gray-100 text-gray-800';
-            } else {
+            let display = 'No Rating';
+            let colorClass = 'bg-gray-100 text-gray-800';
+            
+            if (ratings !== null && ratings !== undefined && ratings !== '' && ratings !== '0' && ratings !== '0.0') {
                 const ratingNum = parseFloat(ratings);
-                if (ratingNum >= 4) {
-                    colorClass = 'bg-green-100 text-green-800';
-                } else if (ratingNum >= 2) {
-                    colorClass = 'bg-yellow-100 text-yellow-800';
-                } else {
-                    colorClass = 'bg-red-100 text-red-800';
+                if (!isNaN(ratingNum) && ratingNum > 0) {
+                    display = ratings.toString();
+                    if (ratingNum >= 8) {
+                        colorClass = 'bg-green-100 text-green-800';
+                    } else if (ratingNum >= 5) {
+                        colorClass = 'bg-yellow-100 text-yellow-800';
+                    } else {
+                        colorClass = 'bg-red-100 text-red-800';
+                    }
                 }
             }
+            
             return <span className={`rounded px-2 py-1 text-xs font-medium ${colorClass}`}>{display}</span>;
         },
         filterFn: (row, columnId, filterValue) => {

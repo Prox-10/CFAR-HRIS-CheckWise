@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Building2, Edit, Plus, Save, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { evaluationSettings, getDefaultDepartmentSettings, type DepartmentEvaluationSettings } from '../settings/evaluation-settings';
+import { evaluationSettings, getDefaultDepartmentSettings, type DepartmentEvaluationSettings } from '../types/evaluation-settings';
 
 interface EvaluationSettingsManagerProps {
     isAdmin: boolean;

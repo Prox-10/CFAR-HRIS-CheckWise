@@ -5,6 +5,7 @@ import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ContentLoading } from '@/components/ui/loading';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,7 +20,7 @@ import { Calendar, Download, FileText, RotateCcw, Star, User, Users } from 'luci
 import { useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import { WorkFunctionsSection } from './components/work-functions-section';
-import { getAllWorkFunctions, getCriteriaLabel, getDefaultDepartmentSettings, getDepartmentSettings } from './settings/evaluation-settings';
+import { getAllWorkFunctions, getCriteriaLabel, getDefaultDepartmentSettings, getDepartmentSettings } from './types/evaluation-settings';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -78,7 +79,7 @@ interface EvaluationData {
 }
 
 // Department-specific work functions are now managed through evaluation settings
-// See: ./settings/evaluation-settings.tsx
+// See: ./types/evaluation-settings.ts
 
 export default function DepartmentEvaluation({ departments, employees_all, evaluation_configs, user_permissions }: Props) {
     const [selectedDepartment, setSelectedDepartment] = useState<string>('');
@@ -117,11 +118,55 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
         return availableDepartments;
     }, [availableDepartments, user_permissions]);
 
-    // Filter employees by selected department
-    const filteredEmployees = useMemo(() => {
-        if (!selectedDepartment) return [];
-        return employees_all.filter((emp) => emp.department === selectedDepartment);
-    }, [selectedDepartment, employees_all]);
+    // Filter employees by selected department and exclude those already evaluated
+    const [filteredEmployees, setFilteredEmployees] = useState<any[]>([]);
+    const [isFilteringEmployees, setIsFilteringEmployees] = useState(false);
+
+    // Filter employees when department changes
+    useEffect(() => {
+        if (!selectedDepartment) {
+            setFilteredEmployees([]);
+            return;
+        }
+
+        setIsFilteringEmployees(true);
+
+        // Get current period and year for evaluation frequency check
+        const now = new Date();
+        const currentPeriod = now.getMonth() <= 5 ? 1 : 2; // Jan-Jun = 1, Jul-Dec = 2
+        const currentYear = now.getFullYear();
+
+        // Get evaluation frequency for the department
+        const departmentFrequency = evaluation_configs.find((cfg) => cfg.department === selectedDepartment)?.evaluation_frequency || 'annual';
+
+        // First filter by department
+        const departmentEmployees = employees_all.filter((emp) => emp.department === selectedDepartment);
+
+        // Check each employee's evaluation status
+        const checkEmployeeEvaluationStatus = async () => {
+            const availableEmployees = [];
+
+            for (const emp of departmentEmployees) {
+                try {
+                    const response = await fetch(`/evaluation/check-existing/${emp.id}/${selectedDepartment}`);
+                    const data = await response.json();
+
+                    if (!data.exists) {
+                        availableEmployees.push(emp);
+                    }
+                } catch (error) {
+                    console.error(`Error checking evaluation for employee ${emp.employee_name}:`, error);
+                    // If there's an error, include the employee to be safe
+                    availableEmployees.push(emp);
+                }
+            }
+
+            setFilteredEmployees(availableEmployees);
+            setIsFilteringEmployees(false);
+        };
+
+        checkEmployeeEvaluationStatus();
+    }, [selectedDepartment, employees_all, evaluation_configs]);
 
     // Get selected employee details
     const selectedEmployeeData = useMemo(() => {
@@ -209,18 +254,79 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
         }
     };
 
-    // Debug: Monitor evaluationData changes - REMOVED to prevent infinite loop
-    // useEffect(() => {
-    //     console.log('evaluationData changed:', evaluationData);
-    //     console.log('workAttitude values:', {
-    //         responsible: evaluationData.workAttitude.responsible,
-    //         jobKnowledge: evaluationData.workAttitude.jobKnowledge,
-    //         cooperation: evaluationData.workAttitude.cooperation,
-    //         initiative: evaluationData.workAttitude.initiative,
-    //         dependability: evaluationData.workAttitude.dependability,
-    //     });
-    //     console.log('workFunctions values:', evaluationData.workFunctions);
-    // }, [evaluationData]);
+    // Fetch employee attendance data when employee is selected
+    const fetchEmployeeAttendance = async (employeeId: string) => {
+        if (!employeeId) return;
+
+        try {
+            // Get current period and year for attendance calculation
+            const now = new Date();
+            const currentPeriod = now.getMonth() <= 5 ? 1 : 2; // Jan-Jun = 1, Jul-Dec = 2
+            const currentYear = now.getFullYear();
+
+            // Get department frequency to determine attendance period
+            const departmentFrequency = evaluation_configs.find((cfg) => cfg.department === selectedDepartment)?.evaluation_frequency || 'annual';
+
+            let startDate, endDate;
+            if (departmentFrequency === 'annual') {
+                // For annual, get attendance for the entire year
+                startDate = `${currentYear}-01-01`;
+                endDate = `${currentYear}-12-31`;
+            } else {
+                // For semi-annual, get attendance for current period
+                if (currentPeriod === 1) {
+                    startDate = `${currentYear}-01-01`;
+                    endDate = `${currentYear}-06-30`;
+                } else {
+                    startDate = `${currentYear}-07-01`;
+                    endDate = `${currentYear}-12-31`;
+                }
+            }
+
+            const response = await fetch(`/api/employee-attendance/${employeeId}?start_date=${startDate}&end_date=${endDate}`);
+            const data = await response.json();
+
+            console.log('🔍 DEBUG: Attendance API Response:', data);
+
+            if (data.success) {
+                console.log('✅ DEBUG: Setting attendance data:', {
+                    daysLate: data.attendance.days_late,
+                    daysAbsent: data.attendance.days_absent,
+                });
+
+                setEvaluationData((prev) => ({
+                    ...prev,
+                    attendance: {
+                        ...prev.attendance,
+                        daysLate: data.attendance.days_late || 0,
+                        daysAbsent: data.attendance.days_absent || 0,
+                    },
+                }));
+            } else {
+                console.log('❌ DEBUG: API failed, setting default values');
+                // If API fails, set default values
+                setEvaluationData((prev) => ({
+                    ...prev,
+                    attendance: {
+                        ...prev.attendance,
+                        daysLate: 0,
+                        daysAbsent: 0,
+                    },
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching employee attendance:', error);
+            // Set default values on error
+            setEvaluationData((prev) => ({
+                ...prev,
+                attendance: {
+                    ...prev.attendance,
+                    daysLate: 0,
+                    daysAbsent: 0,
+                },
+            }));
+        }
+    };
 
     // Get evaluation frequency for selected department
     const departmentEvaluationFrequency = useMemo(() => {
@@ -285,6 +391,22 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
 
     // Calculate total rating
     const totalRating = useMemo(() => {
+        // Check if any actual evaluation has been done
+        const hasEvaluationData =
+            evaluationData.attitudeSupervisor.rating > 0 ||
+            evaluationData.attitudeCoworker.rating > 0 ||
+            evaluationData.workAttitude.responsible > 0 ||
+            evaluationData.workAttitude.jobKnowledge > 0 ||
+            evaluationData.workAttitude.cooperation > 0 ||
+            evaluationData.workAttitude.initiative > 0 ||
+            evaluationData.workAttitude.dependability > 0 ||
+            Object.values(evaluationData.workFunctions || {}).some((func: any) => (func?.workQuality || 0) > 0 || (func?.workEfficiency || 0) > 0);
+
+        // If no evaluation data has been entered, return null
+        if (!hasEvaluationData) {
+            return null;
+        }
+
         const attendanceScore = evaluationData.attendance.rating || 0;
         const attitudeSupervisorScore = evaluationData.attitudeSupervisor.rating || 0;
         const attitudeCoworkerScore = evaluationData.attitudeCoworker.rating || 0;
@@ -312,7 +434,8 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
     }, [evaluationData, existingEvaluation]);
 
     // Get rating label and color
-    const getRatingInfo = (rating: number) => {
+    const getRatingInfo = (rating: number | null) => {
+        if (rating === null) return { label: 'No Rating', color: 'text-gray-500' };
         if (rating >= 8) return { label: 'Very Satisfactory', color: 'text-green-600' };
         if (rating >= 5) return { label: 'Satisfactory', color: 'text-yellow-600' };
         return { label: 'Needs Improvement', color: 'text-red-600' };
@@ -602,10 +725,16 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                                 </Label>
                                                 <Select
                                                     value={selectedEmployee}
-                                                    onValueChange={(value) => {
+                                                    onValueChange={async (value) => {
                                                         setSelectedEmployee(value);
                                                         setData((prev) => ({ ...prev, employee_id: value }));
-                                                        checkExistingEvaluation(value, selectedDepartment);
+                                                        if (value && selectedDepartment) {
+                                                            // Check for existing evaluation
+                                                            await checkExistingEvaluation(value, selectedDepartment);
+
+                                                            // Fetch employee attendance data
+                                                            await fetchEmployeeAttendance(value);
+                                                        }
                                                     }}
                                                     disabled={!selectedDepartment}
                                                 >
@@ -615,14 +744,26 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                                         />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {filteredEmployees.map((emp: any) => (
-                                                            <SelectItem
-                                                                key={String((emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid)}
-                                                                value={String((emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid)}
-                                                            >
-                                                                {emp.employee_name} - {emp.position}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {isFilteringEmployees ? (
+                                                            <div className="px-2 py-1 text-sm text-gray-500">Loading available employees...</div>
+                                                        ) : filteredEmployees.length > 0 ? (
+                                                            filteredEmployees.map((emp: any) => (
+                                                                <SelectItem
+                                                                    key={String(
+                                                                        (emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid,
+                                                                    )}
+                                                                    value={String(
+                                                                        (emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid,
+                                                                    )}
+                                                                >
+                                                                    {emp.employee_name} - {emp.position}
+                                                                </SelectItem>
+                                                            ))
+                                                        ) : (
+                                                            <div className="px-2 py-1 text-sm text-gray-500">
+                                                                No employees available for evaluation in this department
+                                                            </div>
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -758,37 +899,27 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                                     <div className="space-y-2">
                                                         <label className="text-sm font-medium text-gray-700">Days Late</label>
-                                                        <input
+                                                        <Input
                                                             type="number"
                                                             min="0"
                                                             value={evaluationData.attendance.daysLate}
-                                                            onChange={(e) =>
-                                                                setEvaluationData((prev) => ({
-                                                                    ...prev,
-                                                                    attendance: { ...prev.attendance, daysLate: parseInt(e.target.value) || 0 },
-                                                                }))
-                                                            }
-                                                            className="w-full rounded-lg border border-gray-300 p-3 focus:border-transparent focus:ring-2 focus:ring-green-500"
-                                                            readOnly={isFormReadOnly}
-                                                            disabled={isFormReadOnly}
+                                                            className="w-full rounded-lg border border-gray-300 bg-gray-50 p-3 focus:border-transparent focus:ring-2 focus:ring-green-500"
+                                                            readOnly={true}
+                                                            disabled={true}
                                                         />
+                                                        <p className="text-xs text-gray-500">Auto-fetched from attendance records</p>
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-sm font-medium text-gray-700">Days Absent</label>
-                                                        <input
+                                                        <Input
                                                             type="number"
                                                             min="0"
                                                             value={evaluationData.attendance.daysAbsent}
-                                                            onChange={(e) =>
-                                                                setEvaluationData((prev) => ({
-                                                                    ...prev,
-                                                                    attendance: { ...prev.attendance, daysAbsent: parseInt(e.target.value) || 0 },
-                                                                }))
-                                                            }
-                                                            className="w-full rounded-lg border border-gray-300 p-3 focus:border-transparent focus:ring-2 focus:ring-green-500"
-                                                            readOnly={isFormReadOnly}
-                                                            disabled={isFormReadOnly}
+                                                            className="w-full rounded-lg border border-gray-300 bg-gray-50 p-3 focus:border-transparent focus:ring-2 focus:ring-green-500"
+                                                            readOnly={true}
+                                                            disabled={true}
                                                         />
+                                                        <p className="text-xs text-gray-500">Auto-fetched from attendance records</p>
                                                     </div>
                                                 </div>
 
@@ -1173,13 +1304,25 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="p-6 text-center">
-                                                <div className="mb-2 text-6xl font-bold text-yellow-600">{totalRating}/10</div>
-                                                <div className={`text-xl font-semibold ${getRatingInfo(totalRating).color}`}>
-                                                    {getRatingInfo(totalRating).label}
-                                                </div>
-                                                <div className="mt-4 flex justify-center">
-                                                    <StarRating rating={totalRating} onRatingChange={() => {}} size="lg" />
-                                                </div>
+                                                {totalRating !== null ? (
+                                                    <>
+                                                        <div className="mb-2 text-6xl font-bold text-yellow-600">{totalRating}/10</div>
+                                                        <div className={`text-xl font-semibold ${getRatingInfo(totalRating).color}`}>
+                                                            {getRatingInfo(totalRating).label}
+                                                        </div>
+                                                        <div className="mt-4 flex justify-center">
+                                                            <StarRating rating={totalRating} onRatingChange={() => {}} size="lg" />
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <div className="mb-2 text-6xl font-bold text-gray-400">No Rating</div>
+                                                        <div className="text-xl font-semibold text-gray-500">Complete evaluation to see rating</div>
+                                                        <div className="mt-4 flex justify-center">
+                                                            <StarRating rating={0} onRatingChange={() => {}} size="lg" disabled={true} />
+                                                        </div>
+                                                    </>
+                                                )}
                                             </CardContent>
                                         </Card>
 

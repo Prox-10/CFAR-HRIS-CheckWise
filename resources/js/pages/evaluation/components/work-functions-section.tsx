@@ -5,7 +5,7 @@ import {
     getDefaultDepartmentSettings,
     getDepartmentSettings,
     getStructuredWorkFunctions,
-} from '../settings/evaluation-settings';
+} from '../types/evaluation-settings';
 
 interface WorkFunctionsSectionProps {
     selectedDepartment: string;

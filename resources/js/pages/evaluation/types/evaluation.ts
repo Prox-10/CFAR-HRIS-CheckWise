@@ -5,7 +5,7 @@ export interface Evaluation {
     evaluation_frequency: string;
     evaluator: string;
     observations: string;
-    total_rating: number;
+    total_rating: number | null;
     evaluation_year: number;
     evaluation_period: number;
     rating_date: string;
@@ -23,15 +23,15 @@ export interface Evaluation {
     workFunctions?: EvaluationWorkFunction[];
 
     // Legacy fields for backward compatibility (can be removed later)
-    ratings?: string;
-    work_quality?: string;
-    safety_compliance?: string;
-    punctuality?: string;
-    teamwork?: string;
-    organization?: string;
-    equipment_handling?: string;
-    comment?: string;
-    period?: number;
+    ratings?: string | null;
+    work_quality?: string | null;
+    safety_compliance?: string | null;
+    punctuality?: string | null;
+    teamwork?: string | null;
+    organization?: string | null;
+    equipment_handling?: string | null;
+    comment?: string | null;
+    period?: number | null;
     year?: number;
 }
 

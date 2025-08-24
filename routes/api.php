@@ -69,3 +69,69 @@ Route::get('/attendance/test', function () {
         'sample_data' => $data
     ]);
 });
+
+// Employee attendance API for evaluation system
+Route::get('/employee-attendance/{employeeId}', function ($employeeId, Request $request) {
+    $startDate = $request->query('start_date');
+    $endDate = $request->query('end_date');
+    
+    if (!$startDate || !$endDate) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Start date and end date are required'
+        ], 400);
+    }
+    
+    try {
+        // Query actual attendance data from the database
+        $attendanceRecords = \App\Models\Attendance::where('employee_id', $employeeId)
+            ->whereBetween('attendance_date', [$startDate, $endDate])
+            ->get();
+        
+        // Calculate days late and absent based on attendance status
+        $daysLate = 0;
+        $daysAbsent = 0;
+        
+        foreach ($attendanceRecords as $record) {
+            $status = strtolower($record->attendance_status);
+            
+            if ($status === 'late' || $status === 'l') {
+                $daysLate++;
+            } elseif ($status === 'absent' || $status === 'a' || $status === 'no time in' || $status === 'no time out') {
+                $daysAbsent++;
+            }
+        }
+        
+        // For debugging, also return the raw attendance records
+        $debugInfo = [
+            'total_records' => $attendanceRecords->count(),
+            'date_range' => [$startDate, $endDate],
+            'sample_records' => $attendanceRecords->take(5)->map(function($record) {
+                return [
+                    'date' => $record->attendance_date,
+                    'status' => $record->attendance_status,
+                    'time_in' => $record->time_in,
+                    'time_out' => $record->time_out
+                ];
+            })
+        ];
+        
+        return response()->json([
+            'success' => true,
+            'attendance' => [
+                'days_late' => $daysLate,
+                'days_absent' => $daysAbsent,
+                'period' => [
+                    'start_date' => $startDate,
+                    'end_date' => $endDate
+                ]
+            ],
+            'debug' => $debugInfo
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error fetching attendance data: ' . $e->getMessage()
+        ], 500);
+    }
+});

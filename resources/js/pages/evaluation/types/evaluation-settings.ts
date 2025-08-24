@@ -66,11 +66,11 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
             sections: [
                 {
                     title: '',
-                    items: ['Patio', 'Dehander', 'Selector',],
+                    items: ['Patio', 'Dehander', 'Selector'],
                 },
                 {
                     title: 'WTS',
-                    items: ['Rejector/Utility',],
+                    items: ['Rejector/Utility'],
                 },
                 {
                     title: '',
@@ -100,13 +100,8 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
                     title: 'Box Former',
                     items: ['Palletizer'],
                 },
-                
-                
-                
-                
-
             ],
-        },  
+        },
         category: 'operations',
     },
     Harvesting: {
@@ -126,7 +121,7 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
             'Proper placement of harvested stumps',
             'Use of latex in actual receiving',
             'Observe ideal NO. of stems of Guyod/Trip',
-            'Timely delivery of roller'
+            'Timely delivery of roller',
         ],
         category: 'operations',
     },
@@ -145,18 +140,16 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
             sections: [
                 {
                     title: 'Monitoring',
-                    items: ['Area Survey','Aerial Spray'],
+                    items: ['Area Survey', 'Aerial Spray'],
                 },
                 {
                     title: 'Eradication',
-                    items: ['F.O.C. Area', 'Moko Area','Fence/Repair'],
+                    items: ['F.O.C. Area', 'Moko Area', 'Fence/Repair'],
                 },
-                
                 {
                     title: 'Maintenance',
-                    items: ['Footbath','Weed Slashing','Sticking','Digging Socker'],
-                }
-                
+                    items: ['Footbath', 'Weed Slashing', 'Sticking', 'Digging Socker'],
+                },
             ],
         },
         category: 'operations',
@@ -190,13 +183,12 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
                 },
                 {
                     title: 'Pest & Disease Control/Actual:',
-                    items: ['Moko Eradication','Fusarium Eradication','Scale Insect/Mealy Bug','Bunchy Top Eradication'],
-
+                    items: ['Moko Eradication', 'Fusarium Eradication', 'Scale Insect/Mealy Bug', 'Bunchy Top Eradication'],
                 },
                 {
                     title: 'OHCP/Actual:',
                     items: [''],
-                }
+                },
             ],
         },
         category: 'operations',
@@ -216,20 +208,20 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
             sections: [
                 {
                     title: '',
-                    items: ['Welding','Electrical Wiring'],
+                    items: ['Welding', 'Electrical Wiring'],
                 },
                 {
                     title: 'Maintenance',
-                    items: ['Glueing','Conveyor','Spray Can','Vacuum','Roller','Cable Way','Bridge'],
+                    items: ['Glueing', 'Conveyor', 'Spray Can', 'Vacuum', 'Roller', 'Cable Way', 'Bridge'],
                 },
                 {
                     title: 'Obtructions',
-                    items: ['Trimming']
+                    items: ['Trimming'],
                 },
                 {
-                    title:'Spare',
-                    items:['Driving']
-                }
+                    title: 'Spare',
+                    items: ['Driving'],
+                },
             ],
         },
         category: 'maintenance',
@@ -254,7 +246,7 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
                 },
                 {
                     title: '',
-                    items: ['Garbage Disposal', 'Office Beautification',],
+                    items: ['Garbage Disposal', 'Office Beautification'],
                 },
                 {
                     title: 'Safekeeping:',

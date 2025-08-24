@@ -201,7 +201,7 @@ class Evaluation extends Model
      */
     public function getOverallRatingAttribute()
     {
-        return $this->total_rating ?? 0;
+        return $this->total_rating ?? null;
     }
 
     /**
