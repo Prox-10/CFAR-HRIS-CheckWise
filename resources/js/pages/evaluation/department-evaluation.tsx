@@ -748,16 +748,16 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                                             <div className="px-2 py-1 text-sm text-gray-500">Loading available employees...</div>
                                                         ) : filteredEmployees.length > 0 ? (
                                                             filteredEmployees.map((emp: any) => (
-                                                                <SelectItem
+                                                            <SelectItem
                                                                     key={String(
                                                                         (emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid,
                                                                     )}
                                                                     value={String(
                                                                         (emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid,
                                                                     )}
-                                                                >
-                                                                    {emp.employee_name} - {emp.position}
-                                                                </SelectItem>
+                                                            >
+                                                                {emp.employee_name} - {emp.position}
+                                                            </SelectItem>
                                                             ))
                                                         ) : (
                                                             <div className="px-2 py-1 text-sm text-gray-500">
@@ -1306,13 +1306,13 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                             <CardContent className="p-6 text-center">
                                                 {totalRating !== null ? (
                                                     <>
-                                                        <div className="mb-2 text-6xl font-bold text-yellow-600">{totalRating}/10</div>
-                                                        <div className={`text-xl font-semibold ${getRatingInfo(totalRating).color}`}>
-                                                            {getRatingInfo(totalRating).label}
-                                                        </div>
-                                                        <div className="mt-4 flex justify-center">
-                                                            <StarRating rating={totalRating} onRatingChange={() => {}} size="lg" />
-                                                        </div>
+                                                <div className="mb-2 text-6xl font-bold text-yellow-600">{totalRating}/10</div>
+                                                <div className={`text-xl font-semibold ${getRatingInfo(totalRating).color}`}>
+                                                    {getRatingInfo(totalRating).label}
+                                                </div>
+                                                <div className="mt-4 flex justify-center">
+                                                    <StarRating rating={totalRating} onRatingChange={() => {}} size="lg" />
+                                                </div>
                                                     </>
                                                 ) : (
                                                     <>
