@@ -747,7 +747,7 @@ class AuthEmployeeController extends Controller
             $notification->update(['read_at' => now()]);
         }
 
-        return response()->json(['success' => true]);
+        return back()->with('success', 'Notification marked as read');
     }
 
     /**
@@ -765,7 +765,7 @@ class AuthEmployeeController extends Controller
             })
             ->update(['read_at' => now()]);
 
-        return response()->json(['success' => true]);
+        return back()->with('success', 'All notifications marked as read');
     }
 
     /**

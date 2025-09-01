@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 use App\Models\Notification;
+use App\Models\Employee;
+use Illuminate\Support\Facades\Session;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -64,6 +66,25 @@ class HandleInertiaRequests extends Middleware
             ];
         }
 
+        // Share the logged-in employee (for employee portal pages) globally
+        $sharedEmployee = null;
+        $employeeIdFromSession = Session::get('employee_id');
+        if ($employeeIdFromSession) {
+            $employee = Employee::where('employeeid', $employeeIdFromSession)->first();
+            if ($employee) {
+                $sharedEmployee = [
+                    'id' => $employee->id,
+                    'employeeid' => $employee->employeeid,
+                    'employee_name' => $employee->employee_name,
+                    'firstname' => $employee->firstname,
+                    'lastname' => $employee->lastname,
+                    'department' => $employee->department,
+                    'position' => $employee->position,
+                    'picture' => $employee->picture,
+                ];
+            }
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -72,6 +93,8 @@ class HandleInertiaRequests extends Middleware
                 'user' => $transformedUser,
                 'permissions' => $permissions,
             ],
+            // Make employee available to all Inertia pages
+            'employee' => $sharedEmployee,
             'ziggy' => fn(): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

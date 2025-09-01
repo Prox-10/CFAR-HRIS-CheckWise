@@ -56,8 +56,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Evaluation frequency update route (accessible from supervisor management)
     Route::put('evaluation/frequencies/{department}', [EvaluationController::class, 'updateFrequency'])->name('evaluation.frequencies.update');
 
-    Route::get('evaluation/evaluation-settings', [EvaluationController::class, 'evaluationSettings'])->name('evaluation.evaluation-settings');
-
     // Check existing evaluation route
     Route::get('evaluation/check-existing/{employeeId}/{department}', [EvaluationController::class, 'checkExistingEvaluation'])->name('evaluation.check-existing');
 
@@ -68,8 +66,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['permission:View Evaluation'])->group(function () {
         Route::resource('evaluation', EvaluationController::class)->names('evaluation');
 
-        // Evaluation frequency update route (requires evaluation permissions)
-        // Route::put('evaluation/frequencies/{department}', [EvaluationController::class, 'updateFrequency'])->name('evaluation.frequencies.update'); // Moved outside
     });
 
     Route::middleware(['permission:View Dashboard'])->group(function () {

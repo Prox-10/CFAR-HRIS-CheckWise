@@ -11,6 +11,9 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use App\Events\AbsenceRequested;
+use App\Events\RequestStatusUpdated;
+use App\Models\Notification;
 
 class AbsenceController extends Controller
 {
@@ -139,6 +142,26 @@ class AbsenceController extends Controller
                 'status' => 'pending',
                 'submitted_at' => now(),
             ]);
+
+            // Broadcast to managers/HR/supervisors
+            event(new AbsenceRequested($absence));
+
+            // Create admin notification for new absence request
+            $employee = Employee::find($validated['employee_id']);
+            Notification::create([
+                'type' => 'absence_request',
+                'data' => [
+                    'absence_id' => $absence->id,
+                    'employee_name' => $employee ? $employee->employee_name : $validated['full_name'],
+                    'absence_type' => $absence->absence_type,
+                    'from_date' => $absence->from_date,
+                    'to_date' => $absence->to_date,
+                ],
+            ]);
+
+            if ($request->routeIs('employee-view.absence.store')) {
+                return redirect()->route('employee-view.absence')->with('success', 'Absence request submitted successfully!');
+            }
 
             return redirect()->route('absence.index')->with('success', 'Absence request submitted successfully!');
         } catch (Exception $e) {
@@ -321,43 +344,25 @@ class AbsenceController extends Controller
         // Handle credit management based on status changes
         $absenceCredits = AbsenceCredit::getOrCreateForEmployee($absence->employee_id);
 
-        // If status changed to approved and wasn't approved before
         if ($newStatus === 'approved' && $oldStatus !== 'approved') {
-            $absenceCredits->useCredits($absence->days); // Deduct credits equal to number of days
-        }
-        // If status changed from approved to something else (rejected)
-        elseif ($oldStatus === 'approved' && $newStatus !== 'approved') {
-            $absenceCredits->refundCredits($absence->days); // Refund credits equal to number of days
+            $absenceCredits->useCredits($absence->days);
+        } elseif ($oldStatus === 'approved' && $newStatus !== 'approved') {
+            $absenceCredits->refundCredits($absence->days);
         }
 
-        // Create notification for employee if status changed
         if ($oldStatus !== $newStatus) {
-            $employee = $absence->employee;
-            if ($employee) {
-                \App\Models\Notification::create([
-                    'type' => 'absence_request_update',
-                    'data' => [
-                        'absence_id' => $absence->id,
-                        'employee_name' => $employee->employee_name,
-                        'absence_type' => $absence->absence_type,
-                        'from_date' => $absence->from_date->format('Y-m-d'),
-                        'to_date' => $absence->to_date->format('Y-m-d'),
-                        'old_status' => $oldStatus,
-                        'new_status' => $newStatus,
-                        'updated_by' => Auth::user()->firstname . ' ' . Auth::user()->lastname,
-                        'updated_at' => now()->format('Y-m-d H:i:s'),
-                        'approval_comments' => $validated['approval_comments'] ?? null,
-                    ],
-                ]);
-            }
+            event(new RequestStatusUpdated('absence', $newStatus, (int) $absence->employee_id, $absence->id, [
+                'absence_type' => $absence->absence_type,
+                'from_date' => $absence->from_date->format('Y-m-d'),
+                'to_date' => $absence->to_date->format('Y-m-d'),
+                'approval_comments' => $validated['approval_comments'] ?? null,
+            ]));
         }
 
-        // Check if this is an AJAX request
         if ($request->expectsJson()) {
             return response()->json(['success' => true]);
         }
 
-        // For direct visits, redirect back to the absence approval page
         return redirect()->route('absence.absence-approve')->with('success', 'Absence status updated successfully!');
     }
 

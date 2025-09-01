@@ -16,6 +16,7 @@ import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { SiteHeader } from '@/components/site-header';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
+import AppLayout from '@/layouts/employee-layout/app-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -28,14 +29,9 @@ export default function Index() {
     const [loading, setLoading] = useState(true);
 
     return (
-        <SidebarProvider>
+      <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Evaluation" />
-
-            <SidebarHoverLogic>
-                <SidebarInset>
-                    {/* <HeaderShrink/> */}
-                    <SiteHeader breadcrumbs={breadcrumbs} title={''} />
-                    <Main fixed>
+                   
                         <div className="mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4">
                             <div>
                                 <div className="ms-2 flex items-center">
@@ -75,21 +71,8 @@ export default function Index() {
                                 </CardContent>
                             </Card>
                         </div>
-                    </Main>
-                </SidebarInset>
-            </SidebarHoverLogic>
-        </SidebarProvider>
+               </AppLayout>
     );
 }
 
-function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
-    const { state } = useSidebar();
-    const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
-    return (
-        <>
-            <SidebarHoverZone show={state === 'collapsed'} onMouseEnter={handleMouseEnter} />
-            <AppSidebar onMouseLeave={handleMouseLeave} />
-            {children}
-        </>
-    );
-}
+

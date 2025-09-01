@@ -18,6 +18,7 @@ import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
+import Echo from 'laravel-echo';
 import { Calendar, LayoutGrid } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { MonthlyRecognition } from './components/monthly-recognition';
@@ -72,6 +73,9 @@ interface Props {
         evaluation_year: number;
         recognition_score: number;
     }>;
+    // Add notifications for admin bell
+    notifications: any[];
+    unreadNotificationCount: number;
 }
 
 export default function Index({
@@ -90,9 +94,13 @@ export default function Index({
     supervisedDepartments,
     supervisorEmployees,
     monthlyRecognitionEmployees,
+    notifications,
+    unreadNotificationCount,
 }: Props & { months?: number }) {
     const [loading, setLoading] = useState(false);
     const [months, setMonths] = useState(monthsProp ?? 6);
+    const [unreadCount, setUnreadCount] = useState<number>(unreadNotificationCount);
+    const [notificationList, setNotificationList] = useState<any[]>(notifications);
 
     useEffect(() => {
         setTimeout(() => {
@@ -100,6 +108,78 @@ export default function Index({
             setLoading(false);
         }, 500);
     }, [monthsProp]);
+
+    useEffect(() => {
+        // Listen on the shared admin notifications channel for new requests
+        const echo: Echo = (window as any).Echo;
+        if (!echo) {
+            console.error('Echo not found in window object (dashboard)');
+            return;
+        }
+
+        console.log('Setting up Echo listeners for notifications channel (dashboard)');
+
+        const adminChannel = echo.channel('notifications');
+
+        // Test connection
+        adminChannel.subscribed(() => {
+            console.log('Successfully subscribed to notifications channel (dashboard)');
+        });
+
+        adminChannel.error((error: any) => {
+            console.error('Error with notifications channel (dashboard):', error);
+        });
+
+        adminChannel
+            .listen('.LeaveRequested', (e: any) => {
+                console.log('Received LeaveRequested event (dashboard):', e);
+                // Create a new notification object
+                const newNotification = {
+                    id: Date.now(), // Temporary ID
+                    type: 'leave_request',
+                    data: {
+                        leave_id: e.leave_id,
+                        employee_name: e.employee_name || 'Employee',
+                        leave_type: e.leave_type,
+                        leave_start_date: e.leave_start_date,
+                        leave_end_date: e.leave_end_date,
+                    },
+                    read_at: null,
+                    created_at: new Date().toISOString(),
+                };
+
+                // Add to notification list and increment count
+                setNotificationList((prev) => [newNotification, ...prev]);
+                setUnreadCount((prev) => prev + 1);
+            })
+            .listen('.AbsenceRequested', (e: any) => {
+                console.log('Received AbsenceRequested event (dashboard):', e);
+                // Create a new notification object
+                const newNotification = {
+                    id: Date.now(), // Temporary ID
+                    type: 'absence_request',
+                    data: {
+                        absence_id: e.absence_id,
+                        employee_name: e.employee_name || 'Employee',
+                        absence_type: e.absence_type,
+                        from_date: e.from_date,
+                        to_date: e.to_date,
+                    },
+                    read_at: null,
+                    created_at: new Date().toISOString(),
+                };
+
+                // Add to notification list and increment count
+                setNotificationList((prev) => [newNotification, ...prev]);
+                setUnreadCount((prev) => prev + 1);
+            });
+
+        return () => {
+            console.log('Cleaning up Echo listeners (dashboard)');
+            adminChannel.stopListening('.LeaveRequested');
+            adminChannel.stopListening('.AbsenceRequested');
+        };
+    }, []);
 
     const handleMonthsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = parseInt(e.target.value, 10);
@@ -134,6 +214,8 @@ export default function Index({
                 supervisedDepartments={supervisedDepartments}
                 supervisorEmployees={supervisorEmployees}
                 monthlyRecognitionEmployees={monthlyRecognitionEmployees}
+                notifications={notificationList}
+                unreadNotificationCount={unreadCount}
             />
         </SidebarProvider>
     );
@@ -173,6 +255,8 @@ function SidebarHoverLogic(
             evaluation_year: number;
             recognition_score: number;
         }>;
+        notifications: any[];
+        unreadNotificationCount: number;
     },
 ) {
     const { state } = useSidebar();
@@ -274,7 +358,7 @@ function SidebarHoverLogic(
                                                     />
                                                 </div>
                                             </div>
-                                        </div> 
+                                        </div>
                                     </div>
                                     <Separator className="shadow-sm" />
                                     <ChartAreaInteractive />

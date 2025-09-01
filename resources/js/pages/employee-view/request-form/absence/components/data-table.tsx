@@ -23,6 +23,7 @@ import AddAbsenceModal from './addabsencemodal';
 // import { Employees } from './columns';
 import { DataTableToolbar } from './data-tool-bar';
 // import { Employees } from '../types/employees';
+import { Link } from '@inertiajs/react';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -32,13 +33,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-    // const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [isModelOpen, setIsModelOpen] = useState(false);
-    // const [isViewOpen, setIsViewOpen] = useState(false);
-    // const [rowSelection, setRowSelection] = React.useState({});
-    // const [isEditOpen, setIsEditOpen] = useState(false);
-    // const [selectedEmployee, setSelectedEmployee] = useState<Employees | null>(null);
-    // const [viewEmployee, setViewEmployee] = useState<Employees | null>(null);
 
     const table = useReactTable({
         data: data || [],
@@ -55,8 +50,8 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         },
         initialState: {
             pagination: {
-                pageIndex: 0, //custom initial page index
-                pageSize: 5, //custom default page size
+                pageIndex: 0, 
+                pageSize: 5, 
             },
         },
     });
@@ -75,15 +70,14 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        {/* <Button variant="outline" className="ml-auto">
-                            Columns
-                        </Button> */}
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
-                    <Button variant="main" className="ml-auto" onClick={() => setIsModelOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Employee
-                    </Button>
+                    <Link href={route('employee-view.absence-request-form')} className='ml-auto'>
+                        <Button variant="main" className="">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Absence Request
+                        </Button>
+                    </Link>
                     <DropdownMenuContent align="end">
                         {table
                             .getAllColumns()
@@ -105,12 +99,12 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
             </div>
             <div className="animate-fade-in rounded-md">
                 <Table className="animate-fade-in rounded-md">
-                    <TableHeader className="rounded-t-md bg-green-100 dark:text-darkMain">
+                    <TableHeader className="dark:text-darkMain rounded-t-md bg-green-100">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id} className="dark:bg-[#6baaa6] dark:text-darkMain">
+                                        <TableHead key={header.id} className="dark:text-darkMain dark:bg-[#6baaa6]">
                                             {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                         </TableHead>
                                     );
@@ -118,13 +112,13 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                             </TableRow>
                         ))}
                     </TableHeader>
-                    <TableBody className="divide-y divide-green-100 bg-background dark:divide-green-950 dark:border-backgroundss dark:bg-backgroundss">
+                    <TableBody className="dark:border-backgroundss dark:bg-backgroundss divide-y divide-green-100 bg-background dark:divide-green-950">
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && 'selected'}
-                                    className="hover-lift transition-colors duration-200 hover:bg-green-50 dark:divide-green-950 dark:border-backgroundss dark:hover:bg-[#6baaa6]"
+                                    className="hover-lift dark:border-backgroundss transition-colors duration-200 hover:bg-green-50 dark:divide-green-950 dark:hover:bg-[#6baaa6]"
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>

@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 use App\Models\Notification;
+use App\Events\LeaveRequested;
+use App\Events\RequestStatusUpdated;
 
 class LeaveController extends Controller
 {
@@ -28,7 +30,7 @@ class LeaveController extends Controller
             $leaveCredits = LeaveCredit::getOrCreateForEmployee($leave->employee_id);
             return [
                 'id'                  => $leave->id,
-                'leave_type'          => $leave->leave_type, 
+                'leave_type'          => $leave->leave_type,
                 'leave_start_date'    => $leave->leave_start_date->format('d M Y'),
                 'leave_end_date'      => $leave->leave_end_date->format('d M Y'),
                 'leave_days'          => $leave->leave_days,
@@ -165,6 +167,14 @@ class LeaveController extends Controller
                 ],
             ]);
 
+            // Broadcast to managers/HR/supervisors
+            event(new LeaveRequested($leave));
+
+            // Redirect based on context (employee portal vs admin)
+            if ($request->routeIs('employee-view.leave.store')) {
+                return redirect()->route('employee-view.leave')->with('success', 'Leave request submitted successfully!');
+            }
+
             return redirect()->route('leave.index')->with('success', 'Leave request submitted successfully!');
         } catch (Exception $e) {
             Log::error('Leave creation failed: ' . $e->getMessage());
@@ -254,29 +264,15 @@ class LeaveController extends Controller
 
                 // Create notification for employee if status changed
                 if ($oldStatus !== $newStatus) {
-                    $employee = $leave->employee;
-                    if ($employee) {
-                        Notification::create([
-                            'type' => 'leave_request_update',
-                            'data' => [
-                                'leave_id' => $leave->id,
-                                'employee_name' => $employee->employee_name,
-                                'leave_type' => $leave->leave_type,
-                                'leave_start_date' => $leave->leave_start_date,
-                                'leave_end_date' => $leave->leave_end_date,
-                                'old_status' => $oldStatus,
-                                'new_status' => $newStatus,
-                                'updated_by' => Auth::user()->firstname . ' ' . Auth::user()->lastname,
-                                'updated_at' => now()->format('Y-m-d H:i:s'),
-                            ],
-                        ]);
-                    }
+                    event(new RequestStatusUpdated('leave', $newStatus, $leave->employee_id, $leave->id, [
+                        'leave_type' => $leave->leave_type,
+                        'leave_start_date' => $leave->leave_start_date,
+                        'leave_end_date' => $leave->leave_end_date,
+                    ]));
                 }
 
-                // Log::info('[DEBUG]Leave updated info: ',  $leave);
-                return redirect()->route('leave.edit', $leave->id)->with('success', 'Leave updated successfully!');
+                return redirect()->route('leave.index')->with('success', 'Leave updated successfully!');
             }
-            return redirect()->back()->with('error', 'Unable to update leave. Please try again!');
         } catch (Exception $e) {
             Log::error('Leave update failed: ' . $e->getMessage());
             return redirect()->back()->with('error', 'An error occurred while updating the leave. Please try again!');

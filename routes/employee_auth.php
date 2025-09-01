@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthEmployeeController;
 use Inertia\Inertia;
+use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\AbsenceController;
 
 Route::middleware('guest')->group(function () {
     Route::get('employeelogin', [AuthEmployeeController::class, 'create'])->name('employeelogin');
@@ -17,6 +19,7 @@ Route::middleware(['web', 'employee.auth'])->group(function () {
     // Updated to render the new request-form Leave page component
     Route::get('employee-view/leave', fn() => Inertia::render('employee-view/request-form/leave/index'))
         ->name('employee-view.leave');
+    Route::get('employee-view/l');
     // Updated to render the new request-form Absence page component
     Route::get('employee-view/absence', fn() => Inertia::render('employee-view/request-form/absence/index'))
         ->name('employee-view.absence');
@@ -25,6 +28,7 @@ Route::middleware(['web', 'employee.auth'])->group(function () {
         ->name('employee-view.return-work');
     Route::get('employee-view/records', [AuthEmployeeController::class, 'records'])->name('employee-view.records');
     Route::get('employee-view/reports', [AuthEmployeeController::class, 'reports'])->name('employee-view.reports');
+
 
     // Employee profile settings page (to edit name, photo, password)
     Route::get('employee-view/profile-settings', [AuthEmployeeController::class, 'profileSettings'])->name('employee-view.profile-settings');
@@ -40,4 +44,16 @@ Route::middleware(['web', 'employee.auth'])->group(function () {
 
     Route::post('employee/logout', [AuthEmployeeController::class, 'logout'])->name('employee.logout');
     Route::post('employee/reset-pin', [AuthEmployeeController::class, 'resetPin'])->name('employee.reset-pin');
+
+    // New: Employee Leave Request Form route
+    Route::get('employee-view/leave/request', fn() => Inertia::render('employee-view/request-form/leave/leave-request-form'))
+        ->name('employee-view.leave-request-form');
+    // New: Employee Leave submit route
+    Route::post('employee-view/leave', [LeaveController::class, 'store'])->name('employee-view.leave.store');
+
+    // New: Employee Absence Request Form route
+    Route::get('employee-view/absence/request', fn() => Inertia::render('employee-view/request-form/absence/absence-request-form'))
+        ->name('employee-view.absence-request-form');
+    // New: Employee Absence submit route
+    Route::post('employee-view/absence', [AbsenceController::class, 'store'])->name('employee-view.absence.store');
 });

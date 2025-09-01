@@ -1,13 +1,13 @@
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/employee-layout/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Bell, Calendar, Clock, FileText, UserCheck, X } from 'lucide-react';
+
+import { Calendar, Clock, FileText, UserCheck, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { PerformanceOverview } from './components/performance-overview';
@@ -44,7 +44,7 @@ interface DashboardData {
         timeAgo: string;
         status: string;
     }>;
-    // Enhanced data
+
     leaveCredits: {
         remaining: number;
         used: number;
@@ -92,9 +92,6 @@ interface DashboardProps {
 
 export default function Dashboard({ employee, dashboardData }: DashboardProps) {
     const [activeTab, setActiveTab] = useState('overview');
-    const [notifications, setNotifications] = useState(dashboardData.notifications || []);
-    const [unreadCount, setUnreadCount] = useState(dashboardData.unreadNotificationCount || 0);
-    const [showNotifications, setShowNotifications] = useState(false);
 
     const currentTime = new Date();
     const hour = currentTime.getHours();
@@ -119,8 +116,6 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
                 if (response.ok) {
                     const data = await response.json();
                     // Update local state with fresh data
-                    setNotifications(data.dashboardData.notifications || []);
-                    setUnreadCount(data.dashboardData.unreadNotificationCount || 0);
                 }
             } catch (error) {
                 console.error('Failed to refresh dashboard data:', error);
@@ -130,6 +125,29 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        const echo = (window as any).Echo;
+        if (!echo || !employee?.id) return;
+
+        const channelName = `employee.${employee.id}`;
+        const employeeChannel = echo.channel(channelName);
+        employeeChannel.listen('.RequestStatusUpdated', (e: any) => {
+            const kind = e.type?.includes('leave') ? 'Leave' : 'Absence';
+            const status = String(e.status || '').toLowerCase();
+            if (status === 'approved') {
+                toast.success(`${kind} request approved`);
+            } else if (status === 'rejected') {
+                toast.error(`${kind} request rejected`);
+            } else {
+                toast.info(`${kind} request ${e.status}`);
+            }
+        });
+
+        return () => {
+            employeeChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, [employee?.id]);
+
     const markNotificationAsRead = async (notificationId: string) => {
         try {
             await router.post(
@@ -137,10 +155,7 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
                 { notification_id: notificationId },
                 {
                     preserveScroll: true,
-                    onSuccess: () => {
-                        setNotifications((prev) => prev.map((n) => (n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)));
-                        setUnreadCount((prev) => Math.max(0, prev - 1));
-                    },
+                    onSuccess: () => {},
                 },
             );
         } catch (error) {
@@ -156,8 +171,6 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
                 {
                     preserveScroll: true,
                     onSuccess: () => {
-                        setNotifications((prev) => prev.map((n) => ({ ...n, read_at: new Date().toISOString() })));
-                        setUnreadCount(0);
                         toast.success('All notifications marked as read');
                     },
                 },
@@ -198,75 +211,10 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
             <Head title="Employee Dashboard" />
 
             <div className="space-y-6">
-                {/* Welcome Banner with Notification Bell */}
+                {/* Welcome Banner */}
                 <div className="relative h-64 w-full overflow-hidden rounded-lg">
                     <GradientBackground className="absolute inset-0" />
                     <div className="relative z-10 h-full w-full p-6">
-                        <div className="flex justify-end absolute top-2 right-2">
-                        <div className="relative">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="relative h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/30"
-                                onClick={() => setShowNotifications(!showNotifications)}
-                            >
-                                <Bell className="h-5 w-5" />
-                                {unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-                                        {unreadCount > 99 ? '99+' : unreadCount}
-                                    </span>
-                                )}
-                            </Button>
-
-                            {/* Notification Dropdown */}
-                            {showNotifications && (
-                                <div className="absolute top-12 right-0 w-80 rounded-lg border bg-white p-4 shadow-lg z-[1000]">
-                                    <div className="mb-3 flex items-center justify-between">
-                                        <h3 className="font-semibold text-gray-900">Notifications</h3>
-                                        {unreadCount > 0 && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={markAllNotificationsAsRead}
-                                                className="text-xs text-blue-600 hover:text-blue-800"
-                                            >
-                                                Mark all read
-                                            </Button>
-                                        )}
-                                    </div>
-                                    <div className="max-h-64 space-y-2 overflow-y-auto">
-                                        {notifications.length > 0 ? (
-                                            notifications.map((notification) => (
-                                                <div
-                                                    key={notification.id}
-                                                    className={`rounded-lg border p-3 ${
-                                                        notification.read_at ? 'bg-gray-50' : 'border-blue-200 bg-blue-50'
-                                                    }`}
-                                                    onClick={() => !notification.read_at && markNotificationAsRead(notification.id)}
-                                                >
-                                                    <div className="flex items-start justify-between">
-                                                        <div className="flex-1">
-                                                            <p className="text-sm font-medium text-gray-900">
-                                                                {notification.type === 'leave_request' && 'Leave Request Update'}
-                                                                {notification.type === 'absence_request' && 'Absence Request Update'}
-                                                                {notification.type === 'evaluation' && 'Evaluation Update'}
-                                                            </p>
-                                                            <p className="mt-1 text-xs text-gray-600">
-                                                                {new Date(notification.created_at).toLocaleDateString()}
-                                                            </p>
-                                                        </div>
-                                                        {!notification.read_at && <div className="h-2 w-2 rounded-full bg-blue-500"></div>}
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p className="py-4 text-center text-sm text-gray-500">No notifications</p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        </div>
                         <div className="flex h-full items-center justify-between text-white">
                             <div className="flex items-center space-x-4">
                                 <Avatar className="h-24 w-24 border-2 border-cfar-500">
@@ -295,8 +243,6 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
                                 </div>
                             </div>
                             <div className="flex items-center space-x-4">
-                                {/* Notification Bell */}
-
                                 <div className="text-right">
                                     <p className="text-sm text-white/80">Today</p>
                                     <p className="text-lg font-semibold">{dateStr}</p>

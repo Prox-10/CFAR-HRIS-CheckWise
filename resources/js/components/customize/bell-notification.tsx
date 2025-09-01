@@ -33,6 +33,8 @@ export function BellNotification({
         // Navigate to the relevant page based on notification type
         if (notification.type === 'leave_request' && notification.data && notification.data.leave_id) {
             router.visit(`/leave/${notification.data.leave_id}/edit`);
+        } else if (notification.type === 'absence_request' && notification.data && notification.data.absence_id) {
+            router.visit(`/absence/absence-approve`);
         } else if (notification.type === 'resume_to_work' && notification.data && notification.data.resume_id) {
             router.visit(`/resume-to-work`);
         } else if (notification.type === 'employee_returned') {
@@ -67,44 +69,55 @@ export function BellNotification({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {notifications.length === 0 && <DropdownMenuItem className="justify-center text-center">No notifications</DropdownMenuItem>}
-                {notifications.map((notification) => (
-                    <DropdownMenuItem
-                        key={notification.id}
-                        className="flex cursor-pointer flex-col items-start p-3"
-                        onClick={() => handleNotificationClick(notification.id, !notification.read_at, notification)}
-                    >
-                        <div className="flex w-full items-start justify-between">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                    <p className="text-sm font-medium">
-                                        {notification.type === 'leave_request'
-                                            ? 'New Leave Request'
-                                            : notification.type === 'resume_to_work'
-                                              ? 'New Resume to Work Request'
-                                              : notification.type === 'employee_returned'
-                                                ? 'Employee Returned to Work'
-                                                : notification.title}
+                <div className="max-h-80 overflow-y-auto">
+                    {notifications.slice(0, 5).map((notification) => (
+                        <DropdownMenuItem
+                            key={notification.id}
+                            className="flex cursor-pointer flex-col items-start p-3"
+                            onClick={() => handleNotificationClick(notification.id, !notification.read_at, notification)}
+                        >
+                            <div className="flex w-full items-start justify-between">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm font-medium">
+                                            {notification.type === 'leave_request'
+                                                ? 'New Leave Request'
+                                                : notification.type === 'absence_request'
+                                                  ? 'New Absence Request'
+                                                  : notification.type === 'resume_to_work'
+                                                    ? 'New Resume to Work Request'
+                                                    : notification.type === 'employee_returned'
+                                                      ? 'Employee Returned to Work'
+                                                      : notification.title}
+                                        </p>
+                                        {!notification.read_at && <div className="h-2 w-2 rounded-full bg-blue-500" />}
+                                    </div>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        {notification.data && notification.data.employee_name
+                                            ? notification.type === 'leave_request'
+                                                ? `${notification.data.employee_name} requested ${notification.data.leave_type}`
+                                                : notification.type === 'absence_request'
+                                                  ? `${notification.data.employee_name} requested ${notification.data.absence_type}`
+                                                  : notification.type === 'resume_to_work'
+                                                    ? `${notification.data.employee_name} submitted resume to work form`
+                                                    : notification.type === 'employee_returned'
+                                                      ? `${notification.data.employee_name} has returned to work`
+                                                      : notification.message
+                                            : notification.message}
                                     </p>
-                                    {!notification.read_at && <div className="h-2 w-2 rounded-full bg-blue-500" />}
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        {notification.created_at ? new Date(notification.created_at).toLocaleString() : ''}
+                                    </p>
                                 </div>
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                    {notification.data && notification.data.employee_name
-                                        ? notification.type === 'leave_request'
-                                            ? `${notification.data.employee_name} requested ${notification.data.leave_type}`
-                                            : notification.type === 'resume_to_work'
-                                              ? `${notification.data.employee_name} submitted resume to work form`
-                                              : notification.type === 'employee_returned'
-                                                ? `${notification.data.employee_name} has returned to work`
-                                                : notification.message
-                                        : notification.message}
-                                </p>
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                    {notification.created_at ? new Date(notification.created_at).toLocaleString() : ''}
-                                </p>
                             </div>
-                        </div>
-                    </DropdownMenuItem>
-                ))}
+                        </DropdownMenuItem>
+                    ))}
+                    {notifications.length > 5 && (
+                        <DropdownMenuItem className="justify-center text-center text-sm text-muted-foreground">
+                            +{notifications.length - 5} more notifications
+                        </DropdownMenuItem>
+                    )}
+                </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="justify-center text-center">View all notifications</DropdownMenuItem>
             </DropdownMenuContent>

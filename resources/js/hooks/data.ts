@@ -7,7 +7,6 @@ export const departments: string[] = [
     'Pest & Decease', 
     'Coop Area', 
     'Engineering',
-    'Admin',
     'Utility',
 ];
 
