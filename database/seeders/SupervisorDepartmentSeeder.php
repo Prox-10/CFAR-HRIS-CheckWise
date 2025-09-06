@@ -25,9 +25,67 @@ class SupervisorDepartmentSeeder extends Seeder
         'lastname' => 'Labrador',
         'email' => 'rjkylegepolongcalabrador@gmail.com',
         'password' => bcrypt('10282001'),
-        'department' => 'Monthly',
+        'department' => 'Management & Staff(Admin)',
       ],
-      
+      [
+        'firstname' => 'Rovilyn',
+        'middlename' => 'B.',
+        'lastname' => 'Villanueva',
+        'email' => 'rovilynvillanueva@gmail.com',
+        'password' => bcrypt('10282001'),
+        // 'roles' => ['HR Personnel']
+         'department' => 'HR Personnel',
+      ],
+      [
+        'firstname' => 'Ronelito',
+        'middlename' => '',
+        'lastname' => 'Mulato',
+        'email' => 'ronelitomulato@gmail.com',
+        'password' => bcrypt('10282001'),
+        // 'roles' => ['Farm Supervisor']
+         'department' => 'Farm Supervisor',
+        
+      ],
+      [
+        'firstname' => 'Nestor',
+        'middlename' => 'C.',
+        'lastname' => 'Geraga',
+        'email' => 'nestorcgeraga@gmail.com',
+        'password' => bcrypt('10282001'),
+        'department' => 'P&D Supervisor',
+      ],
+      [
+        'firstname' => 'Marcelo',
+        'middlename' => '',
+        'lastname' => 'Milana',
+        'email' => 'marcelomilana@gmail.com',
+        'password' => bcrypt('10282001'),
+        'department' => 'Packing Plant Supervisor'
+      ],
+      [
+        'firstname' => 'Jeah Pearl',
+        'middlename' => '',
+        'lastname' => 'Cabal',
+        'email' => 'jeahpearlcabal@gmail.com',
+        'password' => bcrypt('10282001'),
+        'department' => 'PP Asst. Supervisor'
+      ],
+      [
+        'firstname' => 'Norberto',
+        'middlename' => 'O.',
+        'lastname' => 'Aguilar',
+        'email' => 'norbertooaguilar@gmail.com',
+        'password' => bcrypt('10282001'),
+        'department' => 'Harvesting Supervisor'
+      ],
+      [
+        'firstname' => 'LP',
+        'middlename' => '',
+        'lastname' => 'Subayno',
+        'email' => 'lpsubayno@gmail.com',
+        'password' => bcrypt('10282001'),
+        'department' => 'ACCTG. Head'
+      ],
     ];
 
     foreach ($supervisors as $supervisorData) {

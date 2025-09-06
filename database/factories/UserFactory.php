@@ -38,6 +38,17 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => Hash::make('password'), // Default password
             'remember_token' => Str::random(10),
+            'department' => fake()->randomElement([
+                'Management & Staff(Admin)',
+                'Packing Plant',
+                'Harvesting',
+                'Pest & Decease',
+                'Miscellaneous',
+                'Coop Area',
+                'Security Forces',
+                'Engineering',
+                'Utility'
+            ]),
         ];
     }
 
@@ -68,9 +79,10 @@ class UserFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'firstname' => 'Admin',
-                'lastname' => 'User',
-                'email' => 'admin@example.com',
+                'firstname' => 'Super',
+                'lastname' => 'Admin',
+                'email' => 'superadmin@example.com',
+                'department' => 'Management & Staff(Admin)',
             ];
         })->withRole('Super Admin');
     }
@@ -85,6 +97,16 @@ class UserFactory extends Factory
                 'firstname' => 'Regular',
                 'lastname' => 'User',
                 'email' => 'user@example.com',
+                'department' => fake()->randomElement([
+                    'Packing Plant',
+                    'Harvesting',
+                    'Pest & Decease',
+                    'Miscellaneous',
+                    'Coop Area',
+                    'Security Forces',
+                    'Engineering',
+                    'Utility'
+                ]),
             ];
         })->withRole('Employee');
     }

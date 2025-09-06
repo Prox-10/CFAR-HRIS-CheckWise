@@ -26,6 +26,7 @@ class UserSeeder extends Seeder
         'email' => 'admin@example.com',
         'password' => bcrypt('password'),
         'email_verified_at' => now(),
+        'department' => 'Management & Staff(Admin)',
       ]
     );
 
@@ -45,6 +46,7 @@ class UserSeeder extends Seeder
         'email' => 'hr@example.com',
         'password' => bcrypt('password'),
         'email_verified_at' => now(),
+        'department' => 'Management & Staff(Admin)',
       ]
     );
 
@@ -63,6 +65,7 @@ class UserSeeder extends Seeder
         'email' => 'supervisor@example.com',
         'password' => bcrypt('password'),
         'email_verified_at' => now(),
+        'department' => 'Management & Staff(Admin)',
       ]
     );
 
@@ -75,18 +78,19 @@ class UserSeeder extends Seeder
     // Create regular employees
     $employees = [
       [
-        'firstname' => 'John',
-        'lastname' => 'Doe',
-        'email' => 'john.doe@example.com',
+        'firstname' => 'Jhe Ann',
+        'lastname' => 'Selle',
+        'email' => 'jheannselle@gmail.com',
+        'department' => 'Packing Plant',
         'roles' => ['Employee']
       ],
       [
-        'firstname' => 'Jane',
-        'lastname' => 'Smith',
-        'email' => 'jane.smith@example.com',
+        'firstname' => 'Enje',
+        'lastname' => 'Ñigas',
+        'email' => 'enjenigas@gmail.com',
+        'department' => 'Harvesting',
         'roles' => ['Employee']
       ],
-    
     ];
 
     foreach ($employees as $employeeData) {
@@ -113,18 +117,86 @@ class UserSeeder extends Seeder
     // Create some users with multiple roles
     $multiRoleUsers = [
       [
-        'firstname' => 'Admin',
-        'lastname' => 'User',
-        'email' => 'adminuser@example.com',
-        'roles' => ['Super Admin', 'Admin']
+        'firstname' => 'KyleDev',
+        'middlename' => 'Gepz.',
+        'lastname' => 'Labz',
+        'email' => 'kyledev10282001@gmail.com',
+        'department' => 'Management & Staff(Admin)',
+        'roles' => ['Super Admin']
       ],
       [
         'firstname' => 'Meshel',
         'middlename' => 'A.',
         'lastname' => 'Basang',
         'email' => 'meshelbasang@gmail.com',
+        'department' => 'Management & Staff(Admin)',
         'roles' => ['Manager']
-      ]
+      ],
+      [
+        'firstname' => 'Carmella',
+        'middlename' => 'B.',
+        'lastname' => 'Pedregosa',
+        'email' => 'carmellapedregos@gmail.com',
+        'department' => 'Management & Staff(Admin)',
+        'roles' => ['Manager']
+      ],
+      [
+        'firstname' => 'Rovilyn',
+        'middlename' => 'B.',
+        'lastname' => 'Villanueva',
+        'email' => 'rovilynvillanueva@gmail.com',
+        'department' => 'Management & Staff(Admin)',
+        'roles' => ['HR Personnel']
+      ],
+      [
+        'firstname' => 'Ronelito',
+        'middlename' => '',
+        'lastname' => 'Mulato',
+        'email' => 'ronelitomulato@gmail.com',
+        'department' => 'Harvesting',
+        'roles' => ['Farm Supervisor']
+      ],
+      [
+        'firstname' => 'Nestor',
+        'middlename' => 'C.',
+        'lastname' => 'Geraga',
+        'email' => 'nestorcgeraga@gmail.com',
+        'department' => 'Pest & Decease',
+        'roles' => ['P&D Supervisor']
+      ],
+      [
+        'firstname' => 'Marcelo',
+        'middlename' => '',
+        'lastname' => 'Milana',
+        'email' => 'marcelomilana@gmail.com',
+        'department' => 'Packing Plant',
+        'roles' => ['Packing Plant Supervisor']
+      ],
+      [
+        'firstname' => 'Jeah Pearl',
+        'middlename' => '',
+        'lastname' => 'Cabal',
+        'email' => 'jeahpearlcabal@gmail.com',
+        'department' => 'Packing Plant',
+        'roles' => ['PP Asst. Supervisor']
+      ],
+      [
+        'firstname' => 'Norberto',
+        'middlename' => 'O.',
+        'lastname' => 'Aguilar',
+        'email' => 'norbertooaguilar@gmail.com',
+        'department' => 'Harvesting',
+        'roles' => ['Harvesting Supervisor']
+      ],
+      [
+        'firstname' => 'LP',
+        'middlename' => '',
+        'lastname' => 'Subayno',
+        'email' => 'lpsubayno@gmail.com',
+        'department' => 'Management & Staff(Admin)',
+        'roles' => ['ACCTG. Head']
+      ],
+
     ];
 
     foreach ($multiRoleUsers as $userData) {

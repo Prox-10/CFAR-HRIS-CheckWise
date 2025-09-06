@@ -33,17 +33,17 @@ const columns = (
                 <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />
             ),
         },
-        {
-            id: 'index',
-            header: 'No.',
-            cell: ({ row }) => {
-                return (
-                    <div className="text-sm font-medium text-gray-900">
-                        {row.index + 1}
-                    </div>
-                );
-            },
-        },
+        // {
+        //     id: 'index',
+        //     header: 'No.',
+        //     cell: ({ row }) => {
+        //         return (
+        //             <div className="text-sm font-medium text-gray-900">
+        //                 {row.index + 1}
+        //             </div>
+        //         );
+        //     },
+        // },
         {
             accessorKey: 'fullname',
             header: ({ column }) => <DataTableColumnHeader column={column} title="Full Name" />,

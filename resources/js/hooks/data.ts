@@ -1,61 +1,63 @@
 // hooks/useCompanyData.ts
 
-export const departments: string[] = ['Monthly', 'Packing Plant', 'Harvesting', 'Pest & Decease', 'Coop Area', 'Engineering', 'Utility'];
+export const departments: string[] = [
+    'Management & Staff(Admin)',
+    'Packing Plant',
+    'Harvesting',
+    'Pest & Decease',
+    'Miscellaneous',
+    'Coop Area',
+    'Security Forces',
+    'Engineering',
+    'Utility',
+];
+
+export const engineeringPositions: string[] = [
+     'N/A'
+];
+export const utilityPositions: string[] = [
+     'N/A'
+];
 
 // Department-specific positions
-export const monthlyPositions: string[] = ['Monthly Supervisor', 'Monthly Coordinator', 'Monthly Assistant', 'Monthly Clerk'];
-
-export const packingPlantPositions: string[] = [
-    'Packing Supervisor',
-    'Packing Coordinator',
-    'Packing Operator',
-    'Quality Control Inspector',
-    'Packing Assistant',
-];
-
-export const harvestingPositions: string[] = [
+export const managementAndStaffPositions: string[] = [
+    'Manager',
+    'Farm Superintendent',
+    'HR',
+    'Packing Plant Supervisor',
     'Harvesting Supervisor',
-    'Field Supervisor',
-    'Field Worker',
-    'Harvesting Coordinator',
-    'Field Assistant',
+    'P&D Supervisor',
+    'M&S Supervisor',
+    'Accounting Supervisor',
+    'Cashier',
+    'Office Employees Main',
+    'Packing Plant Assistant',
+    'Packing Plant Maintenance',
+    'Driver',
+    'M&S Aide',
+    'Security Supervisor',
+    'Coop Area/Manage Coop Supervisor',
+    'Probationary Office Staff',
 ];
 
-export const pestDeceasePositions: string[] = ['P&D Supervisor', 'P&D Specialist', 'P&D Technician', 'P&D Coordinator', 'P&D Assistant'];
+export const packingPlantPositions: string[] = ['Regular Hired Workers', 'Fruit Recorder', 'Probitionary', 'Seasonal'];
 
-export const coopAreaPositions: string[] = [
-    'Coop Area Manager',
-    'Coop Area Supervisor',
-    'Coop Area Coordinator',
-    'Coop Area Assistant',
-    'Coop Area Clerk',
+export const harvestingPositions: string[] = ['Regular Hired Workers', 'Probitionary', 'Spare'];
+
+export const pestDeceasePositions: string[] = ['Regular Hired Workers', 'Footbath Maintenance', 'Probitionary PDC', 'PDC Seasonal'];
+
+export const coopAreaPositions: string[] = ['Regular Hired Workers', 'Probitionary'];
+
+export const miscellaneousPositions: string[] = [
+    'Utility/Janitorial',
+    'Field Surveyor',
+    'Field Surveyor/Spare',
+    'Miscellaneous - Probitionary',
+    'Sigatoka Deleafer',
+    'Sigatoka Monitoring',
 ];
 
-export const engineeringPositions: string[] = ['Chief Engineer', 'Senior Engineer', 'Engineer', 'Engineering Technician', 'Engineering Assistant'];
-
-export const utilityPositions: string[] = [
-    'Utility Supervisor',
-    'Utility Technician',
-    'Utility Operator',
-    'Utility Assistant',
-    'Maintenance Technician',
-];
-
-// Legacy positions array for backward compatibility (can be removed if not needed elsewhere)
-export const positions: string[] = [
-    'Admin Assistant',
-    'Accountant',
-    'HR Officer',
-    'Quality Inspector',
-    'Production Supervisor',
-    'Field Worker',
-    'Field Supervisor',
-    'Logistics Coordinator',
-    'R&D Specialist',
-    'Sales Executive',
-    'Maintenance Technician',
-    'P&D',
-];
+export const securityForcesPositions: string[] = ['Security Guard: Agency-MINVITS', 'Security Guard: SECURUS', 'Spray Man (Main Gate)'];
 
 export const workStatus = ['Regular', 'Add Crew', 'Probationary', 'Sessional'];
 
@@ -63,11 +65,22 @@ export const maritalStatus = ['Single', 'Married', 'Divorced', 'Widowed', 'Separ
 
 export const gender = ['Male', 'Female'];
 
+// Combined positions array from all departments
+export const positions: string[] = [
+    ...managementAndStaffPositions,
+    ...packingPlantPositions,
+    ...harvestingPositions,
+    ...pestDeceasePositions,
+    ...coopAreaPositions,
+    ...miscellaneousPositions,
+    ...securityForcesPositions,
+];
+
 // Helper function to get positions for a specific department
 export const getPositionsForDepartment = (department: string): string[] => {
     switch (department) {
-        case 'Monthly':
-            return monthlyPositions;
+        case 'Management & Staff':
+            return managementAndStaffPositions;
         case 'Packing Plant':
             return packingPlantPositions;
         case 'Harvesting':
@@ -76,10 +89,10 @@ export const getPositionsForDepartment = (department: string): string[] => {
             return pestDeceasePositions;
         case 'Coop Area':
             return coopAreaPositions;
-        case 'Engineering':
-            return engineeringPositions;
-        case 'Utility':
-            return utilityPositions;
+        case 'Security Forces':
+            return securityForcesPositions;
+        case 'Miscellaneous':
+            return miscellaneousPositions;
         default:
             return [];
     }

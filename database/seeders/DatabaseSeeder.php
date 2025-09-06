@@ -70,7 +70,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             SupervisorDepartmentSeeder::class,
             // EvaluationConfigurationSeeder::class, // Add this before EvaluationSeeder
-            RecognitionAwardSeeder::class, // Add recognition award test data
+        // Add recognition award test data
         ]);
     }
 }

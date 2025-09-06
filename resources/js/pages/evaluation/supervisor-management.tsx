@@ -29,6 +29,7 @@ import { Plus, Settings, Star, Trash2, Users } from 'lucide-react';
 import { useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import { EvaluationFrequencyManager } from './components/evaluation-frequency-manager';
+import { EvaluationSettingsManager } from './components/evaluation-settings-manager';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

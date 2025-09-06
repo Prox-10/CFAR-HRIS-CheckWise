@@ -27,7 +27,7 @@ class AttendanceSeeder extends Seeder
     $employeeIds = $employees->pluck('id')->toArray();
 
     // Generate attendance data for the last 90 days
-    $startDate = Carbon::now()->subDays(90);
+    $startDate = Carbon::now()->subDays(10);
     $endDate = Carbon::now();
 
     $this->output('Generating attendance data from ' . $startDate->format('Y-m-d') . ' to ' . $endDate->format('Y-m-d'));
@@ -83,7 +83,7 @@ class AttendanceSeeder extends Seeder
 
     for ($i = 0; $i < 200; $i++) {
       $employeeId = $employeeIds[array_rand($employeeIds)];
-      $randomDate = Carbon::now()->subDays(rand(1, 90))->format('Y-m-d');
+      $randomDate = Carbon::now()->subDays(rand(1, 10))->format('Y-m-d');
 
       // Check if attendance already exists
       $existingAttendance = Attendance::where('employee_id', $employeeId)
@@ -136,41 +136,24 @@ class AttendanceSeeder extends Seeder
   {
     $times = [
       'morning' => [
-        '06:00:00',
-        '06:15:00',
-        '06:30:00',
-        '06:45:00',
+       
         '07:00:00',
-        '07:15:00',
-        '07:30:00',
-        '07:45:00',
+       
         '08:00:00',
-        '08:15:00',
-        '08:30:00'
+        
       ],
       'afternoon' => [
-        '12:00:00',
-        '12:15:00',
-        '12:30:00',
-        '12:45:00',
+       
         '13:00:00',
-        '13:15:00',
-        '13:30:00',
-        '13:45:00',
+       
         '14:00:00',
-        '14:15:00'
+        
       ],
       'night' => [
         '18:00:00',
-        '18:15:00',
-        '18:30:00',
-        '18:45:00',
+       
         '19:00:00',
-        '19:15:00',
-        '19:30:00',
-        '19:45:00',
-        '20:00:00',
-        '20:15:00'
+       
       ]
     ];
 
@@ -185,35 +168,21 @@ class AttendanceSeeder extends Seeder
     $times = [
       'morning' => [
         '14:00:00',
-        '14:15:00',
-        '14:30:00',
-        '14:45:00',
+       
+       
         '15:00:00',
-        '15:15:00',
-        '15:30:00',
-        '15:45:00',
-        '16:00:00'
+        
       ],
       'afternoon' => [
         '18:00:00',
-        '18:15:00',
-        '18:30:00',
-        '18:45:00',
+       
         '19:00:00',
-        '19:15:00',
-        '19:30:00',
-        '19:45:00',
-        '20:00:00'
+        
       ],
       'night' => [
-        '06:00:00',
-        '06:15:00',
-        '06:30:00',
-        '06:45:00',
+       
         '07:00:00',
-        '07:15:00',
-        '07:30:00',
-        '07:45:00',
+       
         '08:00:00'
       ]
     ];
