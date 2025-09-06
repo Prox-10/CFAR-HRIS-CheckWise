@@ -6,19 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    departments as departmentsData,
-    gender as genderData,
-    maritalStatus as maritalStatusData,
-    positions as positionsData,
-    workStatus as workStatusData,
-} from '@/hooks/data';
 import { Employee, Employees, initialEmployeeFormData } from '@/hooks/employees';
 import { useForm } from '@inertiajs/react';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { ChevronDownIcon, Fingerprint, User } from 'lucide-react';
 import React, { FormEventHandler, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import {
+    departments as departmentsData,
+    gender as genderData,
+    getPositionsForDepartment,
+    maritalStatus as maritalStatusData,
+    workStatus as workStatusData,
+} from '../../../hooks/data';
 import FingerprintCapture from './fingerprintcapture';
 
 interface EditEmployeeModalProps {
@@ -37,6 +37,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
     const [loading, setLoading] = useState(false);
     const [preview, setPreview] = useState<string>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [availablePositions, setAvailablePositions] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { data, setData, errors, processing, reset, post } = useForm<Employees & { _method: string }>({
@@ -88,6 +89,16 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
             }
         }
     }, [employee]);
+
+    // Update available positions when department changes
+    useEffect(() => {
+        if (data.department) {
+            const positions = getPositionsForDepartment(data.department);
+            setAvailablePositions(positions);
+        } else {
+            setAvailablePositions([]);
+        }
+    }, [data.department]);
 
     const handleProfileImageUpload = () => {
         const input = document.createElement('input');
@@ -168,8 +179,48 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                 closeModalWithDelay(1200);
             },
             onError: (errors: any) => {
-                toast.error('Failed to update employee');
-                console.error('Update error:', errors);
+                console.error('Validation errors:', errors);
+                
+                // Show specific error messages for better user experience
+                if (errors.employeeid) {
+                    toast.error(`Employee ID Error: ${errors.employeeid}`);
+                } else if (errors.email) {
+                    toast.error(`Email Error: ${errors.email}`);
+                } else if (errors.firstname) {
+                    toast.error(`First Name Error: ${errors.firstname}`);
+                } else if (errors.lastname) {
+                    toast.error(`Last Name Error: ${errors.lastname}`);
+                } else if (errors.gender) {
+                    toast.error(`Gender Error: ${errors.gender}`);
+                } else if (errors.department) {
+                    toast.error(`Department Error: ${errors.department}`);
+                } else if (errors.position) {
+                    toast.error(`Position Error: ${errors.position}`);
+                } else if (errors.work_status) {
+                    toast.error(`Work Status Error: ${errors.work_status}`);
+                } else if (errors.marital_status) {
+                    toast.error(`Marital Status Error: ${errors.marital_status}`);
+                } else if (errors.date_of_birth) {
+                    toast.error(`Date of Birth Error: ${errors.date_of_birth}`);
+                } else if (errors.service_tenure) {
+                    toast.error(`Service Tenure Error: ${errors.service_tenure}`);
+                } else if (errors.address) {
+                    toast.error(`Address Error: ${errors.address}`);
+                } else if (errors.city) {
+                    toast.error(`City Error: ${errors.city}`);
+                } else if (errors.state) {
+                    toast.error(`State Error: ${errors.state}`);
+                } else if (errors.country) {
+                    toast.error(`Country Error: ${errors.country}`);
+                } else if (errors.zip_code) {
+                    toast.error(`Zip Code Error: ${errors.zip_code}`);
+                } else if (errors.phone) {
+                    toast.error(`Phone Error: ${errors.phone}`);
+                } else if (errors.picture) {
+                    toast.error(`Profile Picture Error: ${errors.picture}`);
+                } else {
+                    toast.error('Please check all required fields and try again.');
+                }
             },
             onFinish: () => {
                 setLoading(false);
@@ -244,7 +295,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 placeholder="Enter employee id...."
                                 value={data.employeeid}
                                 onChange={(e) => setData('employeeid', e.target.value)}
-                                className="border-main focus:border-green-500"
+                                className={`border-main focus:border-green-500 ${errors.employeeid ? 'border-red-500 focus:border-red-500' : ''}`}
                                 aria-invalid={!!errors.employeeid}
                             />
                             <InputError message={errors.employeeid} />
@@ -257,7 +308,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 placeholder="Enter firstname"
                                 value={data.firstname}
                                 onChange={(e) => setData('firstname', e.target.value)}
-                                className="border-main focus:border-green-500"
+                                className={`border-main focus:border-green-500 ${errors.firstname ? 'border-red-500 focus:border-red-500' : ''}`}
                                 aria-invalid={!!errors.firstname}
                             />
                             <InputError message={errors.firstname} />
@@ -281,7 +332,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 placeholder="Enter lastname"
                                 value={data.lastname}
                                 onChange={(e) => setData('lastname', e.target.value)}
-                                className="border-main focus:border-green-500"
+                                className={`border-main focus:border-green-500 ${errors.lastname ? 'border-red-500 focus:border-red-500' : ''}`}
                                 aria-invalid={!!errors.lastname}
                             />
                             <InputError message={errors.lastname} />
@@ -292,7 +343,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                             <Label htmlFor="gender">Gender</Label>
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
                             <Select value={data.gender} onValueChange={(value) => setData('gender', value)} aria-invalid={!!errors.gender}>
-                                <SelectTrigger className="border-main focus:border-green-500">
+                                <SelectTrigger className={`border-main focus:border-green-500 ${errors.gender ? 'border-red-500 focus:border-red-500' : ''}`}>
                                     <SelectValue placeholder="Select Gender" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -425,16 +476,27 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                         <div>
                             <Label htmlFor="positions">Positions</Label>
                             <span className="ms-2 text-[15px] font-medium text-red-600">*</span>
-                            <Select value={data.position} onValueChange={(value) => setData('position', value)} aria-invalid={!!errors.position}>
+                            <Select
+                                value={data.position}
+                                onValueChange={(value) => setData('position', value)}
+                                disabled={!data.department}
+                                aria-invalid={!!errors.position}
+                            >
                                 <SelectTrigger className="border-main focus:border-green-500">
-                                    <SelectValue placeholder="Select Positions" />
+                                    <SelectValue placeholder={data.department ? 'Select Positions' : 'Select Department first'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {positionsData.map((pos) => (
-                                        <SelectItem key={pos} value={pos}>
-                                            {pos}
-                                        </SelectItem>
-                                    ))}
+                                    {availablePositions.length > 0 ? (
+                                        availablePositions.map((pos) => (
+                                            <SelectItem key={pos} value={pos}>
+                                                {pos}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                                            {data.department ? 'No positions available' : 'Select Department first'}
+                                        </div>
+                                    )}
                                 </SelectContent>
                             </Select>
                             <InputError message={errors.position} />
@@ -562,7 +624,7 @@ const EditEmployeeModal = ({ isOpen, onClose, employee, onUpdate }: EditEmployee
                                 placeholder="Enter email"
                                 value={data.email}
                                 onChange={(e) => setData('email', e.target.value)}
-                                className="border-green-300 focus:border-cfar-500"
+                                className={`border-green-300 focus:border-cfar-500 ${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
                                 aria-invalid={!!errors.email}
                             />
                             <InputError message={errors.email} />

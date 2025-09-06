@@ -307,34 +307,11 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee) {}
 
-    public function update(Request $request, $id)
+    public function update(EmployeeRequest $request, $id)
     {
         try {
             Log::info('Incoming request data:', $request->all());
-            $rules = [
-                'email' => 'email|string|max:100|unique:employees,email,' . $id,
-                'employeeid' => 'string|max:100',
-                'firstname' => 'string|max:100',
-                'middlename' => 'nullable|string|max:100',
-                'lastname' => 'string|max:100',
-                'phone' => 'string|max:20',
-                'department' => 'string|max:100',
-                'position' => 'string|max:100',
-                'marital_status' => 'string|max:50',
-                'nationality' => 'nullable|string|max:50',
-                'address' => 'string|max:100',
-                'city' => 'string|max:100',
-                'state' => 'string|max:100',
-                'country' => 'string|max:100',
-                'zip_code' => 'string|max:100',
-                'service_tenure' => 'date',
-                'gender' => 'string|max:50',
-                'work_status' => 'max:50',
-            ];
-            if ($request->hasFile('picture')) {
-                $rules['picture'] = 'image|mimes:jpeg,png,jpg,gif,webp|max:2048';
-            }
-            $validatedData = $request->validate($rules);
+            $validatedData = $request->validated();
             Log::info('Validated data:', $validatedData);
             $employee = Employee::findOrFail($id);
             $fullName = $validatedData['firstname'] . ' ' .
@@ -363,10 +340,14 @@ class EmployeeController extends Controller
             $employee->update($validatedData);
             Log::info('Employee updated successfully', ['employee_id' => $employee->id]);
             return redirect()->route('employee.index')->with('success', 'Employee updated successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Employee Update Validation Failed: ' . $e->getMessage());
+            Log::info('Validation errors:', $e->errors());
+            return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             Log::error('Employee Update Failed: ' . $e->getMessage());
             Log::info('Request all:', $request->all());
-            return redirect()->back()->with('error', 'Failed to create employee Server error.');
+            return redirect()->back()->with('error', 'Failed to update employee. Server error.');
         }
     }
 
