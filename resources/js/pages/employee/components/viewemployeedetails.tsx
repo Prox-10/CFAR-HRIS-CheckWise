@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Employee } from '@/hooks/employees';
 import { useForm } from '@inertiajs/react';
@@ -65,7 +66,7 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
         address: '',
         service_tenure: '',
         date_of_birth: '',
-        picture: '', // String URL for display, not File for upload
+        picture: '', 
         city: '',
         state: '',
         country: '',
@@ -151,10 +152,10 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
 
     const fingerprintStatus = getFingerprintStatus();
 
-    // Handle fingerprint capture from the component
+  
     const handleFingerprintCapture = (fingerprintData: any) => {
         setFingerprintData(fingerprintData);
-        // TODO: integrate with form as needed
+       
     };
 
     return (
@@ -168,207 +169,251 @@ const ViewEmployeeDetails = ({ isOpen, onClose, employee, onEdit, onDelete, onRe
 
                     <div className="space-y-6 p-6">
                         {/* Employee Details Section - Top Card */}
-                        <div className="rounded-lg border-2 border-green-200 bg-white p-6 shadow-sm">
-                            <div className="flex items-start space-x-8">
-                                {/* Profile Picture */}
-                                <div className="flex-shrink-0">
-                                    <div className="relative h-32 w-32">
-                                        {data.picture ? (
-                                            <img
-                                                src={data.picture}
-                                                alt="Profile"
-                                                className="h-32 w-32 rounded-full border-4 border-green-300 object-cover shadow-lg"
-                                            />
+                        <Card className="border-2 border-green-200 shadow-sm">
+                            <CardContent className="p-6">
+                                <div className="flex flex-col space-y-6 lg:flex-row lg:space-x-8 lg:space-y-0">
+                                    {/* Profile Picture */}
+                                    <div className="flex-shrink-0">
+                                        <div className="relative h-32 w-32">
+                                            {data.picture ? (
+                                                <img
+                                                    src={data.picture}
+                                                    alt="Profile"
+                                                    className="h-32 w-32 rounded-full border-4 border-green-300 object-cover shadow-lg"
+                                                />
+                                            ) : (
+                                                <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-green-300 bg-green-50">
+                                                    <img
+                                                        src="Logo.png"
+                                                        className="animate-scale-in dark:border-darksMain h-32 w-32 rounded-full border-2 border-cfar-400 object-cover"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="mt-3 text-center">
+                                            <h2 className="break-words text-xl font-bold text-green-800" title={data.employee_name}>
+                                                {data.employee_name}
+                                            </h2>
+                                            <Badge className="mt-1 bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
+                                                ID: {data.employeeid}
+                                            </Badge>
+                                        </div>
+                                    </div>
+
+                                    {/* Employee Details Grid - Improved overflow handling */}
+                                    <div className="min-w-0 flex-1">
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                            <div className="flex min-w-0 items-center space-x-3">
+                                                <User className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">Gender:</span>
+                                                <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.gender}>
+                                                    {data.gender}
+                                                </Badge>
+                                            </div>
+
+                                            <div className="flex min-w-0 items-center space-x-3">
+                                                <Building className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">Department:</span>
+                                                <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.department}>
+                                                    {data.department}
+                                                </Badge>
+                                            </div>
+
+                                            <div className="flex min-w-0 items-center space-x-3">
+                                                <Calendar className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">Birth Date:</span>
+                                                <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.date_of_birth ? formatDate(data.date_of_birth) : 'N/A'}>
+                                                    {data.date_of_birth ? formatDate(data.date_of_birth) : 'N/A'}
+                                                </Badge>
+                                            </div>
+
+                                            <div className="flex min-w-0 items-center space-x-3">
+                                                <Briefcase className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">Position:</span>
+                                                <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.position}>
+                                                    {data.position}
+                                                </Badge>
+                                            </div>
+
+                                            <div className="flex min-w-0 items-center space-x-3 sm:col-span-2">
+                                                <Mail className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">Email:</span>
+                                                <span className="min-w-0 truncate text-sm text-gray-800" title={data.email}>
+                                                    {data.email}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex min-w-0 items-center space-x-3 sm:col-span-2">
+                                                <Phone className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                                <span className="flex-shrink-0 text-sm font-medium text-gray-600">Phone:</span>
+                                                <span className="min-w-0 truncate text-sm text-gray-800" title={data.phone}>
+                                                    {data.phone}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Employment Information Section - Middle Card */}
+                        <Card className="border-2 border-green-200 shadow-sm">
+                            <CardHeader>
+                                <CardTitle className="text-lg font-semibold text-green-800">Employment Information</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <Calendar className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Hired Date:</span>
+                                        <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.service_tenure ? formatDate(data.service_tenure) : 'N/A'}>
+                                            {data.service_tenure ? formatDate(data.service_tenure) : 'N/A'}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="flex min-w-0 flex-col items-start space-y-2">
+                                        <span className="text-sm font-medium text-gray-600">Employee Rating:</span>
+                                        {employee && employee.latest_rating ? (
+                                            <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={employee.latest_rating}>
+                                                {employee.latest_rating}
+                                            </Badge>
                                         ) : (
-                                            <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-green-300 bg-green-50">
-                                                <User className="h-16 w-16 text-green-400" />
+                                            <span className="text-sm text-gray-500">No rating</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Personal Section - Bottom Card */}
+                        <Card className="border-2 border-green-200 shadow-sm">
+                            <CardHeader>
+                                <CardTitle className="text-lg font-semibold text-green-800">Personal</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <User className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Marital Status:</span>
+                                        <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.marital_status}>
+                                            {data.marital_status}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <User className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Nationality:</span>
+                                        <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.nationality || 'Not specified'}>
+                                            {data.nationality || 'Not specified'}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Contact Information Section */}
+                        <Card className="border-2 border-green-200 shadow-sm">
+                            <CardHeader>
+                                <CardTitle className="text-lg font-semibold text-green-800">Contact Information</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Address:</span>
+                                        <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.address}>
+                                            {data.address}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">City:</span>
+                                        <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.city}>
+                                            {data.city}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">State:</span>
+                                        <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.state}>
+                                            {data.state}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Country:</span>
+                                        <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.country}>
+                                            {data.country}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center space-x-3">
+                                        <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
+                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Zip Code:</span>
+                                        <Badge className="min-w-0 truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.zip_code}>
+                                            {data.zip_code}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Fingerprints Section - Updated with registration functionality */}
+                        <Card className="border-2 border-green-200 shadow-sm">
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-lg font-semibold text-green-800">Fingerprints</CardTitle>
+                                    {/* Fingerprint Status Badge - Updated with proper colors */}
+                                    <Badge
+                                        className={`px-3 py-1 text-sm font-medium ${
+                                            fingerprintStatus.hasFingerprint
+                                                ? 'border border-green-300 bg-green-100 text-green-800'
+                                                : 'border border-red-300 bg-red-100 text-red-800'
+                                        }`}
+                                    >
+                                        <Fingerprint className={`mr-2 h-4 w-4 ${fingerprintStatus.hasFingerprint ? 'text-green-600' : 'text-red-600'}`} />
+                                        {fingerprintStatus.status}
+                                    </Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                {/* Fingerprint Capture Component - Added from editemployeemodal.tsx */}
+                                <div className="space-y-4">
+                                    <div className="md:col-span-2">
+                                        <h4 className="text-md mb-3 flex items-center gap-2 font-semibold text-green-800">
+                                            <Fingerprint className="text-main h-4 w-4" />
+                                            Fingerprint Capture
+                                        </h4>
+                                        <FingerprintCapture
+                                            onFingerprintCaptured={handleFingerprintCapture}
+                                            employeeId={data.employeeid}
+                                            employeeFingerprints={employee?.fingerprints || []}
+                                        />
+
+                                        {/* WebSocket Fingerprint Preview - Added from editemployeemodal.tsx */}
+                                        {wsFingerprintData && (
+                                            <div className="mt-4 text-center">
+                                                <div className="mb-2 font-medium text-green-800">Fingerprint Preview:</div>
+                                                <img
+                                                    src={`data:image/png;base64,${wsFingerprintData.fingerprint_image}`}
+                                                    alt="Fingerprint Preview"
+                                                    className="mx-auto h-32 w-32 border object-contain"
+                                                />
+                                                <div className="text-xs text-green-600">
+                                                    Captured at:{' '}
+                                                    {wsFingerprintData.fingerprint_captured_at
+                                                        ? new Date(wsFingerprintData.fingerprint_captured_at).toLocaleString()
+                                                        : ''}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
-                                    <div className="mt-3 text-center">
-                                        <h2 className="text-xl font-bold text-green-800">{data.employee_name}</h2>
-                                        <Badge className="mt-1 bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
-                                            ID: {data.employeeid}
-                                        </Badge>
-                                    </div>
                                 </div>
-
-                                {/* Employee Details Grid - Fixed for long text */}
-                                <div className="grid min-w-0 flex-1 grid-cols-2 gap-6">
-                                    <div className="flex min-w-0 items-center space-x-3">
-                                        <User className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Gender:</span>
-                                        <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.gender}</Badge>
-                                    </div>
-
-                                    <div className="flex min-w-0 items-center space-x-3">
-                                        <Building className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Department:</span>
-                                        <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.department}</Badge>
-                                    </div>
-
-                                    <div className="flex min-w-0 items-center space-x-3">
-                                        <Calendar className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Birth Date:</span>
-                                        <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">
-                                            {data.date_of_birth ? formatDate(data.date_of_birth) : 'N/A'}
-                                        </Badge>
-                                    </div>
-
-                                    <div className="flex min-w-0 items-center space-x-3">
-                                        <Briefcase className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Position:</span>
-                                        <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.position}</Badge>
-                                    </div>
-
-                                    <div className="flex min-w-0 items-center space-x-3">
-                                        <Mail className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Email:</span>
-                                        <span className="max-w-full truncate text-sm text-gray-800" title={data.email}>
-                                            {data.email}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex min-w-0 items-center space-x-3">
-                                        <Phone className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                        <span className="flex-shrink-0 text-sm font-medium text-gray-600">Phone:</span>
-                                        <span className="max-w-full truncate text-sm text-gray-800">{data.phone}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Employment Information Section - Middle Card */}
-                        <div className="rounded-lg border-2 border-green-200 bg-white p-6 shadow-sm">
-                            <h3 className="mb-4 text-lg font-semibold text-green-800">Employment Information</h3>
-                            <div className="grid grid-cols-2 gap-8">
-                                <div className="flex min-w-0 items-center space-x-3">
-                                    <Calendar className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Hired Date:</span>
-                                    <Badge className="truncate bg-green-100 px-3 py-1 text-sm text-green-800">
-                                        {data.service_tenure ? formatDate(data.service_tenure) : 'N/A'}
-                                    </Badge>
-                                </div>
-
-                                <div className="flex min-w-0 flex-col items-start space-y-2">
-                                    <span className="text-sm font-medium text-gray-600">Employee Rating:</span>
-                                    {employee && employee.latest_rating ? (
-                                        <Badge className="truncate bg-green-100 px-3 py-1 text-sm text-green-800">{employee.latest_rating}</Badge>
-                                    ) : (
-                                        <span className="text-sm text-gray-500">No rating</span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Personal Section - Bottom Card */}
-                        <div className="rounded-lg border-2 border-green-200 bg-white p-6 shadow-sm">
-                            <h3 className="mb-4 text-lg font-semibold text-green-800">Personal</h3>
-                            <div className="grid grid-cols-2 gap-8">
-                                <div className="flex min-w-0 items-center space-x-3">
-                                    <User className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Marital Status:</span>
-                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.marital_status}</Badge>
-                                </div>
-
-                                <div className="flex min-w-0 items-center space-x-3">
-                                    <User className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Nationality:</span>
-                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">
-                                        {data.nationality || 'Not specified'}
-                                    </Badge>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Contact Information Section */}
-                        <div className="rounded-lg border-2 border-green-200 bg-white p-6 shadow-sm">
-                            <h3 className="mb-4 text-lg font-semibold text-green-800">Contact Information</h3>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="flex min-w-0 items-center space-x-3">
-                                    <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Address:</span>
-                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800" title={data.address}>
-                                        {data.address}
-                                    </Badge>
-                                </div>
-
-                                <div className="flex min-w-0 items-center space-x-3">
-                                    <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">City:</span>
-                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.city}</Badge>
-                                </div>
-
-                                <div className="flex min-w-0 items-center space-x-3">
-                                    <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">State:</span>
-                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.state}</Badge>
-                                </div>
-
-                                <div className="flex min-w-0 items-center space-x-3">
-                                    <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Country:</span>
-                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.country}</Badge>
-                                </div>
-
-                                <div className="flex min-w-0 items-center space-x-3">
-                                    <MapPin className="h-5 w-5 flex-shrink-0 text-green-600" />
-                                    <span className="flex-shrink-0 text-sm font-medium text-gray-600">Zip Code:</span>
-                                    <Badge className="max-w-full truncate bg-green-100 px-3 py-1 text-sm text-green-800">{data.zip_code}</Badge>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Fingerprints Section - Updated with registration functionality */}
-                        <div className="rounded-lg border-2 border-green-200 bg-white p-6 shadow-sm">
-                            <div className="mb-4 flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-green-800">Fingerprints</h3>
-                                {/* Fingerprint Status Badge - Updated with proper colors */}
-                                <Badge
-                                    className={`px-3 py-1 text-sm font-medium ${
-                                        fingerprintStatus.hasFingerprint
-                                            ? 'border border-green-300 bg-green-100 text-green-800'
-                                            : 'border border-red-300 bg-red-100 text-red-800'
-                                    }`}
-                                >
-                                    <Fingerprint className={`mr-2 h-4 w-4 ${fingerprintStatus.hasFingerprint ? 'text-green-600' : 'text-red-600'}`} />
-                                    {fingerprintStatus.status}
-                                </Badge>
-                            </div>
-
-                            {/* Fingerprint Capture Component - Added from editemployeemodal.tsx */}
-                            <div className="mt-6 space-y-4">
-                                <div className="md:col-span-2">
-                                    <h4 className="text-md mb-3 flex items-center gap-2 font-semibold text-green-800">
-                                        <Fingerprint className="text-main h-4 w-4" />
-                                        Fingerprint Capture
-                                    </h4>
-                                    <FingerprintCapture
-                                        onFingerprintCaptured={handleFingerprintCapture}
-                                        employeeId={data.employeeid}
-                                        employeeFingerprints={employee?.fingerprints || []}
-                                    />
-
-                                    {/* WebSocket Fingerprint Preview - Added from editemployeemodal.tsx */}
-                                    {wsFingerprintData && (
-                                        <div className="mt-4 text-center">
-                                            <div className="mb-2 font-medium text-green-800">Fingerprint Preview:</div>
-                                            <img
-                                                src={`data:image/png;base64,${wsFingerprintData.fingerprint_image}`}
-                                                alt="Fingerprint Preview"
-                                                className="mx-auto h-32 w-32 border object-contain"
-                                            />
-                                            <div className="text-xs text-green-600">
-                                                Captured at:{' '}
-                                                {wsFingerprintData.fingerprint_captured_at
-                                                    ? new Date(wsFingerprintData.fingerprint_captured_at).toLocaleString()
-                                                    : ''}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
 
                         {/* Action Buttons */}
                         <div className="flex justify-center gap-4 border-t border-green-200 pt-6">

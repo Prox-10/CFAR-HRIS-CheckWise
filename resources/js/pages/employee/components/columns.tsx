@@ -339,7 +339,7 @@ const columns = (
                                                 const response = await fetch('/employee_reset_pin', {
                                                     method: 'POST',
                                                     headers: {
-                                                        'Content-Type': 'application/json',
+                                                         'Content-Type': 'application/json',
                                                         'X-CSRF-TOKEN':
                                                             document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                                                     },
