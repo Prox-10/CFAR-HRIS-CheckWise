@@ -28,10 +28,10 @@ export interface DepartmentEvaluationSettings {
 }
 
 export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = {
-    Monthly: {
+    'Management & Staff(Admin)': {
         title: 'Work Functions',
-        subtitle: 'Monthly Department',
-        description: 'Evaluate employee performance in monthly-specific administrative tasks and procedures',
+        subtitle: 'Management&Staff(Admin)',
+        description: 'Evaluate employee performance in Management & Staff(Admin) department operations',
         criteria: {
             attendance: '1. Attendance',
             attitudeTowardsSupervisor: '2. Attitude Towards Supervisor',
@@ -40,15 +40,39 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
             workOperations: '4. Work Operations',
             workFunctions: '5. Work Functions',
         },
-        workFunctions: [
-            'Encode workers daily time & accomplishment report (WDTAR)',
-            'Prepare the payroll of periodic paid employees, COOP leave, honorarium and hired workers',
-            'Maintain files of timesheets and other source documents',
-            'Update generation of documents for remittance/payment schedules',
-            'Prepare and furnish the bookkeeper summary of beneficiary deductions made against their respective prooneds',
-            'Prepare individual billing of beneficiaries based on the individual production report summary submitted by the AGRI & PROD. Facilitator',
-            'Perform other duties as maybe assigned by his/her immediate superior and nor the manager',
-        ],
+        workFunctions: {
+            sections: [
+                {
+                    title: '',
+                    items: [
+                        'Encode workers daily time & accomplishment report (WDTAR)',
+                        'Prepare the payroll of periodic paid employees, COOP leave, honorarium and hired workers',
+                        'Maintain files of timesheets and other source documents',
+                        'Update generation of the following documents in order to catch up with the remittance/payments schedules',
+                        "Prepare and furnish the bookeeper summary of beneficiary's deduction made againts their respective proceeds",
+                        'Prepare individual billing of beneficiaries based on the individual production report summary submitted by the AGRI & PROD.Facilitator',
+                        'Perform other duties as may be assigned by his/her immediate superior and nor the manager',
+                    ],
+                },
+                // {
+                //     title: 'Document Management',
+                //     items: [
+                //         'Update generation of documents for remittance/payment schedules',
+                //         'Prepare and furnish the bookkeeper summary of beneficiary deductions made against their respective prooneds',
+                //     ],
+                // },
+                // {
+                //     title: 'Reporting & Billing',
+                //     items: [
+                //         'Prepare individual billing of beneficiaries based on the individual production report summary submitted by the AGRI & PROD. Facilitator',
+                //     ],
+                // },
+                // {
+                //     title: 'Additional Duties',
+                //     items: ['Perform other duties as maybe assigned by his/her immediate superior and nor the manager'],
+                // },
+            ],
+        },
         category: 'functions',
     },
     'Packing Plant': {
@@ -140,15 +164,15 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
             sections: [
                 {
                     title: 'Monitoring',
-                    items: ['Area Survey', 'Aerial Spray'],
+                    items: ['Area Survey', 'Aerial Spray', 'F.O.C. Area', 'Moko Area'],
                 },
                 {
                     title: 'Eradication',
-                    items: ['F.O.C. Area', 'Moko Area', 'Fence/Repair'],
+                    items: ['Fence/Repair', 'Footbath', 'Weed Slashing', 'Sticking', 'Digging Socker'],
                 },
                 {
                     title: 'Maintenance',
-                    items: ['Footbath', 'Weed Slashing', 'Sticking', 'Digging Socker'],
+                    items: [],
                 },
             ],
         },
@@ -171,15 +195,11 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
             sections: [
                 {
                     title: 'Plant Care:',
-                    items: ['Weed Control', 'Cleaning/Cutting Stumps', 'Pruning', 'Replanting', 'Fertilization Application'],
+                    items: ['Weed Control', 'Cleaning/Cutting Stumps', 'Pruning', 'Replanting', 'Fertilization Application', 'Propping'],
                 },
                 {
                     title: 'Fruit Care:',
-                    items: ['Propping', 'Bud Bugging'],
-                },
-                {
-                    title: 'Additional Duties:',
-                    items: ['Caloco/DE & DE', 'Bunch Spray', 'Bagging', 'Hand Bagging/Soksok', 'Deleafing', 'Sigatoka Trimming'],
+                    items: ['Bud Bugging', 'Caloco/DE & DE', 'Bunch Spray', 'Bagging', 'Hand Bagging/Soksok', 'Deleafing', 'Sigatoka Trimming'],
                 },
                 {
                     title: 'Pest & Disease Control/Actual:',
@@ -242,11 +262,11 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
             sections: [
                 {
                     title: 'Sanitation For:',
-                    items: ['Office Areas', 'Garden', 'Kitchen Area', 'Toilet'],
+                    items: ['Office Areas', 'Garden', 'Kitchen Area', 'Toilet', 'Garbage Disposal'],
                 },
                 {
-                    title: '',
-                    items: ['Garbage Disposal', 'Office Beautification'],
+                    title: 'Office Beautification',
+                    items: [],
                 },
                 {
                     title: 'Safekeeping:',
@@ -316,6 +336,16 @@ export const getDepartmentsByCategory = (category: DepartmentEvaluationSettings[
     return Object.entries(evaluationSettings)
         .filter(([_, settings]) => settings.category === category)
         .map(([department, _]) => department);
+};
+
+// Helper function to get evaluator information (now returns default values only)
+// Note: Actual evaluator information is now fetched from database supervisor assignments
+export const getEvaluatorInfo = (department: string) => {
+    return {
+        supervisor: 'Supervisor',
+        hrPersonnel: 'HR Personnel',
+        manager: 'Manager',
+    };
 };
 
 // Default settings for unknown departments

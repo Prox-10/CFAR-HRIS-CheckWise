@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import { SectionCards } from './components/section-cards';
-import { Evaluation } from './types/evaluation';
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

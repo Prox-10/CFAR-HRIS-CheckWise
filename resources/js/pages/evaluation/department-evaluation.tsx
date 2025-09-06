@@ -37,6 +37,15 @@ interface Props {
     departments: string[];
     employees_all: Employees[];
     evaluation_configs: any[];
+    supervisor_assignments: Array<{
+        id: number;
+        department: string;
+        supervisor_name: string;
+        supervisor_email: string;
+        can_evaluate: boolean;
+    }>;
+    hr_personnel: string;
+    manager: string;
     user_permissions: {
         can_evaluate: boolean;
         is_super_admin: boolean;
@@ -81,7 +90,15 @@ interface EvaluationData {
 // Department-specific work functions are now managed through evaluation settings
 // See: ./types/evaluation-settings.ts
 
-export default function DepartmentEvaluation({ departments, employees_all, evaluation_configs, user_permissions }: Props) {
+export default function DepartmentEvaluation({
+    departments,
+    employees_all,
+    evaluation_configs,
+    supervisor_assignments,
+    hr_personnel,
+    manager,
+    user_permissions,
+}: Props) {
     const [selectedDepartment, setSelectedDepartment] = useState<string>('');
     const [selectedEmployee, setSelectedEmployee] = useState<string>('');
     const [evaluationData, setEvaluationData] = useState<EvaluationData>({
@@ -108,6 +125,25 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
 
     // Use global departments instead of prop departments
     const availableDepartments = globalDepartments;
+
+    // Function to get supervisor(s) for a department from database assignments
+    const getSupervisorForDepartment = (department: string) => {
+        const assignments = supervisor_assignments.filter((assignment) => assignment.department === department && assignment.can_evaluate);
+
+        if (assignments.length === 0) {
+            return 'No Supervisor Assigned';
+        } else if (assignments.length === 1) {
+            return assignments[0].supervisor_name;
+        } else {
+            // Multiple evaluators - join with " / " separator
+            return assignments.map((assignment) => assignment.supervisor_name).join(' / ');
+        }
+    };
+
+    // Function to get all evaluators for a department (for debugging or display purposes)
+    const getEvaluatorsForDepartment = (department: string) => {
+        return supervisor_assignments.filter((assignment) => assignment.department === department && assignment.can_evaluate);
+    };
 
     // Allowed departments based on role/permissions
     const allowedDepartments = useMemo(() => {
@@ -141,6 +177,13 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
 
         // First filter by department
         const departmentEmployees = employees_all.filter((emp) => emp.department === selectedDepartment);
+
+        // Auto-populate evaluator field when department changes
+        const supervisorName = getSupervisorForDepartment(selectedDepartment);
+        setEvaluationData((prev) => ({
+            ...prev,
+            evaluator: supervisorName,
+        }));
 
         // Check each employee's evaluation status
         const checkEmployeeEvaluationStatus = async () => {
@@ -427,11 +470,22 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
         });
         const workFunctionAvg = workFunctionScores.length > 0 ? workFunctionScores.reduce((a, b) => a + b, 0) / workFunctionScores.length : 0;
 
-        const total = (attendanceScore + attitudeSupervisorScore + attitudeCoworkerScore + workAttitudeAvg + workFunctionAvg) / 5;
+        // Get department settings to determine number of criteria
+        const departmentSettings = getDepartmentSettings(selectedDepartment) || getDefaultDepartmentSettings(selectedDepartment);
+        const isCoopArea = selectedDepartment === 'Coop Area';
+
+        let total;
+        if (isCoopArea) {
+            // Coop Area has only 4 criteria: Attendance, Attitude Towards ARB, Work Attitude, Work Operations
+            total = (attendanceScore + attitudeSupervisorScore + workAttitudeAvg + workFunctionAvg) / 4;
+        } else {
+            // Other departments have 5 criteria: Attendance, Attitude Towards Supervisor, Attitude Towards Co-worker, Work Attitude, Work Operations
+            total = (attendanceScore + attitudeSupervisorScore + attitudeCoworkerScore + workAttitudeAvg + workFunctionAvg) / 5;
+        }
 
         // Ensure we don't return NaN
         return isNaN(total) ? 0 : Math.round(total * 10) / 10;
-    }, [evaluationData, existingEvaluation]);
+    }, [evaluationData, existingEvaluation, selectedDepartment]);
 
     // Get rating label and color
     const getRatingInfo = (rating: number | null) => {
@@ -700,7 +754,7 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                                             },
                                                             workFunctions: {},
                                                             observations: '',
-                                                            evaluator: '',
+                                                            evaluator: value ? getSupervisorForDepartment(value) : '',
                                                         });
                                                     }}
                                                 >
@@ -748,16 +802,16 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                                             <div className="px-2 py-1 text-sm text-gray-500">Loading available employees...</div>
                                                         ) : filteredEmployees.length > 0 ? (
                                                             filteredEmployees.map((emp: any) => (
-                                                            <SelectItem
+                                                                <SelectItem
                                                                     key={String(
                                                                         (emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid,
                                                                     )}
                                                                     value={String(
                                                                         (emp as any).id ?? (emp as any).employee_id ?? (emp as any).employeeid,
                                                                     )}
-                                                            >
-                                                                {emp.employee_name} - {emp.position}
-                                                            </SelectItem>
+                                                                >
+                                                                    {emp.employee_name} - {emp.position}
+                                                                </SelectItem>
                                                             ))
                                                         ) : (
                                                             <div className="px-2 py-1 text-sm text-gray-500">
@@ -1306,13 +1360,13 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                             <CardContent className="p-6 text-center">
                                                 {totalRating !== null ? (
                                                     <>
-                                                <div className="mb-2 text-6xl font-bold text-yellow-600">{totalRating}/10</div>
-                                                <div className={`text-xl font-semibold ${getRatingInfo(totalRating).color}`}>
-                                                    {getRatingInfo(totalRating).label}
-                                                </div>
-                                                <div className="mt-4 flex justify-center">
-                                                    <StarRating rating={totalRating} onRatingChange={() => {}} size="lg" />
-                                                </div>
+                                                        <div className="mb-2 text-6xl font-bold text-yellow-600">{totalRating}/10</div>
+                                                        <div className={`text-xl font-semibold ${getRatingInfo(totalRating).color}`}>
+                                                            {getRatingInfo(totalRating).label}
+                                                        </div>
+                                                        <div className="mt-4 flex justify-center">
+                                                            <StarRating rating={totalRating} onRatingChange={() => {}} size="lg" />
+                                                        </div>
                                                     </>
                                                 ) : (
                                                     <>
@@ -1360,27 +1414,40 @@ export default function DepartmentEvaluation({ departments, employees_all, evalu
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="p-6">
-                                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                                                     <div>
                                                         <label className="mb-2 block text-sm font-medium text-gray-700">Evaluated by:</label>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Enter evaluator's name and position"
-                                                            value={evaluationData.evaluator}
-                                                            onChange={(e) =>
-                                                                setEvaluationData((prev) => ({
-                                                                    ...prev,
-                                                                    evaluator: e.target.value,
-                                                                }))
-                                                            }
-                                                            className="w-full rounded-lg border border-gray-300 p-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                                                            readOnly={isFormReadOnly}
-                                                            disabled={isFormReadOnly}
-                                                        />
+                                                        <div className="rounded-lg border border-gray-300 bg-gray-50 p-3">
+                                                            <div className="font-medium text-gray-800">
+                                                                {evaluationData.evaluator ||
+                                                                    (selectedDepartment
+                                                                        ? getSupervisorForDepartment(selectedDepartment)
+                                                                        : 'Select Department First')}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500">
+                                                                {selectedDepartment
+                                                                    ? (() => {
+                                                                          const evaluators = getEvaluatorsForDepartment(selectedDepartment);
+                                                                          if (evaluators.length === 0) {
+                                                                              return 'No supervisor assigned to this department';
+                                                                          } else if (evaluators.length === 1) {
+                                                                              return 'Auto-populated from database supervisor assignment';
+                                                                          } else {
+                                                                              return `Auto-populated from ${evaluators.length} database supervisor assignments`;
+                                                                          }
+                                                                      })()
+                                                                    : 'Will be populated when department is selected'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                                                        <div className="mb-2 text-sm font-medium text-blue-700">Noted by:</div>
+                                                        <div className="font-semibold text-blue-800">{hr_personnel}</div>
+                                                        <div className="text-sm text-blue-700">HR Personnel</div>
                                                     </div>
                                                     <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                                                         <div className="mb-2 text-sm font-medium text-green-700">Approved by:</div>
-                                                        <div className="font-semibold text-green-800">Carmela B. Pedregosa</div>
+                                                        <div className="font-semibold text-green-800">{manager}</div>
                                                         <div className="text-sm text-green-700">Manager</div>
                                                     </div>
                                                 </div>

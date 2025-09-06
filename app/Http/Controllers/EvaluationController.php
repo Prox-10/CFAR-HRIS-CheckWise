@@ -326,10 +326,36 @@ class EvaluationController extends Controller
             ];
         })->toArray();
 
+        // Get supervisor assignments from database
+        $supervisorAssignments = \App\Models\SupervisorDepartment::with('user')
+            ->where('can_evaluate', true)
+            ->get()
+            ->map(function ($assignment) {
+                return [
+                    'id' => $assignment->id,
+                    'department' => $assignment->department,
+                    'supervisor_name' => $assignment->user->firstname . ' ' . $assignment->user->lastname,
+                    'supervisor_email' => $assignment->user->email,
+                    'can_evaluate' => $assignment->can_evaluate,
+                ];
+            });
+
+        // Get HR and Manager information (you may need to adjust this based on your user roles)
+        $hrPersonnel = \App\Models\User::whereHas('roles', function ($query) {
+            $query->where('name', 'HR');
+        })->first();
+        
+        $manager = \App\Models\User::whereHas('roles', function ($query) {
+            $query->where('name', 'Manager');
+        })->first();
+
         return Inertia::render('evaluation/department-evaluation', [
             'departments' => $departments,
             'employees_all' => $employees,
             'evaluation_configs' => $evaluationConfigs,
+            'supervisor_assignments' => $supervisorAssignments,
+            'hr_personnel' => $hrPersonnel ? $hrPersonnel->firstname . ' ' . $hrPersonnel->lastname : 'HR Personnel',
+            'manager' => $manager ? $manager->firstname . ' ' . $manager->lastname : 'Manager',
             'user_permissions' => [
                 'can_evaluate' => $user->canEvaluate(),
                 'is_super_admin' => $user->isSuperAdmin(),

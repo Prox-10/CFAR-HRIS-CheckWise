@@ -3,7 +3,55 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Award, Building, Calendar, FileText, Star, User } from 'lucide-react';
-import { Evaluation } from '../types/evaluation';
+
+interface Evaluation {
+    id: number;
+    employee_id: number;
+    employee_name: string;
+    employeeid: string;
+    department: string;
+    position: string;
+    picture?: string;
+    evaluation_year?: number;
+    year?: number;
+    evaluation_period?: number;
+    evaluation_frequency?: string;
+    rating_date: string;
+    total_rating?: number;
+    ratings?: string;
+
+    // New evaluation format
+    attendance?: {
+        daysLate?: number;
+        daysAbsent?: number;
+        days_late?: number;
+        days_absent?: number;
+        rating: number;
+        remarks?: string;
+    };
+    attitudes?: {
+        supervisor_rating: number;
+        supervisor_remarks?: string;
+        coworker_rating: number;
+        coworker_remarks?: string;
+    };
+    workAttitude?: {
+        responsible: number;
+        jobKnowledge?: number;
+        job_knowledge?: number;
+        cooperation: number;
+        initiative: number;
+        dependability: number;
+        remarks?: string;
+    };
+    workFunctions?: Array<{
+        function_name: string;
+        work_quality: number;
+        work_efficiency: number;
+    }>;
+    observations?: string;
+    evaluator?: string;
+}
 
 interface EvaluationModalProps {
     isOpen: boolean;
@@ -47,8 +95,8 @@ export default function ViewEvaluationModal({ isOpen, onClose, evaluation }: Eva
     const periodLabel = evaluation.evaluation_period === 1 ? 'Jan-Jun' : 'Jul-Dec';
     const evaluationFrequency = evaluation.evaluation_frequency || 'annual';
 
-    // Check if this is a new evaluation format
-    const isNewFormat = evaluation.attendance || evaluation.attitudes || evaluation.workAttitude || evaluation.workFunctions;
+    // Always display the new evaluation format
+    const isNewFormat = true;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -179,24 +227,26 @@ export default function ViewEvaluationModal({ isOpen, onClose, evaluation }: Eva
                         </CardContent>
                     </Card>
 
-                    {/* Bottom Card: Personal - New Evaluation Format */}
-                    {isNewFormat ? (
-                        <Card className="border-2 border-green-200 bg-white shadow-lg">
-                            <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
-                                <CardTitle className="flex items-center gap-2">
-                                    <User className="h-5 w-5" />
-                                    Personal
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6">
-                                <div className="space-y-6">
-                                    {/* 1. Attendance */}
-                                    {evaluation.attendance && (
-                                        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                                            <h4 className="mb-4 flex items-center gap-2 text-lg font-semibold text-green-800">
+                    {/* Department Evaluation */}
+                    <Card className="border-2 border-green-200 bg-white shadow-lg">
+                        <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                            <CardTitle className="flex items-center gap-2">
+                                <User className="h-5 w-5" />
+                                Department Evaluation - {evaluation.department}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            <div className="space-y-6">
+                                {/* 1. Attendance */}
+                                {evaluation.attendance && (
+                                    <Card className="border border-green-200 bg-green-50">
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="flex items-center gap-2 text-lg text-green-800">
                                                 <Calendar className="h-5 w-5" />
                                                 1. Attendance
-                                            </h4>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="pt-0">
                                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                 <div>
                                                     <span className="text-sm font-medium text-gray-700">Days Late:</span>
@@ -223,16 +273,20 @@ export default function ViewEvaluationModal({ isOpen, onClose, evaluation }: Eva
                                                     </div>
                                                 </div>
                                             )}
-                                        </div>
-                                    )}
+                                        </CardContent>
+                                    </Card>
+                                )}
 
-                                    {/* 2. Attitude Towards Supervisor */}
-                                    {evaluation.attitudes && (
-                                        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                                            <h4 className="mb-4 flex items-center gap-2 text-lg font-semibold text-blue-800">
+                                {/* 2. Attitude Towards Supervisor */}
+                                {evaluation.attitudes && (
+                                    <Card className="border border-blue-200 bg-blue-50">
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="flex items-center gap-2 text-lg text-blue-800">
                                                 <User className="h-5 w-5" />
                                                 2. Attitude Towards Supervisor
-                                            </h4>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="pt-0">
                                             <div className="mb-3">
                                                 <span className="text-sm font-medium text-gray-700">Rating:</span>
                                                 <div className="mt-2">
@@ -247,16 +301,20 @@ export default function ViewEvaluationModal({ isOpen, onClose, evaluation }: Eva
                                                     </div>
                                                 </div>
                                             )}
-                                        </div>
-                                    )}
+                                        </CardContent>
+                                    </Card>
+                                )}
 
-                                    {/* 3. Attitude Towards Co-worker */}
-                                    {evaluation.attitudes && (
-                                        <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
-                                            <h4 className="mb-4 flex items-center gap-2 text-lg font-semibold text-purple-800">
+                                {/* 3. Attitude Towards Co-worker */}
+                                {evaluation.attitudes && (
+                                    <Card className="border border-purple-200 bg-purple-50">
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="flex items-center gap-2 text-lg text-purple-800">
                                                 <User className="h-5 w-5" />
                                                 3. Attitude Towards Co-worker
-                                            </h4>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="pt-0">
                                             <div className="mb-3">
                                                 <span className="text-sm font-medium text-gray-700">Rating:</span>
                                                 <div className="mt-2">
@@ -271,16 +329,20 @@ export default function ViewEvaluationModal({ isOpen, onClose, evaluation }: Eva
                                                     </div>
                                                 </div>
                                             )}
-                                        </div>
-                                    )}
+                                        </CardContent>
+                                    </Card>
+                                )}
 
-                                    {/* 4. Work Attitude/Performance */}
-                                    {evaluation.workAttitude && (
-                                        <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
-                                            <h4 className="mb-4 flex items-center gap-2 text-lg font-semibold text-orange-800">
+                                {/* 4. Work Attitude/Performance */}
+                                {evaluation.workAttitude && (
+                                    <Card className="border border-orange-200 bg-orange-50">
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="flex items-center gap-2 text-lg text-orange-800">
                                                 <FileText className="h-5 w-5" />
                                                 4. Work Attitude/Performance
-                                            </h4>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="pt-0">
                                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                 <div className="space-y-3">
                                                     <div>
@@ -293,7 +355,9 @@ export default function ViewEvaluationModal({ isOpen, onClose, evaluation }: Eva
                                                         <span className="text-sm font-medium text-gray-700">Job Knowledge:</span>
                                                         <div className="mt-1">
                                                             <StarRating
-                                                                rating={evaluation.workAttitude.jobKnowledge || evaluation.workAttitude.job_knowledge}
+                                                                rating={
+                                                                    evaluation.workAttitude.jobKnowledge ?? evaluation.workAttitude.job_knowledge ?? 0
+                                                                }
                                                             />
                                                         </div>
                                                     </div>
@@ -327,152 +391,102 @@ export default function ViewEvaluationModal({ isOpen, onClose, evaluation }: Eva
                                                     </div>
                                                 </div>
                                             )}
-                                        </div>
-                                    )}
+                                        </CardContent>
+                                    </Card>
+                                )}
 
-                                    {/* 5. Work Functions - Department Specific */}
-                                    {evaluation.workFunctions && evaluation.workFunctions.length > 0 && (
-                                        <div className="rounded-lg border border-teal-200 bg-teal-50 p-4">
-                                            <h4 className="mb-4 flex items-center gap-2 text-lg font-semibold text-teal-800">
+                                {/* 5. Work Functions - Department Specific */}
+                                {evaluation.workFunctions && evaluation.workFunctions.length > 0 && (
+                                    <Card className="border border-teal-200 bg-teal-50">
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="flex items-center gap-2 text-lg text-teal-800">
                                                 <FileText className="h-5 w-5" />
                                                 5. Work Functions - {evaluation.department} Department
-                                            </h4>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="pt-0">
                                             <div className="space-y-4">
-                                                {evaluation.workFunctions.map((workFunction, index) => (
-                                                    <div key={index} className="rounded-lg border bg-white p-4">
-                                                        <h5 className="mb-3 font-medium text-gray-800">{workFunction.function_name}</h5>
-                                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                                            <div>
-                                                                <span className="text-sm font-medium text-gray-700">Work Quality:</span>
-                                                                <div className="mt-1">
-                                                                    <StarRating rating={workFunction.work_quality} />
+                                                {evaluation.workFunctions.map((workFunction: any, index: number) => (
+                                                    <Card key={index} className="border bg-white">
+                                                        <CardHeader className="pb-2">
+                                                            <CardTitle className="text-base font-medium text-gray-800">
+                                                                {workFunction.function_name}
+                                                            </CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent className="pt-0">
+                                                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                                <div>
+                                                                    <span className="text-sm font-medium text-gray-700">Work Quality:</span>
+                                                                    <div className="mt-1">
+                                                                        <StarRating rating={workFunction.work_quality || 0} />
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-sm font-medium text-gray-700">Work Efficiency:</span>
+                                                                    <div className="mt-1">
+                                                                        <StarRating rating={workFunction.work_efficiency || 0} />
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div>
-                                                                <span className="text-sm font-medium text-gray-700">Work Efficiency:</span>
-                                                                <div className="mt-1">
-                                                                    <StarRating rating={workFunction.work_efficiency} />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                        </CardContent>
+                                                    </Card>
                                                 ))}
                                             </div>
-                                        </div>
-                                    )}
+                                        </CardContent>
+                                    </Card>
+                                )}
 
-                                    {/* Observations/Comments */}
-                                    {evaluation.observations && (
-                                        <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
-                                            <h4 className="mb-3 flex items-center gap-2 text-lg font-semibold text-indigo-800">
+                                {/* Observations/Comments */}
+                                {evaluation.observations && (
+                                    <Card className="border border-indigo-200 bg-indigo-50">
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="flex items-center gap-2 text-lg text-indigo-800">
                                                 <FileText className="h-5 w-5" />
                                                 Observations / Comments
-                                            </h4>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="pt-0">
                                             <div className="rounded border border-gray-200 bg-white p-3 text-gray-700">{evaluation.observations}</div>
-                                        </div>
-                                    )}
+                                        </CardContent>
+                                    </Card>
+                                )}
 
-                                    {/* Evaluator Information */}
-                                    {evaluation.evaluator && (
-                                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                                            <h4 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
+                                {/* Evaluator Information */}
+                                {evaluation.evaluator && (
+                                    <Card className="border border-gray-200 bg-gray-50">
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="flex items-center gap-2 text-lg text-gray-800">
                                                 <User className="h-5 w-5" />
                                                 Evaluation Signatures
-                                            </h4>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="pt-0">
                                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                 <div>
                                                     <span className="text-sm font-medium text-gray-700">Evaluated by:</span>
                                                     <div className="mt-1 font-semibold text-gray-800">{evaluation.evaluator}</div>
                                                 </div>
-                                                <div className="rounded-lg border border-green-200 bg-green-50 p-3">
-                                                    <div className="text-sm font-medium text-green-700">Approved by:</div>
-                                                    <div className="font-semibold text-green-800">Carmela B. Pedregosa</div>
-                                                    <div className="text-sm text-green-700">Manager</div>
-                                                </div>
+                                                <Card className="border border-green-200 bg-green-50">
+                                                    <CardContent className="p-3">
+                                                        <div className="text-sm font-medium text-green-700">Approved by:</div>
+                                                        <div className="font-semibold text-green-800">Carmela B. Pedregosa</div>
+                                                        <div className="text-sm text-green-700">Manager</div>
+                                                    </CardContent>
+                                                </Card>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        /* Legacy Evaluation Format Display */
-                        <Card className="border-2 border-green-200 bg-white shadow-lg">
-                            <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
-                                <CardTitle className="flex items-center gap-2">
-                                    <User className="h-5 w-5" />
-                                    Personal - Legacy Format
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6">
-                                <div className="space-y-6">
-                                    {/* Legacy Evaluation Criteria */}
-                                    <div>
-                                        <h4 className="mb-4 text-lg font-semibold text-gray-800">Legacy Evaluation Criteria</h4>
-                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-700">Work Quality</label>
-                                                    <div className="mt-1">
-                                                        <StarRating rating={parseFloat(evaluation.work_quality || '0')} />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-700">Safety Compliance</label>
-                                                    <div className="mt-1">
-                                                        <StarRating rating={parseFloat(evaluation.safety_compliance || '0')} />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-700">Equipment Handling</label>
-                                                    <div className="mt-1">
-                                                        <StarRating rating={parseFloat(evaluation.equipment_handling || '0')} />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-700">Teamwork</label>
-                                                    <div className="mt-1">
-                                                        <StarRating rating={parseFloat(evaluation.teamwork || '0')} />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-700">Punctuality</label>
-                                                    <div className="mt-1">
-                                                        <StarRating rating={parseFloat(evaluation.punctuality || '0')} />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-700">Organization</label>
-                                                    <div className="mt-1">
-                                                        <StarRating rating={parseFloat(evaluation.organization || '0')} />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Legacy Additional Comments */}
-                                    {evaluation.comment && (
-                                        <div>
-                                            <h4 className="mb-2 text-lg font-semibold text-gray-800">Additional Comments</h4>
-                                            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                                                <p className="text-gray-700">{evaluation.comment}</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Rating Legend */}
                     <Card className="border-2 border-green-200 bg-white shadow-lg">
                         <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white">
                             <CardTitle className="flex items-center gap-2">
                                 <Star className="h-5 w-5" />
-                                Rating Legend
+                                Rating Results
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
