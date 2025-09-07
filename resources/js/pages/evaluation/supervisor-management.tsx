@@ -25,7 +25,7 @@ import { departments as globalDepartments } from '@/hooks/data';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Plus, Settings, Star, Trash2, Users } from 'lucide-react';
+import { Plus, Settings, Star, Trash2, UserCheck, UserCog, Users } from 'lucide-react';
 import { useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import { EvaluationFrequencyManager } from './components/evaluation-frequency-manager';
@@ -68,10 +68,50 @@ interface Assignment {
     };
 }
 
+interface HRAssignment {
+    id: number;
+    user_id: number;
+    department: string;
+    user: {
+        id: number;
+        firstname: string;
+        lastname: string;
+        email: string;
+    };
+}
+
+interface ManagerAssignment {
+    id: number;
+    user_id: number;
+    department: string;
+    user: {
+        id: number;
+        firstname: string;
+        lastname: string;
+        email: string;
+    };
+}
+
 interface Props {
     supervisors: Supervisor[];
+    hr_personnel: Array<{
+        id: number;
+        firstname: string;
+        lastname: string;
+        email: string;
+        roles: string[];
+    }>;
+    managers: Array<{
+        id: number;
+        firstname: string;
+        lastname: string;
+        email: string;
+        roles: string[];
+    }>;
     departments: string[];
     assignments: Assignment[];
+    hr_assignments?: HRAssignment[];
+    manager_assignments?: ManagerAssignment[];
     frequencies: Array<{
         department: string;
         evaluation_frequency: 'semi_annual' | 'annual';
@@ -84,11 +124,31 @@ interface Props {
     };
 }
 
-export default function SupervisorManagement({ supervisors, departments, assignments, frequencies, user_permissions }: Props) {
+export default function SupervisorManagement({
+    supervisors,
+    hr_personnel = [],
+    managers = [],
+    departments,
+    assignments,
+    hr_assignments = [],
+    manager_assignments = [],
+    frequencies,
+    user_permissions,
+}: Props) {
     const [newAssignment, setNewAssignment] = useState({
         user_id: '',
         department: '',
         can_evaluate: true,
+    });
+
+    const [newHRAssignment, setNewHRAssignment] = useState({
+        user_id: '',
+        department: '',
+    });
+
+    const [newManagerAssignment, setNewManagerAssignment] = useState({
+        user_id: '',
+        department: '',
     });
 
     // Use global departments instead of prop departments
@@ -142,6 +202,83 @@ export default function SupervisorManagement({ supervisors, departments, assignm
         });
     };
 
+    const handleCreateHRAssignment = () => {
+        if (!newHRAssignment.user_id || !newHRAssignment.department) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+
+        // Check if this user is already assigned to this department
+        const existingAssignment = hr_assignments?.find(
+            (assignment) => assignment.user_id === parseInt(newHRAssignment.user_id) && assignment.department === newHRAssignment.department,
+        );
+
+        if (existingAssignment) {
+            toast.error('This HR Personnel is already assigned to this department');
+            return;
+        }
+
+        router.post(route('evaluation.hr-management.store'), newHRAssignment, {
+            onSuccess: () => {
+                toast.success('HR Personnel assignment created successfully');
+                setNewHRAssignment({ user_id: '', department: '' });
+            },
+            onError: (errors) => {
+                toast.error(Object.values(errors)[0] as string);
+            },
+        });
+    };
+
+    const handleDeleteHRAssignment = (assignmentId: number) => {
+        router.delete(route('evaluation.hr-management.destroy', assignmentId), {
+            onSuccess: () => {
+                toast.success('HR Personnel assignment removed successfully');
+            },
+            onError: (errors) => {
+                toast.error(Object.values(errors)[0] as string);
+            },
+        });
+    };
+
+    const handleCreateManagerAssignment = () => {
+        if (!newManagerAssignment.user_id || !newManagerAssignment.department) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+
+        // Check if this user is already assigned to this department
+        const existingAssignment = manager_assignments?.find(
+            (assignment) =>
+                assignment.user_id === parseInt(newManagerAssignment.user_id) && assignment.department === newManagerAssignment.department,
+        );
+
+        if (existingAssignment) {
+            toast.error('This Manager is already assigned to this department');
+            return;
+        }
+
+        router.post(route('evaluation.manager-management.store'), newManagerAssignment, {
+            onSuccess: () => {
+                toast.success('Manager assignment created successfully');
+                setNewManagerAssignment({ user_id: '', department: '' });
+            },
+            onError: (errors) => {
+                toast.error(Object.values(errors)[0] as string);
+            },
+        });
+    };
+
+    const handleDeleteManagerAssignment = (assignmentId: number) => {
+        router.delete(route('evaluation.manager-management.destroy', assignmentId), {
+            onSuccess: () => {
+                toast.success('Manager assignment removed successfully');
+            },
+            onError: (errors) => {
+                toast.error(Object.values(errors)[0] as string);
+            },
+        });
+    };
+
     return (
         <SidebarProvider>
             <Head title="Supervisor Management" />
@@ -163,16 +300,26 @@ export default function SupervisorManagement({ supervisors, departments, assignm
                         </div>
 
                         <Tabs defaultValue="supervisors" className="space-y-4">
-                            <TabsList className="grid w-full grid-cols-2">
+                            <TabsList className="grid w-full grid-cols-4">
                                 <TabsTrigger value="supervisors" className="flex items-center gap-2">
                                     <Users className="h-4 w-4" />
                                     Supervisors
                                 </TabsTrigger>
                                 {isAdmin && (
-                                    <TabsTrigger value="frequencies" className="flex items-center gap-2">
-                                        <Settings className="h-4 w-4" />
-                                        Evaluation Frequencies
-                                    </TabsTrigger>
+                                    <>
+                                        <TabsTrigger value="hr-personnel" className="flex items-center gap-2">
+                                            <UserCheck className="h-4 w-4" />
+                                            HR Personnel
+                                        </TabsTrigger>
+                                        <TabsTrigger value="managers" className="flex items-center gap-2">
+                                            <UserCog className="h-4 w-4" />
+                                            Managers
+                                        </TabsTrigger>
+                                        <TabsTrigger value="frequencies" className="flex items-center gap-2">
+                                            <Settings className="h-4 w-4" />
+                                            Evaluation Frequencies
+                                        </TabsTrigger>
+                                    </>
                                 )}
                             </TabsList>
 
@@ -303,6 +450,291 @@ export default function SupervisorManagement({ supervisors, departments, assignm
                                     </Card>
                                 </div>
                             </TabsContent>
+
+                            {/* HR Personnel Tab */}
+                            {isAdmin && (
+                                <TabsContent value="hr-personnel" className="space-y-6">
+                                    {/* Validation Warning */}
+                                    {(() => {
+                                        const departmentsWithoutHR = availableDepartments.filter(
+                                            (dept) => !hr_assignments?.some((assignment) => assignment.department === dept),
+                                        );
+
+                                        if (departmentsWithoutHR.length > 0) {
+                                            return (
+                                                <Card className="border-orange-200 bg-orange-50">
+                                                    <CardContent className="p-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="text-orange-600">⚠️</div>
+                                                            <div>
+                                                                <div className="font-medium text-orange-800">Missing HR Personnel Assignments</div>
+                                                                <div className="text-sm text-orange-700">
+                                                                    The following departments need HR Personnel assigned:{' '}
+                                                                    {departmentsWithoutHR.join(', ')}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+
+                                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                        {/* Create New HR Assignment */}
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Create New HR Assignment</CardTitle>
+                                                <CardDescription>Assign HR Personnel to a department</CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                    <div>
+                                                        <Label htmlFor="hr-personnel">HR Personnel</Label>
+                                                        <Select
+                                                            value={newHRAssignment.user_id}
+                                                            onValueChange={(value) => setNewHRAssignment((prev) => ({ ...prev, user_id: value }))}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select HR Personnel" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {hr_personnel.map((hr) => (
+                                                                    <SelectItem key={hr.id} value={hr.id.toString()}>
+                                                                        {hr.firstname} {hr.lastname} ({hr.email})
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div>
+                                                        <Label htmlFor="hr-department">Department</Label>
+                                                        <Select
+                                                            value={newHRAssignment.department}
+                                                            onValueChange={(value) => setNewHRAssignment((prev) => ({ ...prev, department: value }))}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select department" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {availableDepartments.map((department) => (
+                                                                    <SelectItem key={department} value={department}>
+                                                                        {department}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                                <Button onClick={handleCreateHRAssignment} className="mt-4">
+                                                    <Plus className="mr-2 h-4 w-4" />
+                                                    Create HR Assignment
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+
+                                        {/* Current HR Assignments */}
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Current HR Assignments</CardTitle>
+                                                <CardDescription>Manage existing HR Personnel-department assignments</CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-4">
+                                                    {hr_assignments?.map((assignment) => (
+                                                        <div key={assignment.id} className="flex items-center justify-between rounded-lg border p-4">
+                                                            <div>
+                                                                <div className="font-medium">
+                                                                    {assignment.user.firstname} {assignment.user.lastname}
+                                                                </div>
+                                                                <div className="text-sm text-gray-500">{assignment.user.email}</div>
+                                                                <div className="text-sm text-gray-500">Department: {assignment.department}</div>
+                                                            </div>
+                                                            <div className="flex items-center space-x-4">
+                                                                <AlertDialog>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <Button variant="destructive" size="sm">
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </AlertDialogTrigger>
+                                                                    <AlertDialogContent>
+                                                                        <AlertDialogHeader>
+                                                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                                            <AlertDialogDescription>
+                                                                                This action cannot be undone. This will permanently remove the HR
+                                                                                Personnel assignment for {assignment.user.firstname}{' '}
+                                                                                {assignment.user.lastname} from the {assignment.department}{' '}
+                                                                                department.
+                                                                            </AlertDialogDescription>
+                                                                        </AlertDialogHeader>
+                                                                        <AlertDialogFooter>
+                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                            <AlertDialogAction
+                                                                                onClick={() => handleDeleteHRAssignment(assignment.id)}
+                                                                                className="bg-red-600 hover:bg-red-700"
+                                                                            >
+                                                                                Delete Assignment
+                                                                            </AlertDialogAction>
+                                                                        </AlertDialogFooter>
+                                                                    </AlertDialogContent>
+                                                                </AlertDialog>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {(!hr_assignments || hr_assignments.length === 0) && (
+                                                        <div className="py-8 text-center text-gray-500">No HR assignments found</div>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </TabsContent>
+                            )}
+
+                            {/* Managers Tab */}
+                            {isAdmin && (
+                                <TabsContent value="managers" className="space-y-6">
+                                    {/* Validation Warning */}
+                                    {(() => {
+                                        const departmentsWithoutManager = availableDepartments.filter(
+                                            (dept) => !manager_assignments?.some((assignment) => assignment.department === dept),
+                                        );
+
+                                        if (departmentsWithoutManager.length > 0) {
+                                            return (
+                                                <Card className="border-orange-200 bg-orange-50">
+                                                    <CardContent className="p-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="text-orange-600">⚠️</div>
+                                                            <div>
+                                                                <div className="font-medium text-orange-800">Missing Manager Assignments</div>
+                                                                <div className="text-sm text-orange-700">
+                                                                    The following departments need Manager assigned:{' '}
+                                                                    {departmentsWithoutManager.join(', ')}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+
+                                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                        {/* Create New Manager Assignment */}
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Create New Manager Assignment</CardTitle>
+                                                <CardDescription>Assign Manager to a department</CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                    <div>
+                                                        <Label htmlFor="manager">Manager</Label>
+                                                        <Select
+                                                            value={newManagerAssignment.user_id}
+                                                            onValueChange={(value) =>
+                                                                setNewManagerAssignment((prev) => ({ ...prev, user_id: value }))
+                                                            }
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select Manager" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {managers.map((manager) => (
+                                                                    <SelectItem key={manager.id} value={manager.id.toString()}>
+                                                                        {manager.firstname} {manager.lastname} ({manager.email})
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div>
+                                                        <Label htmlFor="manager-department">Department</Label>
+                                                        <Select
+                                                            value={newManagerAssignment.department}
+                                                            onValueChange={(value) =>
+                                                                setNewManagerAssignment((prev) => ({ ...prev, department: value }))
+                                                            }
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select department" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {availableDepartments.map((department) => (
+                                                                    <SelectItem key={department} value={department}>
+                                                                        {department}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                                <Button onClick={handleCreateManagerAssignment} className="mt-4">
+                                                    <Plus className="mr-2 h-4 w-4" />
+                                                    Create Manager Assignment
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+
+                                        {/* Current Manager Assignments */}
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Current Manager Assignments</CardTitle>
+                                                <CardDescription>Manage existing Manager-department assignments</CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-4">
+                                                    {manager_assignments?.map((assignment) => (
+                                                        <div key={assignment.id} className="flex items-center justify-between rounded-lg border p-4">
+                                                            <div>
+                                                                <div className="font-medium">
+                                                                    {assignment.user.firstname} {assignment.user.lastname}
+                                                                </div>
+                                                                <div className="text-sm text-gray-500">{assignment.user.email}</div>
+                                                                <div className="text-sm text-gray-500">Department: {assignment.department}</div>
+                                                            </div>
+                                                            <div className="flex items-center space-x-4">
+                                                                <AlertDialog>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <Button variant="destructive" size="sm">
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </AlertDialogTrigger>
+                                                                    <AlertDialogContent>
+                                                                        <AlertDialogHeader>
+                                                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                                            <AlertDialogDescription>
+                                                                                This action cannot be undone. This will permanently remove the Manager
+                                                                                assignment for {assignment.user.firstname} {assignment.user.lastname}{' '}
+                                                                                from the {assignment.department} department.
+                                                                            </AlertDialogDescription>
+                                                                        </AlertDialogHeader>
+                                                                        <AlertDialogFooter>
+                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                            <AlertDialogAction
+                                                                                onClick={() => handleDeleteManagerAssignment(assignment.id)}
+                                                                                className="bg-red-600 hover:bg-red-700"
+                                                                            >
+                                                                                Delete Assignment
+                                                                            </AlertDialogAction>
+                                                                        </AlertDialogFooter>
+                                                                    </AlertDialogContent>
+                                                                </AlertDialog>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {(!manager_assignments || manager_assignments.length === 0) && (
+                                                        <div className="py-8 text-center text-gray-500">No Manager assignments found</div>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </TabsContent>
+                            )}
 
                             {/* Frequencies Tab */}
                             {isAdmin && (

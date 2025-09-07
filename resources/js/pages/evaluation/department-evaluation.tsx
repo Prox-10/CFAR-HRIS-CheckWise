@@ -44,8 +44,26 @@ interface Props {
         supervisor_email: string;
         can_evaluate: boolean;
     }>;
-    hr_personnel: string;
-    manager: string;
+    hr_assignments?: Array<{
+        id: number;
+        department: string;
+        user: {
+            id: number;
+            firstname: string;
+            lastname: string;
+            email: string;
+        };
+    }>;
+    manager_assignments?: Array<{
+        id: number;
+        department: string;
+        user: {
+            id: number;
+            firstname: string;
+            lastname: string;
+            email: string;
+        };
+    }>;
     user_permissions: {
         can_evaluate: boolean;
         is_super_admin: boolean;
@@ -95,8 +113,8 @@ export default function DepartmentEvaluation({
     employees_all,
     evaluation_configs,
     supervisor_assignments,
-    hr_personnel,
-    manager,
+    hr_assignments = [],
+    manager_assignments = [],
     user_permissions,
 }: Props) {
     const [selectedDepartment, setSelectedDepartment] = useState<string>('');
@@ -143,6 +161,34 @@ export default function DepartmentEvaluation({
     // Function to get all evaluators for a department (for debugging or display purposes)
     const getEvaluatorsForDepartment = (department: string) => {
         return supervisor_assignments.filter((assignment) => assignment.department === department && assignment.can_evaluate);
+    };
+
+    // Function to get HR Personnel for a department
+    const getHRForDepartment = (department: string) => {
+        const assignments = hr_assignments?.filter((assignment) => assignment.department === department) || [];
+
+        if (assignments.length === 0) {
+            return 'No HR Personnel Assigned';
+        } else if (assignments.length === 1) {
+            return `${assignments[0].user.firstname} ${assignments[0].user.lastname}`;
+        } else {
+            // Multiple HR Personnel - join with " / " separator
+            return assignments.map((assignment) => `${assignment.user.firstname} ${assignment.user.lastname}`).join(' / ');
+        }
+    };
+
+    // Function to get Manager for a department
+    const getManagerForDepartment = (department: string) => {
+        const assignments = manager_assignments?.filter((assignment) => assignment.department === department) || [];
+
+        if (assignments.length === 0) {
+            return 'No Manager Assigned';
+        } else if (assignments.length === 1) {
+            return `${assignments[0].user.firstname} ${assignments[0].user.lastname}`;
+        } else {
+            // Multiple Managers - join with " / " separator
+            return assignments.map((assignment) => `${assignment.user.firstname} ${assignment.user.lastname}`).join(' / ');
+        }
     };
 
     // Allowed departments based on role/permissions
@@ -1442,13 +1488,53 @@ export default function DepartmentEvaluation({
                                                     </div>
                                                     <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
                                                         <div className="mb-2 text-sm font-medium text-blue-700">Noted by:</div>
-                                                        <div className="font-semibold text-blue-800">{hr_personnel}</div>
+                                                        <div className="font-semibold text-blue-800">
+                                                            {selectedDepartment ? getHRForDepartment(selectedDepartment) : 'Select Department First'}
+                                                        </div>
                                                         <div className="text-sm text-blue-700">HR Personnel</div>
+                                                        <div className="text-xs text-blue-600">
+                                                            {selectedDepartment
+                                                                ? (() => {
+                                                                      const hrAssignments =
+                                                                          hr_assignments?.filter(
+                                                                              (assignment) => assignment.department === selectedDepartment,
+                                                                          ) || [];
+                                                                      if (hrAssignments.length === 0) {
+                                                                          return 'No HR Personnel assigned to this department';
+                                                                      } else if (hrAssignments.length === 1) {
+                                                                          return 'Auto-populated from database HR assignment';
+                                                                      } else {
+                                                                          return `Auto-populated from ${hrAssignments.length} database HR assignments`;
+                                                                      }
+                                                                  })()
+                                                                : 'Will be populated when department is selected'}
+                                                        </div>
                                                     </div>
                                                     <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                                                         <div className="mb-2 text-sm font-medium text-green-700">Approved by:</div>
-                                                        <div className="font-semibold text-green-800">{manager}</div>
+                                                        <div className="font-semibold text-green-800">
+                                                            {selectedDepartment
+                                                                ? getManagerForDepartment(selectedDepartment)
+                                                                : 'Select Department First'}
+                                                        </div>
                                                         <div className="text-sm text-green-700">Manager</div>
+                                                        <div className="text-xs text-green-600">
+                                                            {selectedDepartment
+                                                                ? (() => {
+                                                                      const managerAssignments =
+                                                                          manager_assignments?.filter(
+                                                                              (assignment) => assignment.department === selectedDepartment,
+                                                                          ) || [];
+                                                                      if (managerAssignments.length === 0) {
+                                                                          return 'No Manager assigned to this department';
+                                                                      } else if (managerAssignments.length === 1) {
+                                                                          return 'Auto-populated from database Manager assignment';
+                                                                      } else {
+                                                                          return `Auto-populated from ${managerAssignments.length} database Manager assignments`;
+                                                                      }
+                                                                  })()
+                                                                : 'Will be populated when department is selected'}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </CardContent>

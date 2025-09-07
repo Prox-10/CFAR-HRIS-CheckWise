@@ -340,22 +340,41 @@ class EvaluationController extends Controller
                 ];
             });
 
-        // Get HR and Manager information (you may need to adjust this based on your user roles)
-        $hrPersonnel = \App\Models\User::whereHas('roles', function ($query) {
-            $query->where('name', 'HR');
-        })->first();
-        
-        $manager = \App\Models\User::whereHas('roles', function ($query) {
-            $query->where('name', 'Manager');
-        })->first();
+        // Get HR assignments
+        $hrAssignments = \App\Models\HRDepartmentAssignment::with('user')->get()->map(function ($assignment) {
+            return [
+                'id' => $assignment->id,
+                'department' => $assignment->department,
+                'user' => [
+                    'id' => $assignment->user->id,
+                    'firstname' => $assignment->user->firstname,
+                    'lastname' => $assignment->user->lastname,
+                    'email' => $assignment->user->email,
+                ],
+            ];
+        });
+
+        // Get Manager assignments
+        $managerAssignments = \App\Models\ManagerDepartmentAssignment::with('user')->get()->map(function ($assignment) {
+            return [
+                'id' => $assignment->id,
+                'department' => $assignment->department,
+                'user' => [
+                    'id' => $assignment->user->id,
+                    'firstname' => $assignment->user->firstname,
+                    'lastname' => $assignment->user->lastname,
+                    'email' => $assignment->user->email,
+                ],
+            ];
+        });
 
         return Inertia::render('evaluation/department-evaluation', [
             'departments' => $departments,
             'employees_all' => $employees,
             'evaluation_configs' => $evaluationConfigs,
             'supervisor_assignments' => $supervisorAssignments,
-            'hr_personnel' => $hrPersonnel ? $hrPersonnel->firstname . ' ' . $hrPersonnel->lastname : 'HR Personnel',
-            'manager' => $manager ? $manager->firstname . ' ' . $manager->lastname : 'Manager',
+            'hr_assignments' => $hrAssignments,
+            'manager_assignments' => $managerAssignments,
             'user_permissions' => [
                 'can_evaluate' => $user->canEvaluate(),
                 'is_super_admin' => $user->isSuperAdmin(),

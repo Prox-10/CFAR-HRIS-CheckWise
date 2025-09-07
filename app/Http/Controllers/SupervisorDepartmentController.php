@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\SupervisorDepartment;
+use App\Models\HRDepartmentAssignment;
+use App\Models\ManagerDepartmentAssignment;
 use App\Models\User;
 use App\Models\Employee;
 use App\Models\EvaluationConfiguration;
@@ -29,9 +31,67 @@ class SupervisorDepartmentController extends Controller
       $query->where('name', 'Supervisor');
     })->with('supervisedDepartments')->get();
 
+    // Get users with HR roles
+    $hrPersonnel = User::whereHas('roles', function ($query) {
+      $query->where('name', 'like', '%HR%')
+            ->orWhere('name', 'like', '%hr%');
+    })->get()->map(function ($user) {
+      return [
+        'id' => $user->id,
+        'firstname' => $user->firstname,
+        'lastname' => $user->lastname,
+        'email' => $user->email,
+        'roles' => $user->roles->pluck('name')->toArray(),
+      ];
+    });
+
+    // Get users with Manager roles
+    $managers = User::whereHas('roles', function ($query) {
+      $query->where('name', 'like', '%Manager%')
+            ->orWhere('name', 'like', '%manager%');
+    })->get()->map(function ($user) {
+      return [
+        'id' => $user->id,
+        'firstname' => $user->firstname,
+        'lastname' => $user->lastname,
+        'email' => $user->email,
+        'roles' => $user->roles->pluck('name')->toArray(),
+      ];
+    });
+
     $departments = Employee::distinct()->pluck('department')->toArray();
 
     $assignments = SupervisorDepartment::with('user')->get();
+
+    // Get HR assignments
+    $hrAssignments = HRDepartmentAssignment::with('user')->get()->map(function ($assignment) {
+      return [
+        'id' => $assignment->id,
+        'user_id' => $assignment->user_id,
+        'department' => $assignment->department,
+        'user' => [
+          'id' => $assignment->user->id,
+          'firstname' => $assignment->user->firstname,
+          'lastname' => $assignment->user->lastname,
+          'email' => $assignment->user->email,
+        ],
+      ];
+    });
+
+    // Get Manager assignments
+    $managerAssignments = ManagerDepartmentAssignment::with('user')->get()->map(function ($assignment) {
+      return [
+        'id' => $assignment->id,
+        'user_id' => $assignment->user_id,
+        'department' => $assignment->department,
+        'user' => [
+          'id' => $assignment->user->id,
+          'firstname' => $assignment->user->firstname,
+          'lastname' => $assignment->user->lastname,
+          'email' => $assignment->user->email,
+        ],
+      ];
+    });
 
     // Get evaluation frequencies for all departments
     $frequencies = [];
@@ -48,8 +108,12 @@ class SupervisorDepartmentController extends Controller
 
     return Inertia::render('evaluation/supervisor-management', [
       'supervisors' => $supervisors,
+      'hr_personnel' => $hrPersonnel,
+      'managers' => $managers,
       'departments' => $departments,
       'assignments' => $assignments,
+      'hr_assignments' => $hrAssignments,
+      'manager_assignments' => $managerAssignments,
       'frequencies' => $frequencies,
       'user_permissions' => [
         'is_super_admin' => $user->isSuperAdmin(),
@@ -132,5 +196,99 @@ class SupervisorDepartmentController extends Controller
     $assignment->delete();
 
     return back()->with('success', 'Supervisor assignment removed successfully.');
+  }
+
+  /**
+   * Store a new HR Personnel-department assignment
+   */
+  public function storeHRAssignment(Request $request)
+  {
+    $user = Auth::user();
+
+    if (!$user->isSuperAdmin()) {
+      return back()->withErrors(['error' => 'Access denied.']);
+    }
+
+    $request->validate([
+      'user_id' => 'required|exists:users,id',
+      'department' => 'required|string',
+    ]);
+
+    // Check if user has HR role
+    $hrUser = User::findOrFail($request->user_id);
+    if (!$hrUser->hasRole('HR') && !$hrUser->hasRole('HR Manager') && !$hrUser->hasRole('HR Personnel')) {
+      return back()->withErrors(['error' => 'Selected user must have an HR role.']);
+    }
+
+    // Create assignment
+    HRDepartmentAssignment::create([
+      'user_id' => $request->user_id,
+      'department' => $request->department,
+    ]);
+
+    return back()->with('success', 'HR Personnel assignment created successfully.');
+  }
+
+  /**
+   * Remove HR Personnel-department assignment
+   */
+  public function destroyHRAssignment(HRDepartmentAssignment $assignment)
+  {
+    $user = Auth::user();
+
+    if (!$user->isSuperAdmin()) {
+      return back()->withErrors(['error' => 'Access denied.']);
+    }
+
+    $assignment->delete();
+
+    return back()->with('success', 'HR Personnel assignment removed successfully.');
+  }
+
+  /**
+   * Store a new Manager-department assignment
+   */
+  public function storeManagerAssignment(Request $request)
+  {
+    $user = Auth::user();
+
+    if (!$user->isSuperAdmin()) {
+      return back()->withErrors(['error' => 'Access denied.']);
+    }
+
+    $request->validate([
+      'user_id' => 'required|exists:users,id',
+      'department' => 'required|string',
+    ]);
+
+    // Check if user has Manager role
+    $managerUser = User::findOrFail($request->user_id);
+    if (!$managerUser->hasRole('Manager') && !$managerUser->hasRole('Department Manager')) {
+      return back()->withErrors(['error' => 'Selected user must have a Manager role.']);
+    }
+
+    // Create assignment
+    ManagerDepartmentAssignment::create([
+      'user_id' => $request->user_id,
+      'department' => $request->department,
+    ]);
+
+    return back()->with('success', 'Manager assignment created successfully.');
+  }
+
+  /**
+   * Remove Manager-department assignment
+   */
+  public function destroyManagerAssignment(ManagerDepartmentAssignment $assignment)
+  {
+    $user = Auth::user();
+
+    if (!$user->isSuperAdmin()) {
+      return back()->withErrors(['error' => 'Access denied.']);
+    }
+
+    $assignment->delete();
+
+    return back()->with('success', 'Manager assignment removed successfully.');
   }
 }

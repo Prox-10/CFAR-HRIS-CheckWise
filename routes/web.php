@@ -53,6 +53,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('evaluation/supervisor-management/{assignment}', [SupervisorDepartmentController::class, 'update'])->name('evaluation.supervisor-management.update');
     Route::delete('evaluation/supervisor-management/{assignment}', [SupervisorDepartmentController::class, 'destroy'])->name('evaluation.supervisor-management.destroy');
 
+    // HR Personnel management routes
+    Route::post('evaluation/hr-management', [SupervisorDepartmentController::class, 'storeHRAssignment'])->name('evaluation.hr-management.store');
+    Route::delete('evaluation/hr-management/{assignment}', [SupervisorDepartmentController::class, 'destroyHRAssignment'])->name('evaluation.hr-management.destroy');
+
+    // Manager management routes
+    Route::post('evaluation/manager-management', [SupervisorDepartmentController::class, 'storeManagerAssignment'])->name('evaluation.manager-management.store');
+    Route::delete('evaluation/manager-management/{assignment}', [SupervisorDepartmentController::class, 'destroyManagerAssignment'])->name('evaluation.manager-management.destroy');
+
     // Evaluation frequency update route (accessible from supervisor management)
     Route::put('evaluation/frequencies/{department}', [EvaluationController::class, 'updateFrequency'])->name('evaluation.frequencies.update');
 
