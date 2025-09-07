@@ -63,6 +63,7 @@ class AuthEmployeeController extends Controller
 
         // Absence Credits
         $absenceCredits = AbsenceCredit::getOrCreateForEmployee($employee->id);
+        $absenceBalance = $absenceCredits->remaining_credits;
 
         // Absence Count (this month)
         $absenceCount = Absence::where('employee_id', $employee->id)
@@ -157,6 +158,7 @@ class AuthEmployeeController extends Controller
         return [
             'leaveBalance' => $leaveBalance,
             'absenceCount' => $absenceCount,
+            'absenceBalance' => $absenceBalance,
             'evaluationRating' => $evaluationRating,
             'assignedArea' => $employee->department,
             'attendancePercentage' => $attendancePercentage,

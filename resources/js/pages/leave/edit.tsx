@@ -40,6 +40,31 @@ export default function Index({ leave }: Props) {
         setData(leave);
     }, [leave]);
 
+    // Realtime updates via Echo for leave approvals/rejections
+    useEffect(() => {
+        const echo: any = (window as any).Echo;
+        if (!echo) return;
+
+        const adminChannel = echo.channel('notifications');
+        adminChannel
+            .listen('.LeaveRequested', (e: any) => {
+                if (e && e.leave) {
+                    setData((prev) => [e.leave, ...prev]);
+                }
+            })
+            .listen('.RequestStatusUpdated', (e: any) => {
+                if (!String(e.type || '').includes('leave')) return;
+                setData((prev) =>
+                    prev.map((r: any) => (String(r.id) === String(e.request_id) ? { ...r, leave_status: String(e.status).toLowerCase() } : r)),
+                );
+            });
+
+        return () => {
+            adminChannel.stopListening('.LeaveRequested');
+            adminChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, []);
+
     const handleUpdate = (updatedEmployee: Leave) => {
         setData((prevData) => prevData.map((leave) => (leave.id === updatedEmployee.id ? updatedEmployee : leave)));
     };

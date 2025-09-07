@@ -3,6 +3,7 @@ import { Progress } from '@/components/ui/progress';
 
 interface DashboardData {
     leaveBalance: number;
+    absenceBalance: number;
     absenceCount: number;
     evaluationRating: number;
     assignedArea: string;
@@ -68,12 +69,12 @@ export function PerformanceOverview({ dashboardData }: PerformanceOverviewProps)
                     <h4 className="mb-2 text-sm font-medium">Monthly Summary</h4>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                            <span className="text-muted-foreground">Absences:</span>
-                            <span className="ml-2 font-medium">{dashboardData.absenceCount}</span>
+                            <span className="text-muted-foreground">Absence Balance:</span>
+                            <span className="ml-2 font-medium">{dashboardData.absenceBalance} credits</span>
                         </div>
                         <div>
                             <span className="text-muted-foreground">Leave Balance:</span>
-                            <span className="ml-2 font-medium">{dashboardData.leaveBalance} days</span>
+                            <span className="ml-2 font-medium">{dashboardData.leaveBalance} credits</span>
                         </div>
                     </div>
                 </div>

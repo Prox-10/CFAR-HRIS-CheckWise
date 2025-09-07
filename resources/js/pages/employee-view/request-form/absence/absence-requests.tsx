@@ -1,6 +1,7 @@
-﻿import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+﻿import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Toaster } from '@/components/ui/sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/employee-layout/app-layout';
@@ -9,7 +10,6 @@ import { Head, usePage } from '@inertiajs/react';
 import { Calendar, Clock, FileText, Plus, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Request Forms', href: '/employee-view/absence' },
@@ -63,28 +63,31 @@ export default function AbsenceRequests({ employee, absenceRequests = [] }: Prop
         const echo = (window as any).Echo;
         if (!echo || !employee?.id) return;
 
-        const channelName = employee.;
+        const channelName = `employee.${employee.id}`;
         const employeeChannel = echo.channel(channelName);
-        
+
         employeeChannel.listen('.RequestStatusUpdated', (e: any) => {
             console.log('Absence status update received:', e);
-            
+
             if (e.type === 'absence_status') {
-                setRequests(prev => 
-                    prev.map(request => 
-                        request.id === e.request_id 
-                            ? { 
-                                ...request, 
-                                status: e.status,
-                                approved_at: e.status !== 'pending' ? new Date().toISOString().split('T')[0] + ' ' + new Date().toTimeString().split(' ')[0] : request.approved_at,
-                                approval_comments: e.meta?.approval_comments || request.approval_comments
+                setRequests((prev) =>
+                    prev.map((request) =>
+                        request.id === e.request_id
+                            ? {
+                                  ...request,
+                                  status: e.status,
+                                  approved_at:
+                                      e.status !== 'pending'
+                                          ? new Date().toISOString().split('T')[0] + ' ' + new Date().toTimeString().split(' ')[0]
+                                          : request.approved_at,
+                                  approval_comments: e.meta?.approval_comments || request.approval_comments,
                               }
-                            : request
-                    )
+                            : request,
+                    ),
                 );
-                
-                const statusText = e.status === 'approved' ? 'approved' : e.status === 'rejected' ? 'rejected' : e.status;
-                toast.success(Your absence request has been !);
+
+                const statusText = e.status === 'approved' ? 'approved' : e.status === 'rejected' ? 'rejected' : String(e.status);
+                toast.success(`Your absence request has been ${statusText}!`);
             }
         });
 
@@ -123,7 +126,7 @@ export default function AbsenceRequests({ employee, absenceRequests = [] }: Prop
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
         });
     };
 
@@ -133,7 +136,7 @@ export default function AbsenceRequests({ employee, absenceRequests = [] }: Prop
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         });
     };
 
@@ -150,16 +153,16 @@ export default function AbsenceRequests({ employee, absenceRequests = [] }: Prop
     };
 
     const groupedRequests = {
-        pending: requests.filter(r => r.status === 'pending'),
-        approved: requests.filter(r => r.status === 'approved'),
-        rejected: requests.filter(r => r.status === 'rejected'),
+        pending: requests.filter((r) => r.status === 'pending'),
+        approved: requests.filter((r) => r.status === 'approved'),
+        rejected: requests.filter((r) => r.status === 'rejected'),
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Absence Requests" />
             <Toaster position="top-center" richColors />
-            
+
             <div className="w-full space-y-6">
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -170,17 +173,12 @@ export default function AbsenceRequests({ employee, absenceRequests = [] }: Prop
                         <p className="text-sm text-muted-foreground">View and track your absence requests</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={refreshData}
-                            disabled={loading}
-                        >
-                            <RefreshCw className={h-4 w-4 mr-2 } />
+                        <Button variant="outline" size="sm" onClick={refreshData} disabled={loading}>
+                            <RefreshCw className="mr-2 h-4 w-4" />
                             Refresh
                         </Button>
-                        <Button size="sm" onClick={() => window.location.href = '/employee-view/absence/request'}>
-                            <Plus className="h-4 w-4 mr-2" />
+                        <Button size="sm" onClick={() => (window.location.href = '/employee-view/absence/request')}>
+                            <Plus className="mr-2 h-4 w-4" />
                             New Request
                         </Button>
                     </div>
@@ -246,7 +244,7 @@ function AbsenceRequestsTable({ requests }: { requests: AbsenceRequest[] }) {
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
         });
     };
 
@@ -256,7 +254,7 @@ function AbsenceRequestsTable({ requests }: { requests: AbsenceRequest[] }) {
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         });
     };
 
@@ -264,13 +262,11 @@ function AbsenceRequestsTable({ requests }: { requests: AbsenceRequest[] }) {
         return (
             <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
-                    <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No absence requests found</h3>
-                    <p className="text-muted-foreground text-center mb-4">
-                        You haven't submitted any absence requests yet.
-                    </p>
-                    <Button onClick={() => window.location.href = '/employee-view/absence/request'}>
-                        <Plus className="h-4 w-4 mr-2" />
+                    <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
+                    <h3 className="mb-2 text-lg font-semibold">No absence requests found</h3>
+                    <p className="mb-4 text-center text-muted-foreground">You haven't submitted any absence requests yet.</p>
+                    <Button onClick={() => (window.location.href = '/employee-view/absence/request')}>
+                        <Plus className="mr-2 h-4 w-4" />
                         Submit New Request
                     </Button>
                 </CardContent>
@@ -311,27 +307,27 @@ function AbsenceRequestsTable({ requests }: { requests: AbsenceRequest[] }) {
                                 <TableCell>
                                     <div className="flex items-center gap-2">
                                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                                        <span>{formatDate(request.from_date)} - {formatDate(request.to_date)}</span>
+                                        <span>
+                                            {formatDate(request.from_date)} - {formatDate(request.to_date)}
+                                        </span>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
                                         <Clock className="h-4 w-4 text-muted-foreground" />
-                                        <span>{request.days} {request.days === 1 ? 'day' : 'days'}</span>
+                                        <span>
+                                            {request.days} {request.days === 1 ? 'day' : 'days'}
+                                        </span>
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge className={${getStatusColor(request.status)} border}>
+                                    <Badge className={`${getStatusColor(request.status)} border`}>
                                         <span className="mr-1">{getStatusIcon(request.status)}</span>
                                         {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-sm text-muted-foreground">
-                                    {formatDateTime(request.submitted_at)}
-                                </TableCell>
-                                <TableCell className="max-w-xs truncate">
-                                    {request.reason}
-                                </TableCell>
+                                <TableCell className="text-sm text-muted-foreground">{formatDateTime(request.submitted_at)}</TableCell>
+                                <TableCell className="max-w-xs truncate">{request.reason}</TableCell>
                                 <TableCell>
                                     <Button variant="outline" size="sm">
                                         View Details

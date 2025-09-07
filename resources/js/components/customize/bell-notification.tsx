@@ -16,20 +16,38 @@ export function BellNotification({
     notifications = [],
     unreadCount = 0,
     onNotificationRead,
+    onUnreadCountChange,
+    onViewAll,
 }: {
     notifications?: any[];
     unreadCount?: number;
     onNotificationRead?: (id: number) => void;
+    onUnreadCountChange?: (next: number) => void;
+    onViewAll?: () => void;
 }) {
-    const handleNotificationClick = async (id: number, unread: boolean, notification: any) => {
-        if (unread) {
-            try {
-                await axios.post(`/api/notifications/${id}/read`);
-                if (onNotificationRead) onNotificationRead(id);
-            } catch (e) {
-                // handle error
-            }
+    const markOneAsRead = async (id: number) => {
+        try {
+            await axios.post(`/employee/notifications/mark-read`, { notification_id: id });
+            if (onNotificationRead) onNotificationRead(id);
+            if (onUnreadCountChange) onUnreadCountChange(Math.max(0, unreadCount - 1));
+        } catch (e) {
+            // ignore
         }
+    };
+
+    const markAllAsRead = async () => {
+        try {
+            await axios.post(`/employee/notifications/mark-all-read`);
+            if (onUnreadCountChange) onUnreadCountChange(0);
+            // Optimistically inform parent to clear local read flags if it tracks list
+            if (onNotificationRead) onNotificationRead(-1);
+        } catch (e) {
+            // ignore
+        }
+    };
+
+    const handleNotificationClick = async (id: number, unread: boolean, notification: any) => {
+        if (unread) await markOneAsRead(id);
         // Navigate to the relevant page based on notification type
         if (notification.type === 'leave_request' && notification.data && notification.data.leave_id) {
             router.visit(`/leave/${notification.data.leave_id}/edit`);
@@ -119,7 +137,19 @@ export function BellNotification({
                     )}
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="justify-center text-center">View all notifications</DropdownMenuItem>
+                <div className="flex items-center justify-between px-2 py-1.5">
+                    <Button variant="ghost" size="sm" onClick={markAllAsRead} disabled={unreadCount === 0}>
+                        Mark all read
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => (onViewAll ? onViewAll() : router.visit('/dashboard'))}
+                        className="text-blue-600 hover:text-blue-800"
+                    >
+                        View all
+                    </Button>
+                </div>
             </DropdownMenuContent>
         </DropdownMenu>
     );

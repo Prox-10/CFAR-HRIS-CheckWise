@@ -18,7 +18,7 @@ import { DataTableViewOptions } from '@/components/column-toggle';
 import { DataTablePagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AddLeaveModal from './addleavemodal';
 // import { Employees } from './columns';
 import { DataTableToolbar } from './data-tool-bar';
@@ -35,10 +35,66 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const { can } = usePermission();
     const [isModelOpen, setIsModelOpen] = useState(false);
+    const [rows, setRows] = useState<any[]>(data || []);
+    const formatDate = (d: any) => {
+        try {
+            const date = new Date(d);
+            return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+        } catch (e) {
+            return d;
+        }
+    };
 
+    useEffect(() => {
+        setRows(data || []);
+    }, [data]);
+
+    useEffect(() => {
+        const echo: any = (window as any).Echo;
+        if (!echo) return;
+
+        // Admin listens on global notifications channel for new requests
+        const adminChannel = echo.channel('notifications');
+        adminChannel
+            .listen('.LeaveRequested', (e: any) => {
+                // Payload shape from App\\Events\\LeaveRequested
+                // { type, leave_id, employee_id, employee_name, leave_type, leave_start_date, leave_end_date }
+                if (!e || typeof e.leave_id === 'undefined') return;
+                const newRow: any = {
+                    id: e.leave_id,
+                    employee_name: e.employee_name,
+                    leave_type: e.leave_type,
+                    leave_start_date: formatDate(e.leave_start_date),
+                    leave_end_date: formatDate(e.leave_end_date),
+                    leave_days: e.leave_days ?? 0,
+                    status: 'Pending',
+                    leave_reason: '',
+                    leave_date_reported: formatDate(e.leave_start_date),
+                    leave_date_approved: null,
+                    leave_comments: '',
+                    picture: null,
+                };
+                setRows((prev) => [newRow, ...prev.filter((r: any) => String(r.id) !== String(e.leave_id))]);
+            })
+            .listen('.RequestStatusUpdated', (e: any) => {
+                if (!String(e.type || '').includes('leave')) return;
+                setRows((prev) =>
+                    prev.map((r: any) =>
+                        String(r.id) === String(e.request_id)
+                            ? { ...r, status: String(e.status).charAt(0).toUpperCase() + String(e.status).slice(1).toLowerCase() }
+                            : r,
+                    ),
+                );
+            });
+
+        return () => {
+            adminChannel.stopListening('.LeaveRequested');
+            adminChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, []);
 
     const table = useReactTable({
-        data: data || [],
+        data: rows || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
@@ -78,10 +134,10 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
                     {can('Add Leave') && (
-                    <Button variant="main" className="ml-auto" onClick={() => setIsModelOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Leave Request
-                    </Button>
+                        <Button variant="main" className="ml-auto" onClick={() => setIsModelOpen(true)}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Leave Request
+                        </Button>
                     )}
                     <DropdownMenuContent align="end">
                         {table
@@ -104,12 +160,12 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
             </div>
             <div className="animate-fade-in rounded-md">
                 <Table className="animate-fade-in rounded-md">
-                    <TableHeader className="rounded-t-md bg-green-100 dark:text-darkMain">
+                    <TableHeader className="dark:text-darkMain rounded-t-md bg-green-100">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id} className="dark:bg-[#6baaa6] dark:text-darkMain">
+                                        <TableHead key={header.id} className="dark:text-darkMain dark:bg-[#6baaa6]">
                                             {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                         </TableHead>
                                     );
@@ -117,13 +173,13 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
                             </TableRow>
                         ))}
                     </TableHeader>
-                    <TableBody className="divide-y divide-green-100 bg-background dark:divide-green-950 dark:border-backgroundss dark:bg-backgroundss">
+                    <TableBody className="dark:border-backgroundss dark:bg-backgroundss divide-y divide-green-100 bg-background dark:divide-green-950">
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && 'selected'}
-                                    className="hover-lift transition-colors duration-200 hover:bg-green-50 dark:divide-green-950 dark:border-backgroundss dark:hover:bg-[#6baaa6]"
+                                    className="hover-lift dark:border-backgroundss transition-colors duration-200 hover:bg-green-50 dark:divide-green-950 dark:hover:bg-[#6baaa6]"
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>

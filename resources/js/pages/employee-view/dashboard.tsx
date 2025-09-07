@@ -33,6 +33,7 @@ interface Employee {
 
 interface DashboardData {
     leaveBalance: number;
+    absenceBalance: number;
     absenceCount: number;
     evaluationRating: number;
     assignedArea: string;
@@ -92,6 +93,9 @@ interface DashboardProps {
 
 export default function Dashboard({ employee, dashboardData }: DashboardProps) {
     const [activeTab, setActiveTab] = useState('overview');
+    const [activities, setActivities] = useState(dashboardData.recentActivities || []);
+    const [leaveRequests, setLeaveRequests] = useState(dashboardData.leaveRequests || []);
+    const [absenceRequests, setAbsenceRequests] = useState(dashboardData.absenceRequests || []);
 
     const currentTime = new Date();
     const hour = currentTime.getHours();
@@ -131,9 +135,57 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
 
         const channelName = `employee.${employee.id}`;
         const employeeChannel = echo.channel(channelName);
+        employeeChannel.subscribed(() => {
+            console.log('[Dashboard] Subscribed to', channelName);
+        });
+        employeeChannel.error((err: any) => {
+            console.error('[Dashboard] Channel error', err);
+        });
         employeeChannel.listen('.RequestStatusUpdated', (e: any) => {
-            const kind = e.type?.includes('leave') ? 'Leave' : 'Absence';
+            console.groupCollapsed('[Dashboard] RequestStatusUpdated');
+            console.log('raw event:', e);
+            const isLeave = String(e.type || '').includes('leave');
+            const kind = isLeave ? 'Leave' : 'Absence';
             const status = String(e.status || '').toLowerCase();
+            console.log('kind:', kind, 'status:', status, 'request_id:', e.request_id);
+
+            const matchIndex = isLeave
+                ? leaveRequests.findIndex((item) => String(item.id) === String(e.request_id))
+                : absenceRequests.findIndex((item) => String(item.id) === String(e.request_id));
+            console.log('matchIndex:', matchIndex);
+
+            // Update lists in place (ensure loose id equality across types)
+            if (isLeave) {
+                setLeaveRequests((prev) =>
+                    prev.map((item) => (String(item.id) === String(e.request_id) ? ({ ...item, leave_status: status } as any) : item)),
+                );
+            } else {
+                setAbsenceRequests((prev) => prev.map((item) => (String(item.id) === String(e.request_id) ? { ...item, status } : item)));
+            }
+
+            // Update or insert a Recent Activity for this specific request
+            const activityTitle = `${kind} request ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+            const canonicalId = `${isLeave ? 'leave' : 'absence'}_${e.request_id}`;
+            setActivities((prev) => {
+                const index = prev.findIndex((a) => String(a.id) === String(canonicalId));
+                const updatedItem = {
+                    id: canonicalId,
+                    title: activityTitle,
+                    timeAgo: 'just now',
+                    status,
+                    type: isLeave ? 'leave' : 'absence',
+                } as any;
+                if (index >= 0) {
+                    const next = [...prev];
+                    next[index] = updatedItem;
+                    // move updated item to the top
+                    const [moved] = next.splice(index, 1);
+                    return [moved, ...next];
+                }
+                return [updatedItem, ...prev];
+            });
+
+            // Toast feedback
             if (status === 'approved') {
                 toast.success(`${kind} request approved`);
             } else if (status === 'rejected') {
@@ -141,6 +193,7 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
             } else {
                 toast.info(`${kind} request ${e.status}`);
             }
+            console.groupEnd();
         });
 
         return () => {
@@ -324,7 +377,7 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
                     <TabsContent value="overview" className="space-y-4">
                         <div className="grid gap-6 md:grid-cols-2">
                             <PerformanceOverview dashboardData={dashboardData} />
-                            <RecentActivities activities={dashboardData.recentActivities} />
+                            <RecentActivities activities={activities} />
                         </div>
                     </TabsContent>
 
@@ -335,9 +388,9 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
                                 <CardDescription>Track your leave request status and history</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                {dashboardData.leaveRequests && dashboardData.leaveRequests.length > 0 ? (
+                                {leaveRequests && leaveRequests.length > 0 ? (
                                     <div className="space-y-4">
-                                        {dashboardData.leaveRequests.map((leave) => (
+                                        {leaveRequests.map((leave) => (
                                             <div key={leave.id} className="flex items-center justify-between rounded-lg border p-4">
                                                 <div className="flex-1">
                                                     <div className="flex items-center space-x-3">
@@ -377,9 +430,9 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
                                 <CardDescription>Track your absence request status and history</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                {dashboardData.absenceRequests && dashboardData.absenceRequests.length > 0 ? (
+                                {absenceRequests && absenceRequests.length > 0 ? (
                                     <div className="space-y-4">
-                                        {dashboardData.absenceRequests.map((absence) => (
+                                        {absenceRequests.map((absence) => (
                                             <div key={absence.id} className="flex items-center justify-between rounded-lg border p-4">
                                                 <div className="flex-1">
                                                     <div className="flex items-center space-x-3">

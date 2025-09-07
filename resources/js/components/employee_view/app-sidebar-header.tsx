@@ -4,7 +4,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { type BreadcrumbItem } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { Bell } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface AppSidebarHeaderProps {
@@ -12,8 +12,51 @@ interface AppSidebarHeaderProps {
 }
 
 export function AppSidebarHeader({ breadcrumbs = [] }: AppSidebarHeaderProps) {
-    const { unreadNotificationCount = 0, notifications = [] } = usePage().props as any;
+    const { unreadNotificationCount = 0, notifications = [], employee } = usePage().props as any;
     const [showNotifications, setShowNotifications] = useState(false);
+    const [unreadCount, setUnreadCount] = useState<number>(unreadNotificationCount);
+    const [notificationList, setNotificationList] = useState<any[]>(notifications);
+
+    useEffect(() => {
+        if (!employee?.id) return;
+        let stop = () => {};
+
+        // Retry until Echo exists to avoid first-load race
+        let tries = 0;
+        const ensureEcho = (ready: () => void) => {
+            if ((window as any).Echo) return ready();
+            const tm = setInterval(() => {
+                tries++;
+                if ((window as any).Echo || tries > 20) {
+                    clearInterval(tm);
+                    ready();
+                }
+            }, 250);
+        };
+
+        ensureEcho(() => {
+            const echo: any = (window as any).Echo;
+            if (!echo) return;
+            const channelName = `employee.${employee.id}`;
+            const employeeChannel = echo.channel(channelName);
+            employeeChannel.subscribed(() => console.log('[Bell] Subscribed to', channelName));
+            employeeChannel.error((err: any) => console.error('[Bell] Channel error', err));
+            employeeChannel.listen('.RequestStatusUpdated', (e: any) => {
+                const notif = {
+                    id: `${e.type}-${e.request_id}-${Date.now()}`,
+                    type: e.type?.includes('leave') ? 'leave_request' : 'absence_request',
+                    data: e,
+                    read_at: null,
+                    created_at: new Date().toISOString(),
+                };
+                setNotificationList((prev) => [notif, ...prev]);
+                setUnreadCount((prev) => prev + 1);
+            });
+            stop = () => employeeChannel.stopListening('.RequestStatusUpdated');
+        });
+
+        return () => stop();
+    }, [employee?.id]);
 
     const markNotificationAsRead = async (notificationId: string) => {
         try {
@@ -22,11 +65,26 @@ export function AppSidebarHeader({ breadcrumbs = [] }: AppSidebarHeaderProps) {
                 { notification_id: notificationId },
                 {
                     preserveScroll: true,
-                    onSuccess: () => {},
+                    onSuccess: () => {
+                        // Update local state immediately
+                        setNotificationList((prev) => {
+                            const next = prev.map((n) => (n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n));
+                            const unread = next.filter((n) => !n.read_at).length;
+                            setUnreadCount(unread);
+                            return next;
+                        });
+                    },
                 },
             );
         } catch (error) {
             toast.error('Failed to mark notification as read');
+            // Fallback: still update UI if it's a realtime-only item without DB id
+            setNotificationList((prev) => {
+                const next = prev.map((n) => (n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n));
+                const unread = next.filter((n) => !n.read_at).length;
+                setUnreadCount(unread);
+                return next;
+            });
         }
     };
 
@@ -39,11 +97,16 @@ export function AppSidebarHeader({ breadcrumbs = [] }: AppSidebarHeaderProps) {
                     preserveScroll: true,
                     onSuccess: () => {
                         toast.success('All notifications marked as read');
+                        setNotificationList((prev) => prev.map((n) => ({ ...n, read_at: new Date().toISOString() })));
+                        setUnreadCount(0);
                     },
                 },
             );
         } catch (error) {
             toast.error('Failed to mark all notifications as read');
+            // Fallback UI update
+            setNotificationList((prev) => prev.map((n) => ({ ...n, read_at: new Date().toISOString() })));
+            setUnreadCount(0);
         }
     };
 
@@ -63,9 +126,9 @@ export function AppSidebarHeader({ breadcrumbs = [] }: AppSidebarHeaderProps) {
                         className="hover:bg-sidebar-hover relative h-10 w-10 rounded-full p-0"
                     >
                         <Bell className="h-5 w-5" />
-                        {unreadNotificationCount > 0 && (
+                        {unreadCount > 0 && (
                             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-                                {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
+                                {unreadCount > 99 ? '99+' : unreadCount}
                             </span>
                         )}
                     </Button>
@@ -75,7 +138,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: AppSidebarHeaderProps) {
                         <div className="absolute top-12 right-0 z-[1000] w-80 rounded-lg border bg-white p-4 shadow-lg">
                             <div className="mb-3 flex items-center justify-between">
                                 <h3 className="font-semibold text-gray-900">Notifications</h3>
-                                {unreadNotificationCount > 0 && (
+                                {unreadCount > 0 && (
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -87,8 +150,8 @@ export function AppSidebarHeader({ breadcrumbs = [] }: AppSidebarHeaderProps) {
                                 )}
                             </div>
                             <div className="max-h-64 space-y-2 overflow-y-auto">
-                                {notifications && notifications.length > 0 ? (
-                                    notifications.map((notification: any) => (
+                                {notificationList && notificationList.length > 0 ? (
+                                    notificationList.map((notification: any) => (
                                         <div
                                             key={notification.id}
                                             className={`cursor-pointer rounded-lg border p-3 ${

@@ -73,6 +73,49 @@ export default function AbsenceApprove({ initialRequests = [] }: Props) {
         }
     }, [props.initialRequests]);
 
+    // Realtime updates via Echo (admin view)
+    useEffect(() => {
+        const echo: any = (window as any).Echo;
+        if (!echo) return;
+
+        const adminChannel = echo.channel('notifications');
+        adminChannel
+            .listen('.AbsenceRequested', (e: any) => {
+                if (e && e.absence) {
+                    // Prepend newly submitted absence request
+                    setRequests((prev) => [
+                        {
+                            id: String(e.absence.id),
+                            full_name: e.absence.full_name || e.absence.employee_name || 'Employee',
+                            employee_id_number: e.absence.employee_id_number || '',
+                            department: e.absence.department || '',
+                            position: e.absence.position || '',
+                            absence_type: e.absence.absence_type,
+                            from_date: e.absence.from_date,
+                            to_date: e.absence.to_date,
+                            submitted_at: e.absence.submitted_at || new Date().toISOString(),
+                            days: e.absence.days || 1,
+                            reason: e.absence.reason || '',
+                            is_partial_day: !!e.absence.is_partial_day,
+                            status: e.absence.status || 'pending',
+                            picture: e.absence.picture || '',
+                            employee_name: e.absence.employee_name || '',
+                        },
+                        ...prev,
+                    ]);
+                }
+            })
+            .listen('.RequestStatusUpdated', (e: any) => {
+                if (String(e.type || '') !== 'absence_status') return;
+                setRequests((prev) => prev.map((r) => (String(r.id) === String(e.request_id) ? { ...r, status: e.status } : r)));
+            });
+
+        return () => {
+            adminChannel.stopListening('.AbsenceRequested');
+            adminChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, []);
+
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
         return requests.filter((r) => {

@@ -19,7 +19,8 @@ import { DataTableViewOptions } from '@/components/column-toggle';
 import { DataTablePagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useState } from 'react';
+import { usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import AddPaymentModal from './addleavemodal';
 // import { Employees } from './columns';
 import { DataTableToolbar } from './data-tool-bar';
@@ -34,9 +35,31 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [isModelOpen, setIsModelOpen] = useState(false);
+    const [rows, setRows] = useState<any[]>(data || []);
+    const { employee } = usePage().props as any;
+
+    useEffect(() => {
+        setRows(data || []);
+    }, [data]);
+
+    useEffect(() => {
+        const echo: any = (window as any).Echo;
+        if (!echo || !employee?.id) return;
+
+        const channelName = `employee.${employee.id}`;
+        const employeeChannel = echo.channel(channelName);
+        employeeChannel.listen('.RequestStatusUpdated', (e: any) => {
+            if (!String(e.type || '').includes('leave')) return;
+            setRows((prev) => prev.map((r: any) => (r.id === e.request_id ? { ...r, leave_status: String(e.status).toLowerCase() } : r)));
+        });
+
+        return () => {
+            employeeChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, [employee?.id]);
 
     const table = useReactTable({
-        data: data || [],
+        data: rows || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),

@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { usePermission } from '@/hooks/user-permission';
 import { Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import AddAbsenceModal from './addabsencemodal';
 import { type Absence } from './columns';
@@ -39,9 +39,59 @@ export function DataTable<TData, TValue>({ columns, data, employees = [] }: Data
     const [isModelOpen, setIsModelOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [selectedAbsence, setSelectedAbsence] = useState<Absence | null>(null);
+    const [rows, setRows] = useState<any[]>(data || []);
+    const formatDate = (d: any) => {
+        try {
+            const date = new Date(d);
+            return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+        } catch (e) {
+            return d;
+        }
+    };
+
+    useEffect(() => {
+        setRows(data || []);
+    }, [data]);
+
+    useEffect(() => {
+        const echo: any = (window as any).Echo;
+        if (!echo) return;
+
+        const adminChannel = echo.channel('notifications');
+        adminChannel
+            .listen('.AbsenceRequested', (e: any) => {
+                // Payload from App\\Events\\AbsenceRequested
+                // { type, absence_id, employee_id, employee_name, absence_type, from_date, to_date }
+                if (!e || typeof e.absence_id === 'undefined') return;
+                const newRow: any = {
+                    id: e.absence_id,
+                    employee_name: e.employee_name,
+                    absence_type: e.absence_type,
+                    from_date: formatDate(e.from_date),
+                    to_date: formatDate(e.to_date),
+                    days: e.days ?? 0,
+                    reason: '',
+                    is_partial_day: false,
+                    status: 'pending',
+                    submitted_at: formatDate(e.from_date),
+                };
+                setRows((prev) => [newRow, ...prev.filter((r: any) => String(r.id) !== String(e.absence_id))]);
+            })
+            .listen('.RequestStatusUpdated', (e: any) => {
+                if (String(e.type || '') !== 'absence_status') return;
+                setRows((prev) =>
+                    prev.map((r: any) => (String(r.id) === String(e.request_id) ? { ...r, status: String(e.status).toLowerCase() } : r)),
+                );
+            });
+
+        return () => {
+            adminChannel.stopListening('.AbsenceRequested');
+            adminChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, []);
 
     const table = useReactTable({
-        data: data || [],
+        data: rows || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
