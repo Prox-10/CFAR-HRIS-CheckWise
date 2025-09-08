@@ -2,14 +2,11 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { CircleEllipsis, Edit, Eye } from 'lucide-react';
-import { toast } from 'sonner';
 // import { Employees } from '../types/employees';
 import DeleteConfirmationDialog from '@/components/delete-alert';
 import { DataTableColumnHeader } from './data-table-column-header';
-import {} from './editemployeemodal';
 
 type Employees = {
     id: string;
@@ -27,9 +24,7 @@ type Employees = {
     status: string;
     service_tenure: string;
     email: string;
-}; 
-
-
+};
 
 const columns = (
     setIsViewOpen: (open: boolean) => void,
@@ -39,7 +34,7 @@ const columns = (
     setSelectedEmployee: (employee: Employees | null) => void,
     handleEdit: (employee: Employees) => void,
     handleDelete: (id: string, onSuccess: () => void) => void,
-) : ColumnDef<Employees>[] => [
+): ColumnDef<Employees>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -61,7 +56,7 @@ const columns = (
             const src = row.original.picture;
             const name = row.original.employee_name;
             const empid = row.original.employeeid;
- 
+
             return (
                 <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
@@ -69,13 +64,13 @@ const columns = (
                             <img
                                 src={src}
                                 alt="Profile"
-                                className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
+                                className="animate-scale-in border-main dark:border-darksMain h-12 w-12 rounded-full border-2 object-cover"
                             />
                         ) : (
                             <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500">
                                 <img
                                     src="Logo.png"
-                                    className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
+                                    className="animate-scale-in border-main dark:border-darksMain h-12 w-12 rounded-full border-2 object-cover"
                                 />
                             </div>
                         )}
