@@ -57,11 +57,11 @@ const mainNavItems: NavItem[] = [
                 href: '/evaluation/department-evaluation',
                 permission: 'View Evaluation By Department',
             },
-            {
-                title: 'Supervisor Management',
-                href: '/evaluation/supervisor-management',
-                permission: 'View Supervisor Management',
-            },
+            // {
+            //     title: 'Supervisor Management',
+            //     href: '/evaluation/supervisor-management',
+            //     permission: 'View Supervisor Management',
+            // },
         ],
     },
     {
@@ -105,6 +105,12 @@ const mainNavItems: NavItem[] = [
         href: '/resume-to-work',
         icon: CalendarPlus2,
         permission: 'View Resume to Work',
+    },
+    {
+        title: 'Admin Management',
+        href: '/admin-management',
+        icon: User2,
+        permission: 'View Admin Management',
     },
     {
         title: 'Service-Tenure',

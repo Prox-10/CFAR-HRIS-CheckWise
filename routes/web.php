@@ -16,6 +16,7 @@ use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\AdminManagementController;
 use App\Http\Controllers\SupervisorDepartmentController;
 use App\Http\Controllers\ResumeToWorkController;
 
@@ -146,6 +147,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('permission/role/{role}/edit', [RoleController::class, 'edit'])->name('role.edit');
         Route::put('permission/role/{role}', [RoleController::class, 'update'])->name('role.update');
         Route::delete('permission/role/{role}', [RoleController::class, 'destroy'])->name('role.destroy');
+    });
+
+    // Admin Management
+    Route::middleware(['permission:View Admin Management'])->group(function () {
+        Route::get('admin-management', [AdminManagementController::class, 'index'])->name('admin-management.index');
     });
 });
 

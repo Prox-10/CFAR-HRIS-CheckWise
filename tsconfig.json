@@ -114,5 +114,5 @@
         },
         "jsx": "react-jsx"
     },
-    "include": ["resources/js/**/*.ts", "resources/js/**/*.d.ts", "resources/js/**/*.tsx", "resources/js/pages/leave/components/columns.tsx", "resources/js/components/column-toggle.tsx"]
+    "include": ["resources/js/**/*.ts", "resources/js/**/*.d.ts", "resources/js/**/*.tsx", "resources/js/pages/leave/components/columns.tsx", "resources/js/components/column-toggle.tsx", "resources/js/pages/evaluation/supervisor-management.tsx.backup"]
 }

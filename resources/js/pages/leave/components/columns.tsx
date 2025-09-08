@@ -1,11 +1,10 @@
 'use client';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ColumnDef } from '@tanstack/react-table';
-import { CheckCircle, Clock, Edit, Eye, XCircle, CreditCard } from 'lucide-react';
-// import { Employees } from '../types/employees';
-import { Badge } from '@/components/ui/badge';
 import { Link } from '@inertiajs/react';
+import { ColumnDef } from '@tanstack/react-table';
+import { CheckCircle, Clock, CreditCard, Edit, Eye, XCircle } from 'lucide-react';
 import { DataTableColumnHeader } from './data-table-column-header';
 import {} from './editemployeemodal';
 
@@ -22,6 +21,8 @@ type Leave = {
     leave_date_approved: string;
     leave_comments: string;
     picture: string;
+    department: string | null;
+    position: string | null;
     remaining_credits?: number;
     used_credits?: number;
     total_credits?: number;
@@ -64,13 +65,13 @@ const columns = (
                             <img
                                 src={src}
                                 alt="Profile"
-                                className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
+                                className="animate-scale-in border-main dark:border-darksMain h-12 w-12 rounded-full border-2 object-cover"
                             />
                         ) : (
                             <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500">
                                 <img
                                     src="\Logo.png"
-                                    className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
+                                    className="animate-scale-in border-main dark:border-darksMain h-12 w-12 rounded-full border-2 object-cover"
                                 />
                             </div>
                         )}
@@ -80,6 +81,28 @@ const columns = (
                     </div>
                 </div>
             );
+        },
+    },
+    {
+        accessorKey: 'department',
+        header: 'Departments',
+        cell: ({ row }) => {
+            const department = (row.getValue('department') as string) ?? '';
+            const position = row.original.position ?? '';
+
+            return (
+                <div>
+                    <div className="text-sm font-medium text-gray-900">{department}</div>
+                    <div className="text-xs text-gray-500">{position}</div>
+                </div>
+            );
+        },
+        filterFn: (row, columnId, filterValue) => {
+            if (!filterValue || filterValue.length === 0) return true;
+
+            const department = row.getValue(columnId);
+
+            return filterValue.includes(department);
         },
     },
     {
@@ -103,7 +126,9 @@ const columns = (
                 <div className="flex items-center gap-2">
                     <CreditCard className={`h-4 w-4 ${status.color}`} />
                     <div className="text-sm">
-                        <div className={`font-medium ${status.color}`}>{remaining}/{total}</div>
+                        <div className={`font-medium ${status.color}`}>
+                            {remaining}/{total}
+                        </div>
                         <div className="text-xs text-muted-foreground">{used} used</div>
                     </div>
                 </div>
