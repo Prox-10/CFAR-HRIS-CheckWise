@@ -71,6 +71,70 @@ export default function ResumeToWorkIndex({ resumeRequests = [], employees = [],
         setRequests(resumeRequests);
     }, [resumeRequests]);
 
+    // Set up real-time updates using Echo
+    useEffect(() => {
+        const echo = (window as any).Echo;
+        if (!echo) return;
+
+        const notificationChannel = echo.private('notifications');
+
+        // Listen for return work processed events
+        notificationChannel.listen('.ReturnWorkProcessed', (e: any) => {
+            console.log('Received ReturnWorkProcessed event:', e);
+
+            if (e.type === 'return_work_processed') {
+                setRequests((prev) =>
+                    prev.map((request) =>
+                        request.id === e.return_work_id
+                            ? {
+                                  ...request,
+                                  status: 'processed',
+                                  processed_by: e.processed_by,
+                                  processed_at: e.processed_at,
+                              }
+                            : request,
+                    ),
+                );
+
+                toast.success(`Return to work request for ${e.employee_name} has been processed!`);
+            }
+        });
+
+        // Listen for new return work requests
+        notificationChannel.listen('.ReturnWorkRequested', (e: any) => {
+            console.log('Received ReturnWorkRequested event:', e);
+
+            if (e.type === 'return_work_request') {
+                const newRequest = {
+                    id: `return_${e.return_work_id}`,
+                    employee_name: e.employee_name,
+                    employee_id: e.employee_id_number,
+                    department: e.department,
+                    position: '', // Will be filled from employee data
+                    return_date: e.return_date,
+                    previous_absence_reference: e.absence_type,
+                    comments: e.reason,
+                    status: 'pending' as const,
+                    processed_by: null,
+                    processed_at: null,
+                    supervisor_notified: false,
+                    supervisor_notified_at: null,
+                    created_at: new Date().toISOString(),
+                    source: 'employee',
+                };
+
+                setRequests((prev) => [newRequest, ...prev]);
+                toast.info(`New return to work request from ${e.employee_name}`);
+            }
+        });
+
+        return () => {
+            console.log('Cleaning up Echo listeners (resume-to-work)');
+            notificationChannel.stopListening('.ReturnWorkProcessed');
+            notificationChannel.stopListening('.ReturnWorkRequested');
+        };
+    }, []);
+
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
         return requests.filter((r) => {

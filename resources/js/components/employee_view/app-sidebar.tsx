@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CalendarDays, ClipboardList, Clock, FileText, LayoutGrid } from 'lucide-react';
+import { CalendarDays, CalendarSync, ClipboardList, Clock, FileText, LayoutGrid } from 'lucide-react';
 import * as React from 'react';
 
 import SidebarHoverZone from '@/components/sidebar-hover-zone';
@@ -73,6 +73,11 @@ const employeeNavItems: EmployeeNavItem[] = [
                 href: '/employee-view/absence',
                 icon: Clock,
             },
+            {
+                title: 'Return to Work',
+                href: '/employee-view/return-work',
+                icon: CalendarSync,
+            },
         ],
     },
     {
@@ -137,7 +142,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                                     type="single"
                                                     collapsible
                                                     defaultValue={
-                                                        ['/employee-view/leave', '/employee-view/absence'].includes(page.url)
+                                                        ['/employee-view/leave', '/employee-view/absence', '/employee-view/return-work'].includes(
+                                                            page.url,
+                                                        )
                                                             ? 'requests-forms'
                                                             : undefined
                                                     }

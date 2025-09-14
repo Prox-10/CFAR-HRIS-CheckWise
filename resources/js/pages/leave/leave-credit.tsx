@@ -227,7 +227,7 @@ export default function LeaveCredit({ employees = [], monthlyLeaveStats = [], us
                         </div>
 
                         {/* Credit Summary Overview */}
-                        {employees.length > 0 && (
+                        {/* {employees.length > 0 && (
                             <div className="mb-6">
                                 <Card>
                                     <CardHeader>
@@ -235,14 +235,14 @@ export default function LeaveCredit({ employees = [], monthlyLeaveStats = [], us
                                         <CardDescription>Summary of leave credits across all employees</CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        {/* <CreditSummary employees={employees} creditType="leave" /> */}
+                                        <CreditSummary employees={employees} creditType="leave" />
                                     </CardContent>
                                 </Card>
                             </div>
-                        )}
+                        )} */}
 
                         {/* Statistics Cards */}
-                        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+                        {/* <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
@@ -283,7 +283,7 @@ export default function LeaveCredit({ employees = [], monthlyLeaveStats = [], us
                                     <p className="text-xs text-muted-foreground">Credits remaining</p>
                                 </CardContent>
                             </Card>
-                        </div>
+                        </div> */}
 
                         {/* Employee Credits Section */}
                         {paginatedEmployees.length > 0 ? (

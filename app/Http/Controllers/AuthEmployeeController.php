@@ -7,6 +7,7 @@ use App\Models\Leave;
 use App\Models\LeaveCredit;
 use App\Models\Absence;
 use App\Models\AbsenceCredit;
+use App\Models\ReturnWork;
 use App\Models\Evaluation;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
@@ -276,6 +277,22 @@ class AuthEmployeeController extends Controller
                 'timeAgo' => $absence->created_at->diffForHumans(),
                 'status' => strtolower($absence->status), // Convert to lowercase for consistent status mapping
                 'type' => 'absence'
+            ];
+        }
+
+        // Recent return to work requests
+        $recentReturnWork = ReturnWork::where('employee_id', $employee->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(2)
+            ->get();
+
+        foreach ($recentReturnWork as $returnWork) {
+            $activities[] = [
+                'id' => 'return_work_' . $returnWork->id,
+                'title' => 'Return to Work request ' . $returnWork->status,
+                'timeAgo' => $returnWork->created_at->diffForHumans(),
+                'status' => strtolower($returnWork->status), // Convert to lowercase for consistent status mapping
+                'type' => 'return_work'
             ];
         }
 
@@ -591,7 +608,7 @@ class AuthEmployeeController extends Controller
                 ];
             });
 
-        return Inertia::render('employee-view/request-form/return-request/absence', [
+        return Inertia::render('employee-view/request-form/return-work/index', [
             'employee' => [
                 'id' => $employee->id,
                 'employeeid' => $employee->employeeid,
@@ -856,5 +873,75 @@ class AuthEmployeeController extends Controller
                 'picture' => $employee->picture,
             ]
         ]);
+    }
+
+    /**
+     * Store return to work notification
+     */
+    public function storeReturnWork(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|integer',
+            'full_name' => 'required|string|max:255',
+            'employee_id_number' => 'required|string|max:255',
+            'department' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+            'return_date' => 'required|date',
+            'absence_type' => 'required|string|max:255',
+            'reason' => 'required|string',
+            'medical_clearance' => 'nullable|string',
+            'return_date_reported' => 'required|date',
+        ]);
+
+        try {
+            // Create return to work record
+            $returnWork = \App\Models\ReturnWork::create([
+                'employee_id' => $request->employee_id,
+                'full_name' => $request->full_name,
+                'employee_id_number' => $request->employee_id_number,
+                'department' => $request->department,
+                'position' => $request->position,
+                'return_date' => $request->return_date,
+                'absence_type' => $request->absence_type,
+                'reason' => $request->reason,
+                'medical_clearance' => $request->medical_clearance,
+                'return_date_reported' => $request->return_date_reported,
+                'status' => 'pending',
+                'submitted_at' => now(),
+            ]);
+
+            // Get employee info for notification
+            $employee = Employee::find($request->employee_id);
+
+            // Broadcast return to work notification using Laravel Echo Reverb
+            try {
+                broadcast(new \App\Events\ReturnWorkRequested([
+                    'return_work_id' => $returnWork->id,
+                    'employee_name' => $employee->employee_name,
+                    'employee_id_number' => $employee->employeeid,
+                    'department' => $employee->department,
+                    'return_date' => $returnWork->return_date,
+                    'absence_type' => $returnWork->absence_type,
+                    'reason' => $returnWork->reason,
+                    'return_date_reported' => $returnWork->return_date_reported,
+                ]));
+            } catch (\Exception $broadcastError) {
+                Log::warning('Failed to broadcast return work notification: ' . $broadcastError->getMessage());
+                // Continue execution even if broadcast fails
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Return to work notification submitted successfully!',
+                'data' => $returnWork
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error storing return to work notification: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to submit return to work notification. Please try again.'
+            ], 500);
+        }
     }
 }

@@ -146,18 +146,24 @@ class AbsenceController extends Controller
             // Broadcast to managers/HR/supervisors
             event(new AbsenceRequested($absence));
 
-            // Create admin notification for new absence request
+            // Create notification for the supervisor of the employee's department
             $employee = Employee::find($validated['employee_id']);
-            Notification::create([
-                'type' => 'absence_request',
-                'data' => [
-                    'absence_id' => $absence->id,
-                    'employee_name' => $employee ? $employee->employee_name : $validated['full_name'],
-                    'absence_type' => $absence->absence_type,
-                    'from_date' => $absence->from_date,
-                    'to_date' => $absence->to_date,
-                ],
-            ]);
+            $supervisor = \App\Models\User::getSupervisorForDepartment($validated['department']);
+            
+            if ($supervisor) {
+                Notification::create([
+                    'type' => 'absence_request',
+                    'user_id' => $supervisor->id,
+                    'data' => [
+                        'absence_id' => $absence->id,
+                        'employee_name' => $employee ? $employee->employee_name : $validated['full_name'],
+                        'absence_type' => $absence->absence_type,
+                        'from_date' => $absence->from_date,
+                        'to_date' => $absence->to_date,
+                        'department' => $validated['department'],
+                    ],
+                ]);
+            }
 
             if ($request->routeIs('employee-view.absence.store')) {
                 return redirect()->route('employee-view.absence')->with('success', 'Absence request submitted successfully!');

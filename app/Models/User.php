@@ -113,4 +113,15 @@ class User extends Authenticatable
     {
         return $this->isSuperAdmin() || ($this->isSupervisor() && $this->supervisedDepartments()->where('can_evaluate', true)->exists());
     }
+
+    /**
+     * Get supervisor for a specific department
+     */
+    public static function getSupervisorForDepartment($department)
+    {
+        return self::whereHas('supervisedDepartments', function ($query) use ($department) {
+            $query->where('department', $department)
+                  ->where('can_evaluate', true);
+        })->first();
+    }
 }

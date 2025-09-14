@@ -45,7 +45,7 @@ class PermissionSeeder extends Seeder
       'Start Evaluation Rating',
       'Refresh Evaluation List',
       'View Evaluation By Department',
-      'View Supervisor Management'
+      'View Supervisor Management',
 
       // Leave permissions
       'View Leave',

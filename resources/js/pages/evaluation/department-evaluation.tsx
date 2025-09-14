@@ -23,7 +23,7 @@ import { WorkFunctionsSection } from './components/work-functions-section';
 import { getAllWorkFunctions, getCriteriaLabel, getDefaultDepartmentSettings, getDepartmentSettings } from './types/evaluation-settings';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
+    { 
         title: 'Evaluation Management',
         href: '/evaluation',
     },

@@ -81,8 +81,8 @@ const CustomLegend = ({ payload }: any) => {
         <div className="flex items-center justify-center gap-4 pt-3">
             {payload.map((entry: any) => (
                 <div key={entry.value} className="flex items-center gap-1.5">
-                    <div className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: colors[entry.dataKey as keyof typeof colors] }} />
-                    {labels[entry.dataKey as keyof typeof labels]}
+                    <div className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: colors[entry.value as keyof typeof colors] }} />
+                    {labels[entry.value as keyof typeof labels]}
                 </div>
             ))}
         </div>
@@ -124,9 +124,14 @@ export function ChartAreaInteractive() {
                     if (!map.has(dateKey)) map.set(dateKey, { present: 0, late: 0, absent: 0 });
                     const entry = map.get(dateKey)!;
                     const status = (it.attendanceStatus || '').toLowerCase();
-                    if (status === 'present') entry.present += 1;
-                    else if (status === 'late') entry.late += 1;
-                    else if (status === 'absent') entry.absent += 1;
+                    // Handle different status formats from database
+                    if (status === 'present' || status === 'attendance complete' || status === 'complete') {
+                        entry.present += 1;
+                    } else if (status === 'late') {
+                        entry.late += 1;
+                    } else if (status === 'absent') {
+                        entry.absent += 1;
+                    }
                 }
 
                 console.log('Grouped data:', Array.from(map.entries())); // Debug log
@@ -146,18 +151,18 @@ export function ChartAreaInteractive() {
 
                 console.log('Final chart data:', series); // Debug log
 
-                // If we have data, use it; otherwise use fallback
+                // If we have data, use it; otherwise set empty to show "No data"
                 if (series.length > 0 && series.some((item) => item.present > 0 || item.late > 0 || item.absent > 0)) {
                     setData(series);
                 } else {
-                    console.log('No real data found, using fallback data');
-                    setData(fallbackData);
+                    console.log('No attendance data found, showing empty state');
+                    setData([]);
                 }
             } catch (err) {
                 console.error('Error loading attendance data:', err);
                 setError(err instanceof Error ? err.message : 'Failed to load data');
-                // Use fallback data on error
-                setData(fallbackData);
+                // Do not use fallback data; let UI show empty/error state
+                setData([]);
             } finally {
                 setLoading(false);
             }

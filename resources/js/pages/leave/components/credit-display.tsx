@@ -39,16 +39,23 @@ export function CreditDisplay({ employee, showDetails = true, creditType = 'leav
         <Card className={`${status.bg} ${status.border} border-2 transition-all hover:shadow-md`}>
             <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                         <CreditCard className={`h-5 w-5 ${status.color}`} />
                         <CardTitle className={`text-lg ${status.color}`}>{creditTypeLabel}</CardTitle>
-                    </div>
+                    </div> */}
+                    <span className="text-lg font-medium">{employee.employee_name}</span>
+                    {/* <span className="text-sm text-muted-foreground">({employee.employeeid})</span> */}
+                    {/* {employee.employee_name} ({employee.employeeid}) */}
                     <Badge variant="outline" className={status.color}>
                         {remaining}/{total}
                     </Badge>
                 </div>
                 <CardDescription className="text-sm">
-                    {employee.employee_name} ({employee.employeeid})
+                    {/* {employee.employee_name} ({employee.employeeid}) */}
+                    <div className="flex items-center gap-2">
+                        <CreditCard className={`h-5 w-5 ${status.color}`} />
+                        <CardTitle className={`text-md ${status.color}`}>{creditTypeLabel}</CardTitle>
+                    </div>
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

@@ -75,7 +75,7 @@ export const evaluationSettings: Record<string, DepartmentEvaluationSettings> = 
         },
         category: 'functions',
     },
-    'Packing Plant': {
+    'Packing Plant': { 
         title: 'Work Operations',
         subtitle: 'Packing Plant Department',
         description: 'Evaluate employee performance in packaging and production operations',

@@ -1,6 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { CalendarDays, CalendarSync, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface Activity {
     id: string;
@@ -12,11 +14,69 @@ interface Activity {
 
 interface RecentActivitiesProps {
     activities: Activity[];
+    employeeId?: number;
 }
 
-export function RecentActivities({ activities }: RecentActivitiesProps) {
-    const getStatusIcon = (status: string) => {
+export function RecentActivities({ activities, employeeId }: RecentActivitiesProps) {
+    const [localActivities, setLocalActivities] = useState<Activity[]>(activities);
+
+    // Update local state when server data changes
+    useEffect(() => {
+        setLocalActivities(activities);
+    }, [activities]);
+
+    // Set up real-time updates using Echo
+    useEffect(() => {
+        const echo = (window as any).Echo;
+        if (!echo || !employeeId) return;
+
+        const channelName = `employee.${employeeId}`;
+        const employeeChannel = echo.channel(channelName);
+
+        // Listen for return work status updates
+        employeeChannel.listen('.RequestStatusUpdated', (e: any) => {
+            console.log('Received RequestStatusUpdated event (recent activities):', e);
+
+            if (e.type === 'return_work_status') {
+                setLocalActivities((prev) =>
+                    prev.map((activity) =>
+                        activity.id === `return_work_${e.request_id}`
+                            ? {
+                                  ...activity,
+                                  status: e.status.toLowerCase(),
+                                  title: `Return to Work request ${e.status}`,
+                              }
+                            : activity,
+                    ),
+                );
+
+                const statusText = e.status === 'approved' ? 'approved' : e.status === 'rejected' ? 'rejected' : String(e.status);
+                toast.success(`Your return to work request has been ${statusText}!`);
+            }
+        });
+
+        return () => {
+            employeeChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, [employeeId]);
+    const getStatusIcon = (status: string, type?: string) => {
         const normalizedStatus = status.toLowerCase();
+
+        // Use specific icon for return work activities
+        if (type === 'return_work') {
+            switch (normalizedStatus) {
+                case 'approved':
+                    return <CalendarSync className="h-4 w-4 text-green-600" />;
+                case 'pending':
+                    return <CalendarSync className="h-4 w-4 text-yellow-600" />;
+                case 'rejected':
+                    return <CalendarSync className="h-4 w-4 text-red-600" />;
+                default:
+                    return <CalendarSync className="h-4 w-4 text-gray-600" />;
+            }
+        }
+
+        // Default icons for other activity types
         switch (normalizedStatus) {
             case 'approved':
                 return <CheckCircle className="h-4 w-4 text-green-600" />;
@@ -70,16 +130,16 @@ export function RecentActivities({ activities }: RecentActivitiesProps) {
                 <CardDescription>Your latest requests and updates</CardDescription>
             </CardHeader>
             <CardContent>
-                {activities.length === 0 ? (
+                {localActivities.length === 0 ? (
                     <div className="py-8 text-center text-muted-foreground">
                         <CalendarDays className="mx-auto mb-4 h-12 w-12 opacity-50" />
                         <p>No recent activities to display</p>
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        {activities.map((activity) => (
+                        {localActivities.map((activity) => (
                             <div key={activity.id} className="flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-muted/50">
-                                <div className="flex-shrink-0">{getStatusIcon(activity.status)}</div>
+                                <div className="flex-shrink-0">{getStatusIcon(activity.status, activity.type)}</div>
                                 <div className="min-w-0 flex-1">
                                     <p className="truncate text-sm font-medium">{activity.title}</p>
                                     <p className="text-xs text-muted-foreground">{activity.timeAgo}</p>

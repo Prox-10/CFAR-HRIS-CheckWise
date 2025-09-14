@@ -162,12 +162,23 @@ class DashboardController extends Controller
         ];
         // --- End new code for 6-month period chart ---
 
-        // Fetch admin notifications (latest 10) - only for super admin/manager
+        // Fetch user-specific notifications (latest 10)
         $notifications = collect();
         $unreadCount = 0;
-        if (!$isSupervisor) {
+        
+        if ($isSuperAdmin) {
+            // Super admin sees all notifications
             $notifications = Notification::orderBy('created_at', 'desc')->take(10)->get();
             $unreadCount = Notification::whereNull('read_at')->count();
+        } else {
+            // Supervisors and other users see only their own notifications
+            $notifications = Notification::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get();
+            $unreadCount = Notification::where('user_id', $user->id)
+                ->whereNull('read_at')
+                ->count();
         }
 
         // Get user role information

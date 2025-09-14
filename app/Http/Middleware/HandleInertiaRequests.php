@@ -42,10 +42,31 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        // Fetch notifications for admin bell (latest 10)
-        $notifications = Notification::orderBy('created_at', 'desc')->take(10)->get();
-        $unreadCount = Notification::whereNull('read_at')->count();
         $user = $request->user();
+        
+        // Fetch user-specific notifications (latest 10)
+        $notifications = collect();
+        $unreadCount = 0;
+        
+        if ($user) {
+            $isSuperAdmin = $user->hasRole('Super Admin');
+            
+            if ($isSuperAdmin) {
+                // Super admin sees all notifications
+                $notifications = Notification::orderBy('created_at', 'desc')->take(10)->get();
+                $unreadCount = Notification::whereNull('read_at')->count();
+            } else {
+                // Other users see only their own notifications
+                $notifications = Notification::where('user_id', $user->id)
+                    ->orderBy('created_at', 'desc')
+                    ->take(10)
+                    ->get();
+                $unreadCount = Notification::where('user_id', $user->id)
+                    ->whereNull('read_at')
+                    ->count();
+            }
+        }
+        
         $permissions = $user ? $user->getAllPermissions()->pluck('name')->toArray() : [];
 
         // Transform user data to include profile_image and roles
@@ -63,6 +84,8 @@ class HandleInertiaRequests extends Middleware
                 'email_verified_at' => $user->email_verified_at,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
+                'isSupervisor' => $user->isSupervisor(),
+                'isSuperAdmin' => $user->isSuperAdmin(),
             ];
         }
 

@@ -18,7 +18,6 @@ import SidebarHoverZone from '@/components/sidebar-hover-zone';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import Echo from 'laravel-echo';
 import { Calendar, LayoutGrid } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { MonthlyRecognition } from './components/monthly-recognition';
@@ -96,7 +95,8 @@ export default function Index({
     monthlyRecognitionEmployees,
     notifications,
     unreadNotificationCount,
-}: Props & { months?: number }) {
+    auth,
+}: Props & { months?: number; auth?: any }) {
     const [loading, setLoading] = useState(false);
     const [months, setMonths] = useState(monthsProp ?? 6);
     const [unreadCount, setUnreadCount] = useState<number>(unreadNotificationCount);
@@ -110,27 +110,31 @@ export default function Index({
     }, [monthsProp]);
 
     useEffect(() => {
-        // Listen on the shared admin notifications channel for new requests
-        const echo: Echo = (window as any).Echo;
+        // Listen on user-specific notification channels
+        const echo: any = (window as any).Echo;
         if (!echo) {
             console.error('Echo not found in window object (dashboard)');
             return;
         }
 
-        console.log('Setting up Echo listeners for notifications channel (dashboard)');
+        console.log('Setting up Echo listeners for user-specific notifications (dashboard)');
 
-        const adminChannel = echo.channel('notifications');
+        // Get current user info
+        const currentUser = auth?.user;
+
+        // Use supervisor-specific channel or general notifications channel based on user role
+        const notificationChannel = isSupervisor && currentUser?.id ? echo.private(`supervisor.${currentUser.id}`) : echo.channel('notifications');
 
         // Test connection
-        adminChannel.subscribed(() => {
-            console.log('Successfully subscribed to notifications channel (dashboard)');
+        notificationChannel.subscribed(() => {
+            console.log('Successfully subscribed to notification channel (dashboard)');
         });
 
-        adminChannel.error((error: any) => {
-            console.error('Error with notifications channel (dashboard):', error);
+        notificationChannel.error((error: any) => {
+            console.error('Error with notification channel (dashboard):', error);
         });
 
-        adminChannel
+        notificationChannel
             .listen('.LeaveRequested', (e: any) => {
                 console.log('Received LeaveRequested event (dashboard):', e);
                 // Create a new notification object
@@ -172,14 +176,38 @@ export default function Index({
                 // Add to notification list and increment count
                 setNotificationList((prev) => [newNotification, ...prev]);
                 setUnreadCount((prev) => prev + 1);
+            })
+            .listen('.ReturnWorkRequested', (e: any) => {
+                console.log('Received ReturnWorkRequested event (dashboard):', e);
+                // Create a new notification object
+                const newNotification = {
+                    id: Date.now(), // Temporary ID
+                    type: 'return_work_request',
+                    data: {
+                        return_work_id: e.return_work_id,
+                        employee_name: e.employee_name || 'Employee',
+                        employee_id_number: e.employee_id_number,
+                        department: e.department,
+                        return_date: e.return_date,
+                        absence_type: e.absence_type,
+                        reason: e.reason,
+                    },
+                    read_at: null,
+                    created_at: new Date().toISOString(),
+                };
+
+                // Add to notification list and increment count
+                setNotificationList((prev) => [newNotification, ...prev]);
+                setUnreadCount((prev) => prev + 1);
             });
 
         return () => {
             console.log('Cleaning up Echo listeners (dashboard)');
-            adminChannel.stopListening('.LeaveRequested');
-            adminChannel.stopListening('.AbsenceRequested');
+            notificationChannel.stopListening('.LeaveRequested');
+            notificationChannel.stopListening('.AbsenceRequested');
+            notificationChannel.stopListening('.ReturnWorkRequested');
         };
-    }, []);
+    }, [auth?.user?.id, isSupervisor]);
 
     const handleMonthsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = parseInt(e.target.value, 10);

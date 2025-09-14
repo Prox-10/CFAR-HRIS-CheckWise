@@ -24,7 +24,7 @@ Route::middleware(['web', 'employee.auth'])->group(function () {
     Route::get('employee-view/absence', fn() => Inertia::render('employee-view/request-form/absence/index'))
         ->name('employee-view.absence');
     // Updated to render the new request-form Return to Work page component
-    Route::get('employee-view/return-work', fn() => Inertia::render('employee-view/request-form/return-request/absence'))
+    Route::get('employee-view/return-work', [AuthEmployeeController::class, 'returnWork'])
         ->name('employee-view.return-work');
     Route::get('employee-view/records', [AuthEmployeeController::class, 'records'])->name('employee-view.records');
     Route::get('employee-view/reports', [AuthEmployeeController::class, 'reports'])->name('employee-view.reports');
@@ -56,4 +56,10 @@ Route::middleware(['web', 'employee.auth'])->group(function () {
         ->name('employee-view.absence-request-form');
     // New: Employee Absence submit route
     Route::post('employee-view/absence', [AbsenceController::class, 'store'])->name('employee-view.absence.store');
+
+    // New: Employee Return to Work Request Form route
+    Route::get('employee-view/return-work/request', fn() => Inertia::render('employee-view/request-form/return-work/return-work-request-form'))
+        ->name('employee-view.return-work-request-form');
+    // New: Employee Return to Work submit route
+    Route::post('employee-view/return-work', [AuthEmployeeController::class, 'storeReturnWork'])->name('employee-view.return-work.store');
 });

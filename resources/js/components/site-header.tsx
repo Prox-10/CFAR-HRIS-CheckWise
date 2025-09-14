@@ -5,7 +5,6 @@ import { ProfileDropdown } from './customize/profile-dropdown';
 
 // Add BreadcrumbItem type import if not present
 import { type BreadcrumbItem } from '@/types';
-import Echo from 'laravel-echo';
 import { useEffect, useState } from 'react';
 import { SidebarTrigger } from './ui/sidebar';
 
@@ -15,32 +14,38 @@ interface Props {
 }
 
 export function SiteHeader({ title, breadcrumbs }: Props) {
-    const { notifications = [], unreadNotificationCount = 0, employee } = usePage().props as any;
+    const { notifications = [], unreadNotificationCount = 0, employee, auth } = usePage().props as any;
     const [unreadCount, setUnreadCount] = useState<number>(unreadNotificationCount);
     const [notificationList, setNotificationList] = useState<any[]>(notifications);
 
+    // Get current user info
+    const currentUser = auth?.user;
+    const isSupervisor = currentUser?.isSupervisor;
+    const isSuperAdmin = currentUser?.isSuperAdmin;
+
     useEffect(() => {
-        // Listen on the shared admin notifications channel for new requests
-        const echo: Echo = (window as any).Echo;
+        // Listen on user-specific notification channels
+        const echo: any = (window as any).Echo;
         if (!echo) {
             console.error('Echo not found in window object');
             return;
         }
 
-        console.log('Setting up Echo listeners for notifications channel');
+        console.log('Setting up Echo listeners for user-specific notifications');
 
-        const adminChannel = echo.channel('notifications');
+        // Use supervisor-specific channel or general notifications channel based on user role
+        const notificationChannel = isSupervisor && currentUser?.id ? echo.private(`supervisor.${currentUser.id}`) : echo.channel('notifications');
 
         // Test connection
-        adminChannel.subscribed(() => {
-            console.log('Successfully subscribed to notifications channel');
+        notificationChannel.subscribed(() => {
+            console.log('Successfully subscribed to notification channel');
         });
 
-        adminChannel.error((error: any) => {
-            console.error('Error with notifications channel:', error);
+        notificationChannel.error((error: any) => {
+            console.error('Error with notification channel:', error);
         });
 
-        adminChannel
+        notificationChannel
             .listen('.LeaveRequested', (e: any) => {
                 console.log('Received LeaveRequested event:', e);
                 // Create a new notification object
@@ -82,14 +87,38 @@ export function SiteHeader({ title, breadcrumbs }: Props) {
                 // Add to notification list and increment count
                 setNotificationList((prev) => [newNotification, ...prev]);
                 setUnreadCount((prev) => prev + 1);
+            })
+            .listen('.ReturnWorkRequested', (e: any) => {
+                console.log('Received ReturnWorkRequested event:', e);
+                // Create a new notification object
+                const newNotification = {
+                    id: Date.now(), // Temporary ID
+                    type: 'return_work_request',
+                    data: {
+                        return_work_id: e.return_work_id,
+                        employee_name: e.employee_name || 'Employee',
+                        employee_id_number: e.employee_id_number,
+                        department: e.department,
+                        return_date: e.return_date,
+                        absence_type: e.absence_type,
+                        reason: e.reason,
+                    },
+                    read_at: null,
+                    created_at: new Date().toISOString(),
+                };
+
+                // Add to notification list and increment count
+                setNotificationList((prev) => [newNotification, ...prev]);
+                setUnreadCount((prev) => prev + 1);
             });
 
         return () => {
             console.log('Cleaning up Echo listeners');
-            adminChannel.stopListening('.LeaveRequested');
-            adminChannel.stopListening('.AbsenceRequested');
+            notificationChannel.stopListening('.LeaveRequested');
+            notificationChannel.stopListening('.AbsenceRequested');
+            notificationChannel.stopListening('.ReturnWorkRequested');
         };
-    }, []);
+    }, [currentUser?.id, isSupervisor]);
 
     return (
         <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear">

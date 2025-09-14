@@ -23,8 +23,24 @@ class LeaveController extends Controller
      */
     public function index(): Response
     {
-        // Fetch the employee data
-        $leave = Leave::with('employee')->orderBy('created_at', 'desc')->get();
+        $user = Auth::user();
+        $isSupervisor = $user->isSupervisor();
+        $isSuperAdmin = $user->isSuperAdmin();
+
+        // Get user's supervised departments if supervisor
+        $supervisedDepartments = $isSupervisor ? $user->getEvaluableDepartments() : [];
+
+        // Base query for leaves
+        $leaveQuery = Leave::with('employee');
+
+        // Filter leaves based on user role
+        if ($isSupervisor && !empty($supervisedDepartments)) {
+            $leaveQuery->whereHas('employee', function ($query) use ($supervisedDepartments) {
+                $query->whereIn('department', $supervisedDepartments);
+            });
+        }
+
+        $leave = $leaveQuery->orderBy('created_at', 'desc')->get();
 
         $leaveList = $leave->map(function ($leave) {
             $leaveCredits = LeaveCredit::getOrCreateForEmployee($leave->employee_id);
@@ -154,18 +170,24 @@ class LeaveController extends Controller
 
             $leave->save();
 
-            // Create admin notification for new leave request
+            // Create notification for the supervisor of the employee's department
             $employee = Employee::find($request->employee_id);
-            Notification::create([
-                'type' => 'leave_request',
-                'data' => [
-                    'leave_id' => $leave->id,
-                    'employee_name' => $employee ? $employee->employee_name : null,
-                    'leave_type' => $leave->leave_type,
-                    'leave_start_date' => $leave->leave_start_date,
-                    'leave_end_date' => $leave->leave_end_date,
-                ],
-            ]);
+            $supervisor = \App\Models\User::getSupervisorForDepartment($employee->department);
+            
+            if ($supervisor) {
+                Notification::create([
+                    'type' => 'leave_request',
+                    'user_id' => $supervisor->id,
+                    'data' => [
+                        'leave_id' => $leave->id,
+                        'employee_name' => $employee ? $employee->employee_name : null,
+                        'leave_type' => $leave->leave_type,
+                        'leave_start_date' => $leave->leave_start_date,
+                        'leave_end_date' => $leave->leave_end_date,
+                        'department' => $employee->department,
+                    ],
+                ]);
+            }
 
             // Broadcast to managers/HR/supervisors
             event(new LeaveRequested($leave));

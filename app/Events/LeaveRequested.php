@@ -27,11 +27,18 @@ class LeaveRequested implements ShouldBroadcastNow
       'leave_type' => $leave->leave_type,
       'leave_start_date' => $leave->leave_start_date,
       'leave_end_date' => $leave->leave_end_date,
+      'department' => $leave->employee ? $leave->employee->department : null,
     ];
   }
 
   public function broadcastOn(): array
   {
+    $supervisor = \App\Models\User::getSupervisorForDepartment($this->leave->employee->department);
+    
+    if ($supervisor) {
+      return [new PrivateChannel('supervisor.' . $supervisor->id)];
+    }
+    
     return [new Channel('notifications')];
   }
 

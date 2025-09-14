@@ -377,7 +377,7 @@ export default function Dashboard({ employee, dashboardData }: DashboardProps) {
                     <TabsContent value="overview" className="space-y-4">
                         <div className="grid gap-6 md:grid-cols-2">
                             <PerformanceOverview dashboardData={dashboardData} />
-                            <RecentActivities activities={activities} />
+                            <RecentActivities activities={activities} employeeId={employee?.id} />
                         </div>
                     </TabsContent>
 

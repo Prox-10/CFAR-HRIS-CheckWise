@@ -19,19 +19,21 @@ interface AbsenceStatusUpdate {
   meta: any;
 }
 
-export const useAbsenceRealtime = (onAbsenceUpdate?: (absence: AbsenceUpdate) => void, onStatusUpdate?: (update: AbsenceStatusUpdate) => void) => {
+export const useAbsenceRealtime = (onAbsenceUpdate?: (absence: AbsenceUpdate) => void, onStatusUpdate?: (update: AbsenceStatusUpdate) => void, supervisorId?: number) => {
   useEffect(() => {
     if (!window.Echo) {
       console.warn('Echo not available');
       return;
     }
 
-    // Listen for new absence requests (admin only)
-    const absenceChannel = window.Echo.channel('admin.absence');
+    // Listen for new absence requests (supervisor-specific or admin)
+    const absenceChannel = supervisorId 
+      ? window.Echo.private(`supervisor.${supervisorId}`)
+      : window.Echo.channel('admin.absence');
     
     absenceChannel.listen('AbsenceRequested', (data: AbsenceUpdate) => {
       console.log('New absence request received:', data);
-      toast.success(New absence request from );
+      toast.success(`New absence request from ${data.employee_name}`);
       onAbsenceUpdate?.(data);
     });
 
@@ -50,8 +52,12 @@ export const useAbsenceRealtime = (onAbsenceUpdate?: (absence: AbsenceUpdate) =>
     return () => {
       absenceChannel.stopListening('AbsenceRequested');
       notificationsChannel.stopListening('RequestStatusUpdated');
-      window.Echo.leaveChannel('admin.absence');
+      if (supervisorId) {
+        window.Echo.leaveChannel(`supervisor.${supervisorId}`);
+      } else {
+        window.Echo.leaveChannel('admin.absence');
+      }
       window.Echo.leaveChannel('admin.notifications');
     };
-  }, [onAbsenceUpdate, onStatusUpdate]);
+  }, [onAbsenceUpdate, onStatusUpdate, supervisorId]);
 };

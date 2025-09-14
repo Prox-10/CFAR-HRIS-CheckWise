@@ -19,19 +19,21 @@ interface LeaveStatusUpdate {
   meta: any;
 }
 
-export const useLeaveRealtime = (onLeaveUpdate?: (leave: LeaveUpdate) => void, onStatusUpdate?: (update: LeaveStatusUpdate) => void) => {
+export const useLeaveRealtime = (onLeaveUpdate?: (leave: LeaveUpdate) => void, onStatusUpdate?: (update: LeaveStatusUpdate) => void, supervisorId?: number) => {
   useEffect(() => {
     if (!window.Echo) {
       console.warn('Echo not available');
       return;
     }
 
-    // Listen for new leave requests (admin only)
-    const leaveChannel = window.Echo.channel('admin.leave');
+    // Listen for new leave requests (supervisor-specific or admin)
+    const leaveChannel = supervisorId 
+      ? window.Echo.private(`supervisor.${supervisorId}`)
+      : window.Echo.channel('admin.leave');
     
     leaveChannel.listen('LeaveRequested', (data: LeaveUpdate) => {
       console.log('New leave request received:', data);
-      toast.success(New leave request from );
+      toast.success(`New leave request from ${data.employee_name}`);
       onLeaveUpdate?.(data);
     });
 
@@ -50,8 +52,12 @@ export const useLeaveRealtime = (onLeaveUpdate?: (leave: LeaveUpdate) => void, o
     return () => {
       leaveChannel.stopListening('LeaveRequested');
       notificationsChannel.stopListening('RequestStatusUpdated');
-      window.Echo.leaveChannel('admin.leave');
+      if (supervisorId) {
+        window.Echo.leaveChannel(`supervisor.${supervisorId}`);
+      } else {
+        window.Echo.leaveChannel('admin.leave');
+      }
       window.Echo.leaveChannel('admin.notifications');
     };
-  }, [onLeaveUpdate, onStatusUpdate]);
+  }, [onLeaveUpdate, onStatusUpdate, supervisorId]);
 };

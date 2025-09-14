@@ -88,13 +88,13 @@ export function SectionCards({ employee, totalDepartment, totalEmployee, isSuper
                         </div>
                     </div>
                 </CardHeader>
-                <CardFooter className="flex-col items-start gap-1 text-sm">
+                {/* <CardFooter className="flex-col items-start gap-1 text-sm">
                     <div className="line-clamp-1 flex gap-2 font-medium text-green-600">
                         <Users className="size-4" />
                         {isSupervisor ? 'Your supervised employees' : 'Total unique employees'}
                     </div>
                     <div className="text-green-500">{isSupervisor ? 'Your workforce' : 'Active workforce'}</div>
-                </CardFooter>
+                </CardFooter> */}
             </Card>
 
             {/* Department Card */}
@@ -113,13 +113,13 @@ export function SectionCards({ employee, totalDepartment, totalEmployee, isSuper
                         {departmentCount.toLocaleString()}
                     </CardTitle>
                 </CardHeader>
-                <CardFooter className="flex-col items-start gap-1 text-sm">
+                {/* <CardFooter className="flex-col items-start gap-1 text-sm">
                     <div className="line-clamp-1 flex gap-2 font-medium text-emerald-600">
                         <Building2 className="size-4" />
                         {isSupervisor ? 'Your supervised departments' : 'Total unique departments'}
                     </div>
                     <div className="text-emerald-500">{isSupervisor ? 'Your areas of responsibility' : 'Organizational structure'}</div>
-                </CardFooter>
+                </CardFooter> */}
             </Card>
 
             {/* Active Accounts Card */}
@@ -136,13 +136,13 @@ export function SectionCards({ employee, totalDepartment, totalEmployee, isSuper
                     <CardDescription className="mt-3 font-semibold text-amber-700">{labels.activeLabel}</CardDescription>
                     <CardTitle className="text-3xl font-bold text-amber-800 tabular-nums @[250px]/card:text-4xl">190</CardTitle>
                 </CardHeader>
-                <CardFooter className="flex-col items-start gap-1 text-sm">
+                {/* <CardFooter className="flex-col items-start gap-1 text-sm">
                     <div className="line-clamp-1 flex gap-2 font-medium text-amber-600">
                         <UserCheck className="size-4" />
                         {isSupervisor ? 'Your active team members' : 'Strong user retention'}
                     </div>
                     <div className="text-amber-500">{isSupervisor ? 'Your engaged workforce' : 'Engagement exceed targets'}</div>
-                </CardFooter>
+                </CardFooter> */}
             </Card>
 
             {/* Growth Rate Card */}
@@ -159,13 +159,13 @@ export function SectionCards({ employee, totalDepartment, totalEmployee, isSuper
                     <CardDescription className="mt-3 font-semibold text-blue-700">{labels.growthLabel}</CardDescription>
                     <CardTitle className="text-3xl font-bold text-blue-800 tabular-nums @[250px]/card:text-4xl">4.5%</CardTitle>
                 </CardHeader>
-                <CardFooter className="flex-col items-start gap-1 text-sm">
+                {/* <CardFooter className="flex-col items-start gap-1 text-sm">
                     <div className="line-clamp-1 flex gap-2 font-medium text-blue-600">
                         <TrendingUp className="size-4" />
                         {isSupervisor ? 'Your team performance' : 'Steady performance'}
                     </div>
                     <div className="text-blue-500">{isSupervisor ? 'Your growth metrics' : 'Meets growth projections'}</div>
-                </CardFooter>
+                </CardFooter> */}
             </Card>
         </div>
     );
