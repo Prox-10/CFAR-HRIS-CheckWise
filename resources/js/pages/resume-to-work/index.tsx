@@ -76,62 +76,83 @@ export default function ResumeToWorkIndex({ resumeRequests = [], employees = [],
         const echo = (window as any).Echo;
         if (!echo) return;
 
-        const notificationChannel = echo.private('notifications');
-
-        // Listen for return work processed events
-        notificationChannel.listen('.ReturnWorkProcessed', (e: any) => {
+        // Handlers to avoid duplication across channels
+        const handleProcessed = (e: any) => {
             console.log('Received ReturnWorkProcessed event:', e);
+            if (e?.type !== 'return_work_processed') return;
 
-            if (e.type === 'return_work_processed') {
-                setRequests((prev) =>
-                    prev.map((request) =>
-                        request.id === e.return_work_id
-                            ? {
-                                  ...request,
-                                  status: 'processed',
-                                  processed_by: e.processed_by,
-                                  processed_at: e.processed_at,
-                              }
-                            : request,
-                    ),
-                );
+            setRequests((prev) =>
+                prev.map((request) =>
+                    request.id === e.return_work_id
+                        ? {
+                              ...request,
+                              status: 'processed',
+                              processed_by: e.processed_by,
+                              processed_at: e.processed_at,
+                          }
+                        : request,
+                ),
+            );
+            toast.success(`Return to work request for ${e.employee_name} has been processed!`);
+        };
 
-                toast.success(`Return to work request for ${e.employee_name} has been processed!`);
-            }
-        });
-
-        // Listen for new return work requests
-        notificationChannel.listen('.ReturnWorkRequested', (e: any) => {
+        const handleRequested = (e: any) => {
             console.log('Received ReturnWorkRequested event:', e);
+            if (e?.type !== 'return_work_request') return;
 
-            if (e.type === 'return_work_request') {
-                const newRequest = {
-                    id: `return_${e.return_work_id}`,
-                    employee_name: e.employee_name,
-                    employee_id: e.employee_id_number,
-                    department: e.department,
-                    position: '', // Will be filled from employee data
-                    return_date: e.return_date,
-                    previous_absence_reference: e.absence_type,
-                    comments: e.reason,
-                    status: 'pending' as const,
-                    processed_by: null,
-                    processed_at: null,
-                    supervisor_notified: false,
-                    supervisor_notified_at: null,
-                    created_at: new Date().toISOString(),
-                    source: 'employee',
-                };
+            const newRequest = {
+                id: `return_${e.return_work_id}`,
+                employee_name: e.employee_name,
+                employee_id: e.employee_id_number,
+                department: e.department,
+                position: '', // Will be filled from employee data
+                return_date: e.return_date,
+                previous_absence_reference: e.absence_type,
+                comments: e.reason,
+                status: 'pending' as const,
+                processed_by: null,
+                processed_at: null,
+                supervisor_notified: false,
+                supervisor_notified_at: null,
+                created_at: new Date().toISOString(),
+                source: 'employee',
+            } as any;
 
-                setRequests((prev) => [newRequest, ...prev]);
-                toast.info(`New return to work request from ${e.employee_name}`);
-            }
+            setRequests((prev) => [newRequest, ...prev]);
+            toast.info(`New return to work request from ${e.employee_name}`);
+        };
+
+        // Private channel for processed events (if available)
+        const privateNotifications = echo.private('notifications');
+        privateNotifications.listen('.ReturnWorkProcessed', handleProcessed);
+        privateNotifications.listen('.ReturnWorkRequested', handleRequested);
+        // Also listen for status updates to reflect immediate UI changes if broadcasted
+        privateNotifications.listen('.RequestStatusUpdated', (e: any) => {
+            if (e?.type !== 'return_work_status') return;
+            setRequests((prev) =>
+                prev.map((request) =>
+                    request.id === `return_${e.request_id}`
+                        ? {
+                              ...request,
+                              status: 'processed',
+                              processed_by: e.approved_by || e.processed_by || request.processed_by,
+                              processed_at: e.approved_at || e.processed_at || request.processed_at,
+                          }
+                        : request,
+                ),
+            );
         });
+
+        // Public channel for newly submitted requests
+        const publicNotifications = echo.channel('notifications');
+        publicNotifications.listen('.ReturnWorkRequested', handleRequested);
 
         return () => {
             console.log('Cleaning up Echo listeners (resume-to-work)');
-            notificationChannel.stopListening('.ReturnWorkProcessed');
-            notificationChannel.stopListening('.ReturnWorkRequested');
+            privateNotifications.stopListening('.ReturnWorkProcessed');
+            privateNotifications.stopListening('.ReturnWorkRequested');
+            privateNotifications.stopListening('.RequestStatusUpdated');
+            publicNotifications.stopListening('.ReturnWorkRequested');
         };
     }, []);
 

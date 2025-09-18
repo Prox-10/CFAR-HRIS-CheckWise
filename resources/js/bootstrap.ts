@@ -11,6 +11,14 @@ try {
         forceTLS: false,
         enabledTransports: ['ws', 'wss'],
         disableStats: true,
+        authEndpoint: '/broadcasting/auth',
+        withCredentials: true,
+        auth: {
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        },
     });
 
     console.log('Echo initialized successfully with Reverb');

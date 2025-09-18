@@ -57,7 +57,7 @@ class ResumeToWorkController extends Controller
       'employee_id' => $resume->employee ? $resume->employee->employeeid : null,
       'department' => $resume->employee ? $resume->employee->department : null,
       'position' => $resume->employee ? $resume->employee->position : null,
-      'return_date' => $resume->return_date->format('Y-m-d'),
+      'return_date' => $resume->return_date ? \Illuminate\Support\Carbon::parse($resume->return_date)->format('Y-m-d') : null,
       'previous_absence_reference' => $resume->previous_absence_reference,
       'comments' => $resume->comments,
       'status' => $resume->status,
@@ -76,10 +76,10 @@ class ResumeToWorkController extends Controller
       'employee_id' => $returnWork->employee ? $returnWork->employee->employeeid : null,
       'department' => $returnWork->employee ? $returnWork->employee->department : null,
       'position' => $returnWork->employee ? $returnWork->employee->position : null,
-      'return_date' => $returnWork->return_date->format('Y-m-d'),
+      'return_date' => $returnWork->return_date ? \Illuminate\Support\Carbon::parse($returnWork->return_date)->format('Y-m-d') : null,
       'previous_absence_reference' => $returnWork->absence_type, // Map absence_type to previous_absence_reference
       'comments' => $returnWork->reason, // Map reason to comments
-      'status' => $returnWork->status === 'approved' ? 'processed' : 'pending',
+      'status' => in_array($returnWork->status, ['approved', 'processed']) ? 'processed' : 'pending',
       'processed_by' => $returnWork->approver ? $returnWork->approver->name : null,
       'processed_at' => $returnWork->approved_at ? $returnWork->approved_at->format('Y-m-d H:i') : null,
       'supervisor_notified' => false, // Default for return work requests
@@ -182,7 +182,7 @@ class ResumeToWorkController extends Controller
         $resumeToWork = ResumeToWork::findOrFail($id);
         $resumeToWork->markAsProcessed($user->id);
         $employee = $resumeToWork->employee;
-        $returnDate = $resumeToWork->return_date->format('Y-m-d');
+        $returnDate = $resumeToWork->return_date ? \Illuminate\Support\Carbon::parse($resumeToWork->return_date)->format('Y-m-d') : null;
       } elseif (str_starts_with($resumeToWorkId, 'return_')) {
         $id = str_replace('return_', '', $resumeToWorkId);
         $returnWork = ReturnWork::findOrFail($id);
@@ -192,7 +192,7 @@ class ResumeToWorkController extends Controller
           'approved_at' => now(),
         ]);
         $employee = $returnWork->employee;
-        $returnDate = $returnWork->return_date->format('Y-m-d');
+        $returnDate = $returnWork->return_date ? \Illuminate\Support\Carbon::parse($returnWork->return_date)->format('Y-m-d') : null;
       } else {
         return redirect()->back()->with('error', 'Invalid request ID.');
       }

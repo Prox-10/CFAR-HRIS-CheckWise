@@ -63,7 +63,7 @@ export default function ReturnWorkRequestForm() {
     const clearForm = () => {
         setReturnDate(undefined);
         setAbsenceType(undefined);
-        setReason('');
+        setReason(''); 
         setMedicalClearance('');
     };
 

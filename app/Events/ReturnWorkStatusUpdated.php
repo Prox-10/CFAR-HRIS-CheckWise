@@ -37,6 +37,7 @@ class ReturnWorkStatusUpdated implements ShouldBroadcastNow
     {
         return [
             new PrivateChannel('employee.' . $this->payload['employee_id']),
+            new Channel('notifications'),
         ];
     }
 

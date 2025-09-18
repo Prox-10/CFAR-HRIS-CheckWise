@@ -25,38 +25,65 @@ export function RecentActivities({ activities, employeeId }: RecentActivitiesPro
         setLocalActivities(activities);
     }, [activities]);
 
-    // Set up real-time updates using Echo
+    // Set up real-time updates using Echo (private channel per employee)
     useEffect(() => {
         const echo = (window as any).Echo;
         if (!echo || !employeeId) return;
 
         const channelName = `employee.${employeeId}`;
-        const employeeChannel = echo.channel(channelName);
+        // ReturnWorkStatusUpdated broadcasts on PrivateChannel('employee.{id}') with event name 'RequestStatusUpdated'
+        const employeeChannel = echo.private(channelName);
 
-        // Listen for return work status updates
-        employeeChannel.listen('.RequestStatusUpdated', (e: any) => {
+        const handleStatusUpdated = (e: any) => {
             console.log('Received RequestStatusUpdated event (recent activities):', e);
+            if (e?.type !== 'return_work_status') return;
 
-            if (e.type === 'return_work_status') {
-                setLocalActivities((prev) =>
-                    prev.map((activity) =>
-                        activity.id === `return_work_${e.request_id}`
+            setLocalActivities((prev) => {
+                const targetId = `return_work_${e.request_id}`;
+                const idx = prev.findIndex((a) => a.id === targetId);
+                if (idx >= 0) {
+                    // Update existing activity
+                    return prev.map((activity) =>
+                        activity.id === targetId
                             ? {
                                   ...activity,
-                                  status: e.status.toLowerCase(),
+                                  status: String(e.status).toLowerCase(),
                                   title: `Return to Work request ${e.status}`,
+                                  type: 'return_work',
                               }
                             : activity,
-                    ),
-                );
+                    );
+                }
 
-                const statusText = e.status === 'approved' ? 'approved' : e.status === 'rejected' ? 'rejected' : String(e.status);
-                toast.success(`Your return to work request has been ${statusText}!`);
-            }
+                // Insert new activity if not present yet
+                const newActivity: Activity = {
+                    id: targetId,
+                    title: `Return to Work request ${e.status}`,
+                    timeAgo: 'just now',
+                    status: String(e.status).toLowerCase(),
+                    type: 'return_work',
+                };
+                return [newActivity, ...prev];
+            });
+
+            const normalized = String(e.status).toLowerCase();
+            const statusText = normalized === 'approved' || normalized === 'rejected' ? normalized : normalized;
+            toast.success(`Your return to work request has been ${statusText}!`);
+        };
+
+        // Listen on both employee private channel and public fallback notifications
+        employeeChannel.listen('.RequestStatusUpdated', handleStatusUpdated);
+
+        const notifications = echo.channel('notifications');
+        notifications.listen('.RequestStatusUpdated', (e: any) => {
+            // Only handle if this event is for this employee
+            if (!e || e?.employee_id !== employeeId) return;
+            handleStatusUpdated(e);
         });
 
         return () => {
             employeeChannel.stopListening('.RequestStatusUpdated');
+            notifications.stopListening('.RequestStatusUpdated');
         };
     }, [employeeId]);
     const getStatusIcon = (status: string, type?: string) => {
