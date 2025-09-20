@@ -73,7 +73,7 @@ export default function AbsenceRequestForm() {
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-xl font-semibold">
                         <CalendarDays className="h-5 w-5 text-emerald-600" />
-                        <span>Submit Absence Notification</span>
+                        <span>Absence Request Form</span>
                     </div>
                     <p className="text-sm text-muted-foreground">Report your absence to HR</p>
                 </div>

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Exception;
 use App\Events\AbsenceRequested;
 use App\Events\RequestStatusUpdated;
@@ -200,16 +201,20 @@ class AbsenceController extends Controller
 
         $absenceList = $absences->transform(fn($absence) => [
             'id' => $absence->id,
-            'name' => $absence->full_name,
+            'full_name' => $absence->full_name,
+            'employee_id_number' => $absence->employee_id_number,
             'department' => $absence->department,
-            'type' => $absence->absence_type,
-            'startDate' => $absence->from_date->format('Y-m-d'),
-            'endDate' => $absence->to_date->format('Y-m-d'),
-            'submittedAt' => $absence->submitted_at->format('Y-m-d'),
+            'position' => $absence->position,
+            'absence_type' => $absence->absence_type,
+            'from_date' => $absence->from_date->format('Y-m-d'),
+            'to_date' => $absence->to_date->format('Y-m-d'),
+            'submitted_at' => $absence->submitted_at->format('Y-m-d'),
             'days' => $absence->days,
             'reason' => $absence->reason,
+            'is_partial_day' => $absence->is_partial_day,
             'status' => $absence->status,
-            'avatarUrl' => $absence->employee ? $absence->employee->picture : null,
+            'picture' => $absence->employee ? $absence->employee->picture : null,
+            'employee_name' => $absence->employee ? $absence->employee->employee_name : $absence->full_name,
         ]);
 
         return Inertia::render('absence/absence-approve', [
@@ -219,6 +224,75 @@ class AbsenceController extends Controller
                 'is_super_admin' => $isSuperAdmin,
                 'supervised_departments' => $supervisedDepartments,
             ],
+            'auth' => [
+                'user' => [
+                    'id' => $user->id,
+                    'isSupervisor' => $isSupervisor,
+                    'isSuperAdmin' => $isSuperAdmin,
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Display employee's own absence requests.
+     */
+    public function employeeIndex()
+    {
+        $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
+        
+        if (!$employee) {
+            Session::forget(['employee_id', 'employee_name']);
+            return redirect()->route('employeelogin');
+        }
+
+        // Get employee's absence requests
+        $absenceRequests = Absence::where('employee_id', $employee->id)
+            ->orderBy('submitted_at', 'desc')
+            ->get()
+            ->map(function ($absence) use ($employee) {
+                $absenceCredits = AbsenceCredit::getOrCreateForEmployee($absence->employee_id);
+                return [
+                    'id' => $absence->id,
+                    'absence_type' => $absence->absence_type,
+                    'from_date' => $absence->from_date->format('Y-m-d'),
+                    'to_date' => $absence->to_date->format('Y-m-d'),
+                    'days' => $absence->days,
+                    'status' => $absence->status,
+                    'reason' => $absence->reason,
+                    'submitted_at' => $absence->submitted_at->format('Y-m-d'),
+                    'approved_at' => $absence->approved_at ? $absence->approved_at->format('Y-m-d') : null,
+                    'approval_comments' => $absence->approval_comments,
+                    'is_partial_day' => $absence->is_partial_day,
+                    'created_at' => $absence->created_at->format('Y-m-d H:i:s'),
+                    'employee_name' => $employee->employee_name,
+                    'picture' => $employee->picture,
+                    'department' => $employee->department,
+                    'employeeid' => $employee->employeeid,
+                    'position' => $employee->position,
+                    'remaining_credits' => $absenceCredits->remaining_credits,
+                    'used_credits' => $absenceCredits->used_credits,
+                    'total_credits' => $absenceCredits->total_credits,
+                ];
+            })->toArray();
+
+        // Calculate absence stats for the employee
+        $totalAbsences = Absence::where('employee_id', $employee->id)->count();
+        $pendingAbsences = Absence::where('employee_id', $employee->id)->where('status', 'pending')->count();
+        $approvedAbsences = Absence::where('employee_id', $employee->id)->where('status', 'approved')->count();
+        $rejectedAbsences = Absence::where('employee_id', $employee->id)->where('status', 'rejected')->count();
+
+        $absenceStats = [
+            'totalAbsences' => $totalAbsences,
+            'pendingAbsences' => $pendingAbsences,
+            'approvedAbsences' => $approvedAbsences,
+            'rejectedAbsences' => $rejectedAbsences,
+        ];
+
+        return Inertia::render('employee-view/request-form/absence/index', [
+            'absenceRequests' => $absenceRequests,
+            'absenceStats' => $absenceStats,
+            'employee' => $employee,
         ]);
     }
 

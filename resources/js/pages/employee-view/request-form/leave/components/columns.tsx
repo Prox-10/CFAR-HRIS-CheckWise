@@ -2,44 +2,43 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
-import { CircleEllipsis, Edit, Eye } from 'lucide-react';
-import { toast } from 'sonner';
+import { CircleEllipsis, Eye } from 'lucide-react';
 // import { Employees } from '../types/employees';
-import DeleteConfirmationDialog from '@/components/delete-alert';
 import { DataTableColumnHeader } from './data-table-column-header';
 // import {} from './editemployeemodal';
 
-type Employees = {
+type LeaveRequest = {
     id: string;
-    employeeid: string;
+    leave_type: string;
+    leave_start_date: string;
+    leave_end_date: string;
+    leave_days: number;
+    leave_status: string;
+    leave_reason: string;
+    leave_date_reported: string;
+    leave_date_approved: string | null;
+    leave_comments: string;
+    created_at: string;
     employee_name: string;
-    firstname: string;
-    middlename: string;
-    lastname: string;
     picture: string;
-    gender: string;
     department: string;
+    employeeid: string;
     position: string;
-    phone: string;
-    work_status: string;
-    status: string;
-    service_tenure: string;
-    email: string;
-}; 
-
-
+    remaining_credits: number;
+    used_credits: number;
+    total_credits: number;
+};
 
 const columns = (
     setIsViewOpen: (open: boolean) => void,
-    setViewEmployee: (employee: Employees | null) => void,
+    setViewLeave: (leave: LeaveRequest | null) => void,
     setIsModalOpen: (open: boolean) => void,
     setEditModalOpen: (open: boolean) => void,
-    setSelectedEmployee: (employee: Employees | null) => void,
-    handleEdit: (employee: Employees) => void,
+    setSelectedLeave: (leave: LeaveRequest | null) => void,
+    handleEdit: (leave: LeaveRequest) => void,
     handleDelete: (id: string, onSuccess: () => void) => void,
-) : ColumnDef<Employees>[] => [
+): ColumnDef<LeaveRequest>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -54,35 +53,24 @@ const columns = (
         ),
     },
     {
-        accessorKey: 'employee_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Employee" />,
+        accessorKey: 'leave_type',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Leave Type" />,
         cell: ({ row }) => {
-            // const src = row.getValue('picture') as string;
-            const src = row.original.picture;
-            const name = row.original.employee_name;
-            const empid = row.original.employeeid;
- 
+            const leaveType = row.getValue('leave_type') as string;
+            const leaveDays = row.original.leave_days;
+
             return (
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-3">
                     <div className="flex-shrink-0">
-                        {src ? (
-                            <img
-                                src={src}
-                                alt="Profile"
-                                className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
-                            />
-                        ) : (
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-xs text-gray-500">
-                                <img
-                                    src="Logo.png"
-                                    className="animate-scale-in h-12 w-12 rounded-full border-2 border-main object-cover dark:border-darksMain"
-                                />
-                            </div>
-                        )}
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                            <span className="text-sm font-semibold">{leaveType.charAt(0)}</span>
+                        </div>
                     </div>
                     <div>
-                        <div className="text-sm font-medium text-gray-900">{name}</div>
-                        <div className="text-xs text-gray-500">{empid}</div>
+                        <div className="text-sm font-medium text-gray-900">{leaveType}</div>
+                        <div className="text-xs text-gray-500">
+                            {leaveDays} day{leaveDays > 1 ? 's' : ''}
+                        </div>
                     </div>
                 </div>
             );
@@ -90,48 +78,55 @@ const columns = (
     },
 
     {
-        accessorKey: 'department',
-        header: 'Departments',
+        accessorKey: 'leave_start_date',
+        header: 'Leave Period',
         cell: ({ row }) => {
-            const department: string = row.getValue('department');
-            const position = row.original.position;
+            const startDate = row.getValue('leave_start_date') as string;
+            const endDate = row.original.leave_end_date;
+            const reportedDate = row.original.leave_date_reported;
 
             return (
                 <div>
-                    <div className="text-sm font-medium text-gray-900">{department}</div>
-                    <div className="text-xs text-gray-500">{position}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                        {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+                    </div>
+                    <div className="text-xs text-gray-500">Reported: {new Date(reportedDate).toLocaleDateString()}</div>
                 </div>
             );
         },
         filterFn: (row, columnId, filterValue) => {
             if (!filterValue || filterValue.length === 0) return true;
 
-            const department = row.getValue(columnId);
+            const startDate = row.getValue(columnId);
 
-            return filterValue.includes(department);
+            return filterValue.includes(startDate);
         },
     },
     {
-        accessorKey: 'work_status',
-        header: 'Work Status',
+        accessorKey: 'leave_status',
+        header: 'Status',
         cell: ({ row }) => {
-            const work_status: string = row.getValue('work_status');
+            const leave_status: string = row.getValue('leave_status');
 
-            const workStatusColor =
-                work_status === 'Regular'
+            const statusColor =
+                leave_status === 'Approved'
                     ? 'bg-green-100 text-green-800'
-                    : work_status === 'Add Crew'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800';
+                    : leave_status === 'Pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : leave_status === 'Rejected'
+                        ? 'bg-red-100 text-red-800'
+                        : leave_status === 'Cancelled'
+                          ? 'bg-gray-100 text-gray-800'
+                          : 'bg-gray-100 text-gray-800';
 
-            return <span className={`rounded px-2 py-1 text-xs font-medium ${workStatusColor}`}>{work_status}</span>;
+            return <span className={`rounded px-2 py-1 text-xs font-medium ${statusColor}`}>{leave_status}</span>;
         },
         filterFn: (row, columnId, filterValue) => {
             if (!filterValue || filterValue.length === 0) return true;
 
-            const workStatus = row.getValue(columnId);
+            const leaveStatus = row.getValue(columnId);
 
-            return filterValue.includes(workStatus);
+            return filterValue.includes(leaveStatus);
         },
     },
     {
@@ -139,7 +134,7 @@ const columns = (
         header: () => <div>Action</div>,
         id: 'actions',
         cell: ({ row }) => {
-            const employee = row.original;
+            const leave = row.original;
 
             return (
                 <>
@@ -158,41 +153,15 @@ const columns = (
                                     size="sm"
                                     variant="outline"
                                     onClick={() => {
-                                        setSelectedEmployee(employee);
-                                        setViewEmployee(employee); // Set the employee data for the modal
+                                        setSelectedLeave(leave);
+                                        setViewLeave(leave); // Set the leave data for the modal
                                         setIsViewOpen(true); // Open View modal
                                     }}
                                     className="hover-lift w-full border-blue-300 text-blue-600 hover:bg-blue-50"
                                 >
                                     <Eye className="h-4 w-4" />
-                                    View
+                                    View Details
                                 </Button>
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                        setSelectedEmployee(employee);
-                                        setEditModalOpen(true);
-                                    }}
-                                    className="hover-lift w-full border-green-300 text-green-600 hover:bg-green-50"
-                                >
-                                    <Edit className="h-4 w-4" />
-                                    Update
-                                </Button>
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem asChild>
-                                <DeleteConfirmationDialog
-                                    onConfirm={() =>
-                                        handleDelete(employee.id, () => {
-                                            // Optionally handle success here
-                                            // toast.success('Employee deleted successfully!');
-                                        })
-                                    }
-                                />
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -202,4 +171,4 @@ const columns = (
     },
 ];
 
-export { columns, type Employees };
+export { columns, type LeaveRequest };

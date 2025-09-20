@@ -74,7 +74,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         initialState: {
             pagination: {
                 pageIndex: 0,
-                pageSize: 5,
+                pageSize: 10,
             },
         },
     });

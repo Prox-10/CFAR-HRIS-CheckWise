@@ -17,11 +17,11 @@ Route::middleware(['web', 'employee.auth'])->group(function () {
     Route::get('employee-view/attendance', [AuthEmployeeController::class, 'attendance'])->name('employee-view.attendance');
     Route::get('employee-view/evaluations', [AuthEmployeeController::class, 'evaluations'])->name('employee-view.evaluations');
     // Updated to render the new request-form Leave page component
-    Route::get('employee-view/leave', fn() => Inertia::render('employee-view/request-form/leave/index'))
+    Route::get('employee-view/leave', [LeaveController::class, 'employeeIndex'])
         ->name('employee-view.leave');
     Route::get('employee-view/l');
     // Updated to render the new request-form Absence page component
-    Route::get('employee-view/absence', fn() => Inertia::render('employee-view/request-form/absence/index'))
+    Route::get('employee-view/absence', [AbsenceController::class, 'employeeIndex'])
         ->name('employee-view.absence');
     // Updated to render the new request-form Return to Work page component
     Route::get('employee-view/return-work', [AuthEmployeeController::class, 'returnWork'])

@@ -24,7 +24,7 @@ export default function ReturnWorkIndex() {
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-xl font-semibold">
                         <CalendarSync className="h-5 w-5 text-emerald-600" />
-                        <span>Return to Work</span>
+                        <span>Return to Work Request Form</span>
                     </div>
                     <p className="text-sm text-muted-foreground">Submit your return to work notification</p>
                 </div>

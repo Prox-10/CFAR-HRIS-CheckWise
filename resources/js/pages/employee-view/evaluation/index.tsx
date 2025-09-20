@@ -169,9 +169,9 @@ export default function Index({ employee, evaluation }: EmployeeProps) {
                     <div className="flex flex-1 flex-col">
                         <div className="relative flex flex-1 flex-col">
                             <div className="@container/main flex flex-1 flex-col gap-2">
-                                <div className="flex flex-col">
+                                {/* <div className="flex flex-col">
                                     <SectionCards />
-                                </div>
+                                </div> */}
                                 <div className="flex flex-col px-4 lg:px-3">
                                     <EmployeeEvaluationSummary
                                         employeeName={employee?.employee_name || `${employee?.firstname ?? ''} ${employee?.lastname ?? ''}`.trim()}
@@ -187,7 +187,7 @@ export default function Index({ employee, evaluation }: EmployeeProps) {
                 </TabsContent>
                 <Separator className="shadow-sm" />
             </Tabs>
-            <div className="m-3 no-scrollbar">
+            {/* <div className="m-3 no-scrollbar">
                 <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                     <CardHeader>
                         <CardTitle>Evaluation List</CardTitle>
@@ -208,7 +208,7 @@ export default function Index({ employee, evaluation }: EmployeeProps) {
                         />
                     </CardContent>
                 </Card>
-            </div>
+            </div> */}
         </AppLayout>
     );
 }

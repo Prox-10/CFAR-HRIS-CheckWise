@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Exception;
 use App\Models\Notification;
 use App\Events\LeaveRequested;
@@ -309,6 +310,69 @@ class LeaveController extends Controller
         $leave = Leave::findOrFail($id);
         $leave->delete();
         return redirect()->back()->with('success', 'Leave deleted');
+    }
+
+    /**
+     * Display employee's own leave requests.
+     */
+    public function employeeIndex()
+    {
+        $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
+        
+        if (!$employee) {
+            Session::forget(['employee_id', 'employee_name']);
+            return redirect()->route('employeelogin');
+        }
+
+        // Get employee's leave requests
+        $leaveRequests = Leave::where('employee_id', $employee->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($leave) use ($employee) {
+                $leaveCredits = LeaveCredit::getOrCreateForEmployee($leave->employee_id);
+                return [
+                    'id' => $leave->id,
+                    'leave_type' => $leave->leave_type,
+                    'leave_start_date' => $leave->leave_start_date->format('Y-m-d'),
+                    'leave_end_date' => $leave->leave_end_date->format('Y-m-d'),
+                    'leave_days' => $leave->leave_days,
+                    'leave_status' => $leave->leave_status,
+                    'leave_reason' => $leave->leave_reason,
+                    'leave_date_reported' => $leave->leave_date_reported->format('Y-m-d'),
+                    'leave_date_approved' => $leave->leave_date_approved ? $leave->leave_date_approved->format('Y-m-d') : null,
+                    'leave_comments' => $leave->leave_comments,
+                    'created_at' => $leave->created_at->format('Y-m-d H:i:s'),
+                    'employee_name' => $employee->employee_name,
+                    'picture' => $employee->picture,
+                    'department' => $employee->department,
+                    'employeeid' => $employee->employeeid,
+                    'position' => $employee->position,
+                    'remaining_credits' => $leaveCredits->remaining_credits,
+                    'used_credits' => $leaveCredits->used_credits,
+                    'total_credits' => $leaveCredits->total_credits,
+                ];
+            })->toArray();
+
+        // Calculate leave stats for the employee
+        $totalLeaves = Leave::where('employee_id', $employee->id)->count();
+        $pendingLeaves = Leave::where('employee_id', $employee->id)->where('leave_status', 'Pending')->count();
+        $approvedLeaves = Leave::where('employee_id', $employee->id)->where('leave_status', 'Approved')->count();
+        $rejectedLeaves = Leave::where('employee_id', $employee->id)->where('leave_status', 'Rejected')->count();
+        $cancelledLeaves = Leave::where('employee_id', $employee->id)->where('leave_status', 'Cancelled')->count();
+
+        $leaveStats = [
+            'totalLeaves' => $totalLeaves,
+            'pendingLeaves' => $pendingLeaves,
+            'approvedLeaves' => $approvedLeaves,
+            'rejectedLeaves' => $rejectedLeaves,
+            'cancelledLeaves' => $cancelledLeaves,
+        ];
+
+        return Inertia::render('employee-view/request-form/leave/index', [
+            'leaveRequests' => $leaveRequests,
+            'leaveStats' => $leaveStats,
+            'employee' => $employee,
+        ]);
     }
 
     /**

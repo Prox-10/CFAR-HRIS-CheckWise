@@ -74,7 +74,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         initialState: {
             pagination: {
                 pageIndex: 0, //custom initial page index
-                pageSize: 5, //custom default page size
+                pageSize: 10, //custom default page size
             },
         },
     });
