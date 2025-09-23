@@ -36,6 +36,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('report', function () {
             return Inertia::render('report/index');
         })->name('report');
+        Route::get('report/daily-attendance', function () {
+            return Inertia::render('report/daily-attendance');
+        })->name('report.daily-attendance');
+        Route::get('report/daily-attendance/edit', function () {
+            return Inertia::render('report/daily-attendance-edit');
+        })->name('report.daily-attendance.edit');
     });
 
     // Explicit routes for all service-tenure subpages

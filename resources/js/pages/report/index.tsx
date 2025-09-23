@@ -5,7 +5,7 @@ import { SidebarInset, SidebarProvider, SidebarSeparator, useSidebar } from '@/c
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Calendar, CalendarDays, ClipboardList, Clock, Download, FileText, Filter, Users } from 'lucide-react';
 import { Toaster } from 'sonner';
 // import { format } from 'path';
@@ -19,6 +19,7 @@ import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { format } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+// Daily attendance now uses a dedicated page
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -33,12 +34,14 @@ const ReportCard = ({
     icon: Icon,
     buttonText = 'Generate Report',
     variant = 'default',
+    onClick,
 }: {
     title: string;
     description: string;
     icon: React.ElementType;
     buttonText?: string;
     variant?: 'default' | 'attendance' | 'employee' | 'leave' | 'evaluation' | 'payroll';
+    onClick?: () => void;
 }) => {
     return (
         <Card>
@@ -69,7 +72,7 @@ const ReportCard = ({
                 <CardDescription className="text-xs">{description}</CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
-                <Button variant="outline" className="flex w-full items-center justify-center">
+                <Button variant="outline" className="flex w-full items-center justify-center" onClick={onClick}>
                     <Download className="mr-2 h-4 w-4" />
                     {buttonText}
                 </Button>
@@ -113,6 +116,7 @@ const ReportPage = () => {
     const [endDate, setEndDate] = useState<Date | undefined>(new Date());
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<ReportTab>('attendance');
+    // navigates to dedicated daily attendance page
 
     const getInitialTabFromQuery = useMemo<() => ReportTab>(() => {
         return () => {
@@ -236,7 +240,11 @@ const ReportPage = () => {
                                     <SidebarSeparator />
                                     <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 p-5">
                                         <TabsList className="bg-main mb-4 grid grid-cols-2 py-[5px] md:grid-cols-5">
-                                            <TabsTrigger className="hover:bg-main-600 mx-3 mb-5" value="attendance">
+                                            <TabsTrigger
+                                                className="hover:bg-main-600 mx-3 mb-5"
+                                                value="attendance"
+                                                onClick={() => router.visit('/report/daily-attendance')}
+                                            >
                                                 Attendance
                                             </TabsTrigger>
                                             <TabsTrigger className="hover:bg-main-600 mx-3 mb-5" value="employee">
@@ -259,7 +267,8 @@ const ReportPage = () => {
                                                     description="Summary of daily attendance across all departments"
                                                     icon={Clock}
                                                     variant="attendance"
-                                                    buttonText="Generate Daily Report"
+                                                    buttonText="View"
+                                                    onClick={() => router.visit('/report/daily-attendance')}
                                                 />
                                                 <ReportCard
                                                     title="Monthly Attendance Report"
@@ -440,6 +449,7 @@ const ReportPage = () => {
                     )}
                 </SidebarInset>
             </SidebarHoverLogic>
+            {/* Daily attendance modal removed; routed to dedicated page */}
         </SidebarProvider>
     );
 };

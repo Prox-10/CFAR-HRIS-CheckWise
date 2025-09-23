@@ -24,28 +24,10 @@ interface ComboBoxProps {
 
 export function ComboboxDemo({ options, value, onChange, placeholder = 'Select...', ...props }: ComboBoxProps) {
     const [open, setOpen] = React.useState(false);
-    const [search, setSearch] = React.useState('');
-
-    // Filter options by search (case-insensitive, matches label or search field)
-    const filteredOptions = options.filter((option) => {
-        const searchText = search.toLowerCase();
-        const labelMatch = option.label.toLowerCase().includes(searchText);
-        const searchMatch = option.search && option.search.toLowerCase().includes(searchText);
-
-        // Debug: Log search matches
-        if (searchText && (labelMatch || searchMatch)) {
-            console.log(`Search match found: "${searchText}" in option:`, option);
-        }
-
-        return labelMatch || searchMatch;
-    });
 
     const selectedLabel = options.find((option) => option.value === value)?.label;
 
-    // Clear search when popover closes
-    React.useEffect(() => {
-        if (!open) setSearch('');
-    }, [open]);
+    // No manual search state; rely on cmdk built-in filtering
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -57,18 +39,15 @@ export function ComboboxDemo({ options, value, onChange, placeholder = 'Select..
             </PopoverTrigger>
             <PopoverContent className="w-full min-w-[200px] p-0">
                 <Command>
-                    <CommandInput placeholder="Search by Employee ID or Name..." className="h-9" value={search} onValueChange={setSearch} />
+                    <CommandInput placeholder="Search by Employee ID or Name..." className="h-9" />
                     <CommandList>
                         <CommandEmpty>No results found.</CommandEmpty>
                         <CommandGroup>
-                            {filteredOptions.map((option) => (
+                            {options.map((option) => (
                                 <CommandItem
                                     key={option.value}
-                                    value={option.value}
+                                    value={`${option.label} ${option.search ?? option.value}`}
                                     onSelect={() => {
-                                        console.log('Combo-box onSelect called with value:', option.value);
-                                        console.log('Option value:', option.value);
-                                        console.log('Option label:', option.label);
                                         onChange(option.value);
                                         setOpen(false);
                                     }}
