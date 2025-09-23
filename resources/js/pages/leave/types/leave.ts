@@ -14,4 +14,7 @@ export interface Leave {
     department: string;
     position: string;
     employeeid: string;
+    remaining_credits?: number;
+    used_credits?: number;
+    total_credits?: number;
 }

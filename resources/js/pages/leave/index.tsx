@@ -19,7 +19,6 @@ import { DataTable } from './components/data-table';
 import EditEmployeeModal from './components/editemployeemodal';
 import { SectionCards } from './components/section-cards';
 import ViewLeaveDetails from './components/viewleavedetails';
-import { CreditDisplay, CreditSummary } from './components/credit-display';
 import { Leave } from './types/leave';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -75,6 +74,76 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
             setLoading(false);
         }, 500);
     }, [leave]);
+
+    // Real-time updates via Echo
+    useEffect(() => {
+        const echo: any = (window as any).Echo;
+        if (!echo) {
+            console.warn('Echo not available for real-time updates');
+            return;
+        }
+
+        console.log('Setting up real-time listeners for leave index');
+
+        // Listen on notifications channel for general leave requests
+        const notificationsChannel = echo.channel('notifications');
+        notificationsChannel
+            .listen('.LeaveRequested', (e: any) => {
+                console.log('Received LeaveRequested event on leave index:', e);
+                if (e && e.leave_id) {
+                    const newLeave: Leave = {
+                        id: String(e.leave_id),
+                        leave_start_date: e.leave_start_date,
+                        employee_name: e.employee_name || 'Employee',
+                        leave_type: e.leave_type,
+                        leave_end_date: e.leave_end_date,
+                        leave_days: e.leave_days || 1,
+                        status: 'Pending',
+                        leave_reason: '',
+                        leave_date_reported: new Date().toISOString().split('T')[0],
+                        leave_date_approved: '',
+                        leave_comments: '',
+                        picture: '',
+                        department: e.department || '',
+                        position: '',
+                        employeeid: '',
+                        // include credits from event payload if present
+                        remaining_credits: typeof e.remaining_credits === 'number' ? e.remaining_credits : undefined,
+                        used_credits: typeof e.used_credits === 'number' ? e.used_credits : undefined,
+                        total_credits: typeof e.total_credits === 'number' ? e.total_credits : undefined,
+                    };
+
+                    // Check if this leave already exists to avoid duplicates
+                    setData((prev) => {
+                        const exists = prev.some((r) => r.id === newLeave.id);
+                        if (exists) {
+                            console.log('Leave already exists, not adding duplicate');
+                            return prev;
+                        }
+                        console.log('Adding new leave request to index list');
+                        return [newLeave, ...prev];
+                    });
+                }
+            })
+            .listen('.RequestStatusUpdated', (e: any) => {
+                console.log('Received RequestStatusUpdated event on leave index:', e);
+                if (String(e.type || '').includes('leave')) {
+                    setData((prev) =>
+                        prev.map((r) =>
+                            String(r.id) === String(e.request_id)
+                                ? { ...r, status: String(e.status).charAt(0).toUpperCase() + String(e.status).slice(1).toLowerCase() }
+                                : r,
+                        ),
+                    );
+                }
+            });
+
+        return () => {
+            console.log('Cleaning up Echo listeners on leave index');
+            notificationsChannel.stopListening('.LeaveRequested');
+            notificationsChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, []);
 
     const handleUpdate = (updatedEmployee: Leave) => {
         setData((prevData) => prevData.map((leave) => (leave.id === updatedEmployee.id ? updatedEmployee : leave)));
@@ -133,8 +202,6 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
                                     {/* <TasksPrimaryButtons /> */}
                                 </div>
 
-                               
-
                                 <Tabs orientation="vertical" defaultValue="overview" className="space-y-4">
                                     <TabsContent value="overview" className="space-y-4">
                                         <div className="flex flex-1 flex-col">
@@ -162,8 +229,6 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
                                     <Separator className="shadow-sm" />
                                 </Tabs>
 
-                              
-
                                 <div className="m-3 no-scrollbar">
                                     <Card className="border-main dark:bg-backgrounds bg-background drop-shadow-lg">
                                         <CardHeader>
@@ -182,7 +247,7 @@ export default function Index({ leave, employees, leaveStats, leavesPerMonth, le
                                                     handleEdit,
                                                     handleDelete,
                                                 )}
-                                                data={leave}
+                                                data={data}
                                                 employees={employees}
                                             />
                                             <EditEmployeeModal

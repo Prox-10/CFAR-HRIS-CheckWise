@@ -70,6 +70,69 @@ export default function Index({ absences = [], employees = [], monthlyAbsenceSta
         }, 500);
     }, [absences]);
 
+    // Real-time updates via Echo
+    useEffect(() => {
+        const echo: any = (window as any).Echo;
+        if (!echo) {
+            console.warn('Echo not available for real-time updates');
+            return;
+        }
+
+        console.log('Setting up real-time listeners for absence index');
+
+        // Listen on notifications channel for general absence requests
+        const notificationsChannel = echo.channel('notifications');
+        notificationsChannel
+            .listen('.AbsenceRequested', (e: any) => {
+                console.log('Received AbsenceRequested event on index page:', e);
+                if (e && e.absence) {
+                    const newAbsence: Absence = {
+                        id: String(e.absence.id),
+                        full_name: e.absence.full_name || e.absence.employee_name || 'Employee',
+                        employee_id_number: e.absence.employee_id_number || '',
+                        department: e.absence.department || '',
+                        position: e.absence.position || '',
+                        absence_type: e.absence.absence_type,
+                        from_date: e.absence.from_date,
+                        to_date: e.absence.to_date,
+                        submitted_at: e.absence.submitted_at || new Date().toISOString(),
+                        approved_at: e.absence.approved_at || null,
+                        days: e.absence.days || 1,
+                        reason: e.absence.reason || '',
+                        is_partial_day: !!e.absence.is_partial_day,
+                        status: e.absence.status || 'pending',
+                        picture: e.absence.picture || '',
+                        employee_name: e.absence.employee_name || '',
+                        remaining_credits: e.absence.remaining_credits || 0,
+                        used_credits: e.absence.used_credits || 0,
+                        total_credits: e.absence.total_credits || 0,
+                    };
+
+                    // Check if this absence already exists to avoid duplicates
+                    setData((prev) => {
+                        const exists = prev.some((r) => r.id === newAbsence.id);
+                        if (exists) {
+                            console.log('Absence already exists, not adding duplicate');
+                            return prev;
+                        }
+                        console.log('Adding new absence request to index list');
+                        return [newAbsence, ...prev];
+                    });
+                }
+            })
+            .listen('.RequestStatusUpdated', (e: any) => {
+                console.log('Received RequestStatusUpdated event on index page:', e);
+                if (String(e.type || '') !== 'absence_status') return;
+                setData((prev) => prev.map((r) => (String(r.id) === String(e.request_id) ? { ...r, status: e.status } : r)));
+            });
+
+        return () => {
+            console.log('Cleaning up Echo listeners on index page');
+            notificationsChannel.stopListening('.AbsenceRequested');
+            notificationsChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, []);
+
     const handleEdit = (absence: Absence) => {
         setSelectedAbsence(absence);
         setIsEditOpen(true);

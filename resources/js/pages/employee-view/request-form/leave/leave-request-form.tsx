@@ -5,15 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Toaster } from '@/components/ui/sonner';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/employee-layout/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { CalendarDays, ChevronDown } from 'lucide-react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Request Forms', href: '/employee-view/leave' },
     { title: 'Apply for Leave', href: '/employee-view/leave/request' },
@@ -26,6 +26,33 @@ export default function LeaveRequestForm() {
     const [reason, setReason] = React.useState<string>('');
     const { employee } = usePage().props as any;
     const [submitting, setSubmitting] = React.useState(false);
+
+    // Set up real-time listeners for leave status updates
+    useEffect(() => {
+        const echo: any = (window as any).Echo;
+        if (!echo || !employee?.id) return;
+
+        console.log('Setting up real-time listeners for leave request form');
+
+        // Listen for status updates on employee's private channel
+        const employeeChannel = echo.private(`employee.${employee.id}`);
+        employeeChannel
+            .listen('.RequestStatusUpdated', (e: any) => {
+                console.log('Received RequestStatusUpdated event on leave form:', e);
+                if (String(e.type || '').includes('leave')) {
+                    const statusText = e.status === 'approved' ? 'approved' : e.status === 'rejected' ? 'rejected' : String(e.status);
+                    toast.success(`Your leave request has been ${statusText}!`);
+                }
+            })
+            .error((error: any) => {
+                console.error('Error subscribing to employee channel:', error);
+            });
+
+        return () => {
+            console.log('Cleaning up Echo listeners on leave request form');
+            employeeChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, [employee?.id]);
 
     const handleSubmit = async () => {
         if (!leaveType || !fromDate || !toDate || !reason) {
@@ -70,7 +97,7 @@ export default function LeaveRequestForm() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Apply for Leave" />
-            <Toaster position="top-center" richColors/>
+            <Toaster position="top-center" richColors />
             <div className="w-full space-y-6">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-xl font-semibold">

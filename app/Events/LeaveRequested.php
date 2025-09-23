@@ -19,6 +19,9 @@ class LeaveRequested implements ShouldBroadcastNow
 
   public function __construct(public Leave $leave)
   {
+    // Pull current leave credits so supervisors see correct numbers immediately
+    $leaveCredits = \App\Models\LeaveCredit::getOrCreateForEmployee($leave->employee_id);
+
     $this->payload = [
       'type' => 'leave_request',
       'leave_id' => $leave->id,
@@ -28,6 +31,10 @@ class LeaveRequested implements ShouldBroadcastNow
       'leave_start_date' => $leave->leave_start_date,
       'leave_end_date' => $leave->leave_end_date,
       'department' => $leave->employee ? $leave->employee->department : null,
+      // include credits so frontend renders correct values without refresh
+      'remaining_credits' => $leaveCredits->remaining_credits,
+      'used_credits' => $leaveCredits->used_credits,
+      'total_credits' => $leaveCredits->total_credits,
     ];
   }
 
@@ -35,11 +42,22 @@ class LeaveRequested implements ShouldBroadcastNow
   {
     $supervisor = \App\Models\User::getSupervisorForDepartment($this->leave->employee->department);
     
+    \Log::info('LeaveRequested event broadcasting', [
+      'leave_id' => $this->leave->id,
+      'department' => $this->leave->employee->department,
+      'supervisor_found' => $supervisor ? $supervisor->id : 'none',
+      'channels' => $supervisor ? ['supervisor.' . $supervisor->id, 'notifications'] : ['notifications']
+    ]);
+    
+    // Always broadcast to notifications channel for general access
+    $channels = [new Channel('notifications')];
+    
+    // Also broadcast to supervisor's private channel if supervisor exists
     if ($supervisor) {
-      return [new PrivateChannel('supervisor.' . $supervisor->id)];
+      $channels[] = new PrivateChannel('supervisor.' . $supervisor->id);
     }
     
-    return [new Channel('notifications')];
+    return $channels;
   }
 
   public function broadcastAs(): string

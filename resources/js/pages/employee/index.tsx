@@ -37,6 +37,12 @@ interface Props {
     employee: Employee[];
     totalDepartment: number;
     totalEmployee: number;
+    workStatusCounts?: {
+        Regular: number;
+        'Add Crew': number;
+        Probationary: number;
+        Sessional: number;
+    };
     departments?: string[];
     positions?: string[];
     user_permissions?: {
@@ -62,7 +68,15 @@ function SidebarHoverLogic({ children }: { children: React.ReactNode }) {
     );
 }
 
-export default function Employee({ employee, totalEmployee, totalDepartment, departments = [], positions = [], user_permissions }: Props) {
+export default function Employee({
+    employee,
+    totalEmployee,
+    totalDepartment,
+    workStatusCounts,
+    departments = [],
+    positions = [],
+    user_permissions,
+}: Props) {
     const { can } = usePermission();
     const [data, setData] = useState<Employee[]>(employee);
     const [editModelOpen, setEditModalOpen] = useState(false);
@@ -179,6 +193,7 @@ export default function Employee({ employee, totalEmployee, totalDepartment, dep
                                                             totalEmployee={totalEmployee}
                                                             employee={data}
                                                             totalDepartment={totalDepartment}
+                                                            workStatusCounts={workStatusCounts}
                                                             isSupervisor={user_permissions?.is_supervisor || false}
                                                             roleContent={{
                                                                 employeeLabel: user_permissions?.is_supervisor ? 'Your Employees' : 'Total Employee',

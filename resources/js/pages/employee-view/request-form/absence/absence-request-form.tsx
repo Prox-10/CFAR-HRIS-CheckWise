@@ -32,7 +32,7 @@ export default function AbsenceRequestForm() {
         }
         try {
             setSubmitting(true);
-            await axios.post('/employee-view/absence', {
+            console.log('Submitting absence request:', {
                 employee_id: employee?.id ?? null,
                 full_name: employee?.employee_name ?? '',
                 employee_id_number: employee?.employeeid ?? '',
@@ -44,11 +44,41 @@ export default function AbsenceRequestForm() {
                 is_partial_day: false,
                 reason,
             });
+
+            const response = await axios.post('/employee-view/absence', {
+                employee_id: employee?.id ?? null,
+                full_name: employee?.employee_name ?? '',
+                employee_id_number: employee?.employeeid ?? '',
+                department: employee?.department ?? '',
+                position: employee?.position ?? '',
+                absence_type: 'Other',
+                from_date: date.toISOString().slice(0, 10),
+                to_date: date.toISOString().slice(0, 10),
+                is_partial_day: false,
+                reason,
+            });
+
+            console.log('Absence request submitted successfully:', response.data);
             toast.success('Absence request submitted successfully!');
+
+            // Test Echo connection
+            const echo: any = (window as any).Echo;
+            if (echo) {
+                console.log('Echo is available, testing connection...');
+                // Listen for a test event to verify connection
+                const testChannel = echo.channel('notifications');
+                testChannel.listen('.AbsenceRequested', (e: any) => {
+                    console.log('Received AbsenceRequested event on employee form:', e);
+                });
+            } else {
+                console.warn('Echo is not available');
+            }
+
             // Clear form after successful submission
             setDate(undefined);
             setReason('');
         } catch (e) {
+            console.error('Failed to submit absence request:', e);
             toast.error('Failed to submit absence request. Please try again.');
         } finally {
             setSubmitting(false);

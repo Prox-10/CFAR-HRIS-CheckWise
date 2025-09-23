@@ -9,6 +9,7 @@ use App\Models\Employee;
 use App\Http\Controllers\Api\EmployeeController as ApiEmployeeController;
 use App\Http\Controllers\Api\AttendanceController as ApiAttendanceController;
 use App\Http\Controllers\Api\AttendanceSessionController;
+use App\Http\Controllers\Api\EvaluationController as ApiEvaluationController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -31,6 +32,7 @@ Route::post('/employee/store', [EmployeeController::class, 'store']);
 Route::get('/fingerprint/all', [FingerprintController::class, 'all']);
 Route::get('/employee/all', [ApiEmployeeController::class, 'index']);
 Route::get('/attendance/all', [ApiAttendanceController::class, 'index']);
+Route::get('/evaluation/all', [ApiEvaluationController::class, 'index'])->middleware(['web', 'auth']);
 
 // Attendance session time settings API
 Route::get('/attendance-sessions', [AttendanceSessionController::class, 'index'])->name('attendance-sessions.index');

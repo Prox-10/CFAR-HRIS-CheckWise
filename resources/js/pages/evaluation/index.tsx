@@ -19,7 +19,6 @@ import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import { SectionCards } from './components/section-cards';
 
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Evaluation Management',
@@ -81,10 +80,18 @@ export default function Index({ evaluations, employees, employees_all, user_perm
     const handleRefresh = async () => {
         setRefreshing(true);
         try {
-            const res = await axios.get<Evaluation[]>('/api/evaluation/all');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const res = await axios.get<Evaluation[]>('/api/evaluation/all', {
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                withCredentials: true,
+            });
             setData(res.data);
             toast.success('Employee list refreshed!');
         } catch (err) {
+            console.error('Refresh error:', err);
             toast.error('Failed to refresh employee list!');
         } finally {
             setRefreshing(false);

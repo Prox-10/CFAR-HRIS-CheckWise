@@ -92,8 +92,8 @@ const columns = (
 
             return (
                 <div>
-                    <div className="text-sm font-medium text-gray-900">{department}</div>
-                    <div className="text-xs text-gray-500">{position}</div>
+                    <div className="text-sm font-medium text-gray-900">{department || 'No Department'}</div>
+                    <div className="text-xs text-gray-500">{position || 'No Position'}</div>
                 </div>
             );
         },

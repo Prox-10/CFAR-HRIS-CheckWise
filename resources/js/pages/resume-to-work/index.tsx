@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Calendar, CheckCircle, Clock, Plus, User, UserCheck } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -65,6 +65,7 @@ export default function ResumeToWorkIndex({ resumeRequests = [], employees = [],
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processed'>('all');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const { auth } = usePage().props as any;
 
     // Update local state when server data changes
     useEffect(() => {
@@ -74,7 +75,10 @@ export default function ResumeToWorkIndex({ resumeRequests = [], employees = [],
     // Set up real-time updates using Echo
     useEffect(() => {
         const echo = (window as any).Echo;
-        if (!echo) return;
+        if (!echo) {
+            console.warn('Echo not available, skipping real-time updates');
+            return;
+        }
 
         // Handlers to avoid duplication across channels
         const handleProcessed = (e: any) => {
@@ -122,12 +126,7 @@ export default function ResumeToWorkIndex({ resumeRequests = [], employees = [],
             toast.info(`New return to work request from ${e.employee_name}`);
         };
 
-        // Private channel for processed events (if available)
-        const privateNotifications = echo.private('notifications');
-        privateNotifications.listen('.ReturnWorkProcessed', handleProcessed);
-        privateNotifications.listen('.ReturnWorkRequested', handleRequested);
-        // Also listen for status updates to reflect immediate UI changes if broadcasted
-        privateNotifications.listen('.RequestStatusUpdated', (e: any) => {
+        const handleStatusUpdated = (e: any) => {
             if (e?.type !== 'return_work_status') return;
             setRequests((prev) =>
                 prev.map((request) =>
@@ -141,18 +140,50 @@ export default function ResumeToWorkIndex({ resumeRequests = [], employees = [],
                         : request,
                 ),
             );
-        });
+        };
 
-        // Public channel for newly submitted requests
-        const publicNotifications = echo.channel('notifications');
-        publicNotifications.listen('.ReturnWorkRequested', handleRequested);
+        let privateNotifications: any = null;
+        let publicNotifications: any = null;
+
+        // Check if user is authenticated before trying private channels
+        const isAuthenticated = () => {
+            const hasAuth = auth?.user?.id;
+            console.log('Authentication check:', {
+                hasAuth,
+                authUser: auth?.user,
+                userId: auth?.user?.id,
+            });
+            return hasAuth;
+        };
+
+        // For now, skip private channels due to authentication issues
+        // and use only public channels
+        console.log('Skipping private channel setup due to authentication issues');
+        console.log('Using public channels only for now');
+
+        try {
+            // Set up public channel as fallback
+            publicNotifications = echo.channel('notifications');
+            publicNotifications.listen('.ReturnWorkRequested', handleRequested);
+            console.log('Public notifications channel set up successfully');
+        } catch (error) {
+            console.warn('Failed to set up public notifications channel:', error);
+        }
 
         return () => {
             console.log('Cleaning up Echo listeners (resume-to-work)');
-            privateNotifications.stopListening('.ReturnWorkProcessed');
-            privateNotifications.stopListening('.ReturnWorkRequested');
-            privateNotifications.stopListening('.RequestStatusUpdated');
-            publicNotifications.stopListening('.ReturnWorkRequested');
+            try {
+                if (privateNotifications && typeof privateNotifications.stopListening === 'function') {
+                    privateNotifications.stopListening('.ReturnWorkProcessed');
+                    privateNotifications.stopListening('.ReturnWorkRequested');
+                    privateNotifications.stopListening('.RequestStatusUpdated');
+                }
+                if (publicNotifications && typeof publicNotifications.stopListening === 'function') {
+                    publicNotifications.stopListening('.ReturnWorkRequested');
+                }
+            } catch (error) {
+                console.warn('Error cleaning up Echo listeners:', error);
+            }
         };
     }, []);
 

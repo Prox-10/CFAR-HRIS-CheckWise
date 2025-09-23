@@ -6,37 +6,98 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Evaluation;
 use App\Models\Employee;
+use App\Models\EvaluationConfiguration;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class EvaluationController extends Controller
 {
-  public function index(Request $request)
-  {
-    $evaluations = Employee::with('evaluations')->orderBy('created_at', 'desc')->get();
+    public function index(Request $request)
+    {
+        $user = Auth::user();
 
-    $transformedEvaluations = $evaluations->transform(
-      function ($evaluation) {
-        return
-          [
-            'id' => $evaluation->id,
-            'employee_name' => $evaluation->employee_name,
-            'ratings' => $evaluation->ratings,
-            'rating_date' => $evaluation->rating_date,
-            'work_quality' => $evaluation->work_quality,
-            'safety_compliance' => $evaluation->safety_compliance,
-            'punctuality' => $evaluation->punctuality,
-            'teamwork' => $evaluation->teamwork,
-            'organization' => $evaluation->organization,
-            'equipment_handling' => $evaluation->equipment_handling,
-            'comment' => $evaluation->comment,
-            'period' => $evaluation->period,
-            'period_label' => $evaluation->period_label,
-            'year' => $evaluation->year,
-            'created_at' => $evaluation->created_at->format('d M Y'),
-            'updated_at' => $evaluation->updated_at->format('d M Y'),
-          ];
-      }
-    );
+        Log::info('API Evaluation index accessed by user:', [
+            'user_id' => $user->id,
+            'user_name' => $user->firstname . ' ' . $user->lastname,
+            'is_super_admin' => $user->isSuperAdmin(),
+            'is_supervisor' => $user->isSupervisor(),
+            'can_evaluate' => $user->canEvaluate(),
+            'evaluable_departments' => $user->getEvaluableDepartments(),
+        ]);
 
-    return response()->json($transformedEvaluations);
-  }
+        // Get employees based on user role
+        $employees = $this->getEmployeesForUser($user);
+
+        $employeeList = $employees->map(function ($employee) {
+            $latestEval = $employee->evaluations()->with(['attendance', 'attitudes', 'workAttitude', 'workFunctions'])->first();
+            $frequency = EvaluationConfiguration::getFrequencyForDepartment($employee->department);
+
+            $employeeData = [
+                'id' => $employee->id,
+                'employee_id' => $employee->id,
+                'ratings' => $latestEval && $latestEval->total_rating ? $latestEval->total_rating : null,
+                'rating_date' => $latestEval ? $latestEval->rating_date : null,
+                'work_quality' => $latestEval && $latestEval->workFunctions ? $latestEval->workFunctions->avg('work_quality') : null,
+                'safety_compliance' => $latestEval && $latestEval->workAttitude ? $latestEval->workAttitude->responsible : null,
+                'punctuality' => $latestEval && $latestEval->attendance ? $latestEval->attendance->rating : null,
+                'teamwork' => $latestEval && $latestEval->workAttitude ? $latestEval->workAttitude->cooperation : null,
+                'organization' => $latestEval && $latestEval->workAttitude ? $latestEval->workAttitude->initiative : null,
+                'equipment_handling' => $latestEval && $latestEval->workAttitude ? $latestEval->workAttitude->job_knowledge : null,
+                'comment' => $latestEval ? $latestEval->observations : null,
+                'period' => $latestEval ? $latestEval->evaluation_period : null,
+                'period_label' => $latestEval ? $latestEval->period_label : null,
+                'employee_name' => $employee->employee_name,
+                'picture' => $employee->picture,
+                'department' => $employee->department,
+                'position' => $employee->position,
+                'employeeid' => $employee->employeeid,
+                'evaluation_frequency' => $frequency,
+            ];
+
+            return $employeeData;
+        });
+
+        return response()->json($employeeList);
+    }
+
+    /**
+     * Get employees based on user role and permissions
+     */
+    private function getEmployeesForUser($user)
+    {
+        $query = Employee::with(['evaluations' => function ($q) {
+            $q->orderBy('created_at', 'desc');
+        }]);
+
+        if ($user->isSuperAdmin()) {
+            // Super admin can see all employees
+            Log::info('User is Super Admin - showing all employees');
+            return $query->orderBy('employee_name')->get();
+        } elseif ($user->isSupervisor()) {
+            // Supervisor can only see employees in departments they supervise
+            $evaluableDepartments = $user->getEvaluableDepartments();
+            Log::info('Supervisor evaluable departments:', $evaluableDepartments);
+
+            if (empty($evaluableDepartments)) {
+                Log::warning('No departments assigned to supervisor');
+                return collect(); // No departments assigned
+            }
+
+            $employees = $query->whereIn('department', $evaluableDepartments)
+                ->orderBy('employee_name')
+                ->get();
+
+            Log::info('Supervisor employees found:', [
+                'count' => $employees->count(),
+                'departments' => $evaluableDepartments,
+                'employees' => $employees->pluck('employee_name', 'department')->toArray()
+            ]);
+
+            return $employees;
+        } else {
+            // Other roles (Manager, HR) can only view, not evaluate
+            Log::info('User is other role - showing all employees');
+            return $query->orderBy('employee_name')->get();
+        }
+    }
 }

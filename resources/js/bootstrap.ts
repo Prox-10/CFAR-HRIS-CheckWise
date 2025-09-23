@@ -1,5 +1,14 @@
 import Echo from 'laravel-echo';
 
+// Get CSRF token more reliably
+const getCSRFToken = () => {
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (!token) {
+        console.warn('CSRF token not found, broadcasting authentication may fail');
+    }
+    return token || '';
+};
+
 // Initialize Echo with Reverb
 try {
     window.Echo = new Echo({
@@ -15,8 +24,9 @@ try {
         withCredentials: true,
         auth: {
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'X-CSRF-TOKEN': getCSRFToken(),
                 'X-Requested-With': 'XMLHttpRequest',
+                Accept: 'application/json',
             },
         },
     });

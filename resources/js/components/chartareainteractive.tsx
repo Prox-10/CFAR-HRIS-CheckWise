@@ -159,8 +159,11 @@ export function ChartAreaInteractive() {
                     setData([]);
                 }
             } catch (err) {
-                console.error('Error loading attendance data:', err);
-                setError(err instanceof Error ? err.message : 'Failed to load data');
+                // Only log errors that aren't intentional aborts
+                if (err instanceof Error && err.name !== 'AbortError') {
+                    console.error('Error loading attendance data:', err);
+                    setError(err.message);
+                }
                 // Do not use fallback data; let UI show empty/error state
                 setData([]);
             } finally {

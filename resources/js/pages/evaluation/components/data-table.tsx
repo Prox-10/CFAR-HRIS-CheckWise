@@ -118,14 +118,14 @@ export function DataTable<TData, TValue>({
                         </Button> */}
                         <DataTableViewOptions table={table} />
                     </DropdownMenuTrigger>
-                    {/* <div className="ml-auto flex items-center gap-2">
+                    <div className="ml-auto flex items-center gap-2">
                         {can('Refresh Evaluation List') && (
                             <Button variant="main" onClick={onRefresh} disabled={refreshing} className="" title="Refresh Evaluation List">
                                 <RotateCw className={refreshing ? 'mr-1 h-4 w-4 animate-spin' : 'mr-1 h-4 w-4'} />
                                 {refreshing ? 'Refreshing...' : 'Refresh'}
                             </Button>
                         )}
-                    </div> */}
+                    </div>
                     {/* <Button variant="main" className="ml-auto" onClick={() => setIsModelOpen(true)}> */}
                     {/* <Plus className="mr-2 h-4 w-4" /> */}
                     {/* Add Rating */}

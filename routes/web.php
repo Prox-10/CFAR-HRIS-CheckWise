@@ -19,6 +19,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AdminManagementController;
 use App\Http\Controllers\SupervisorDepartmentController;
 use App\Http\Controllers\ResumeToWorkController;
+use Illuminate\Support\Facades\Broadcast;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -157,6 +158,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
 
+
+
+
+// Broadcasting routes
+Broadcast::routes(['middleware' => ['web', 'auth']]);
+
+// Broadcasting routes for employees
+Broadcast::routes(['middleware' => ['web', 'employee.auth']]);
 
 
 

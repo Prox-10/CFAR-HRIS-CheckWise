@@ -45,6 +45,7 @@ class LeaveController extends Controller
 
         $leaveList = $leave->map(function ($leave) {
             $leaveCredits = LeaveCredit::getOrCreateForEmployee($leave->employee_id);
+            
             return [
                 'id'                  => $leave->id,
                 'leave_type'          => $leave->leave_type,

@@ -111,11 +111,40 @@ class AbsenceController extends Controller
     }
 
     /**
+     * Display the employee absence index page.
+     */
+    public function employeeIndex()
+    {
+        $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
+        
+        if (!$employee) {
+            Session::forget(['employee_id', 'employee_name']);
+            return redirect()->route('employeelogin');
+        }
+
+        return Inertia::render('employee-view/request-form/absence/index', [
+            'employee' => [
+                'id' => $employee->id,
+                'employeeid' => $employee->employeeid,
+                'employee_name' => $employee->employee_name,
+                'firstname' => $employee->firstname,
+                'lastname' => $employee->lastname,
+                'department' => $employee->department,
+                'position' => $employee->position,
+                'picture' => $employee->picture,
+            ],
+        ]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
         try {
+            // Log the incoming request data for debugging
+            Log::info('Absence request data:', $request->all());
+            
             $validated = $request->validate([
                 'employee_id' => 'nullable|exists:employees,id',
                 'full_name' => 'required|string|max:255',
@@ -128,6 +157,8 @@ class AbsenceController extends Controller
                 'is_partial_day' => 'boolean',
                 'reason' => 'required|string|min:10',
             ]);
+            
+            Log::info('Validated absence data:', $validated);
 
             $absence = Absence::create([
                 'employee_id' => $validated['employee_id'],
@@ -144,26 +175,38 @@ class AbsenceController extends Controller
                 'submitted_at' => now(),
             ]);
 
+            Log::info('Absence created successfully:', ['id' => $absence->id, 'days' => $absence->days]);
+
             // Broadcast to managers/HR/supervisors
             event(new AbsenceRequested($absence));
+            
+            Log::info('AbsenceRequested event broadcasted');
 
             // Create notification for the supervisor of the employee's department
-            $employee = Employee::find($validated['employee_id']);
-            $supervisor = \App\Models\User::getSupervisorForDepartment($validated['department']);
-            
-            if ($supervisor) {
-                Notification::create([
-                    'type' => 'absence_request',
-                    'user_id' => $supervisor->id,
-                    'data' => [
-                        'absence_id' => $absence->id,
-                        'employee_name' => $employee ? $employee->employee_name : $validated['full_name'],
-                        'absence_type' => $absence->absence_type,
-                        'from_date' => $absence->from_date,
-                        'to_date' => $absence->to_date,
-                        'department' => $validated['department'],
-                    ],
-                ]);
+            try {
+                $employee = Employee::find($validated['employee_id']);
+                $supervisor = \App\Models\User::getSupervisorForDepartment($validated['department']);
+                
+                if ($supervisor) {
+                    Notification::create([
+                        'type' => 'absence_request',
+                        'user_id' => $supervisor->id,
+                        'data' => [
+                            'absence_id' => $absence->id,
+                            'employee_name' => $employee ? $employee->employee_name : $validated['full_name'],
+                            'absence_type' => $absence->absence_type,
+                            'from_date' => $absence->from_date,
+                            'to_date' => $absence->to_date,
+                            'department' => $validated['department'],
+                        ],
+                    ]);
+                    Log::info('Notification created for supervisor:', ['supervisor_id' => $supervisor->id]);
+                } else {
+                    Log::warning('No supervisor found for department:', ['department' => $validated['department']]);
+                }
+            } catch (Exception $notificationError) {
+                Log::error('Failed to create notification:', ['error' => $notificationError->getMessage()]);
+                // Don't fail the entire request if notification creation fails
             }
 
             if ($request->routeIs('employee-view.absence.store')) {
@@ -172,7 +215,16 @@ class AbsenceController extends Controller
 
             return redirect()->route('absence.index')->with('success', 'Absence request submitted successfully!');
         } catch (Exception $e) {
-            Log::error('Absence creation failed: ' . $e->getMessage());
+            Log::error('Absence creation failed:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Failed to submit absence request. Please try again.'], 500);
+            }
+            
             return redirect()->back()->with('error', 'Failed to submit absence request. Please try again.');
         }
     }
@@ -201,20 +253,16 @@ class AbsenceController extends Controller
 
         $absenceList = $absences->transform(fn($absence) => [
             'id' => $absence->id,
-            'full_name' => $absence->full_name,
-            'employee_id_number' => $absence->employee_id_number,
+            'name' => $absence->full_name,
             'department' => $absence->department,
-            'position' => $absence->position,
-            'absence_type' => $absence->absence_type,
-            'from_date' => $absence->from_date->format('Y-m-d'),
-            'to_date' => $absence->to_date->format('Y-m-d'),
-            'submitted_at' => $absence->submitted_at->format('Y-m-d'),
+            'type' => $absence->absence_type,
+            'startDate' => $absence->from_date->format('Y-m-d'),
+            'endDate' => $absence->to_date->format('Y-m-d'),
+            'submittedAt' => $absence->submitted_at->format('Y-m-d'),
             'days' => $absence->days,
             'reason' => $absence->reason,
-            'is_partial_day' => $absence->is_partial_day,
             'status' => $absence->status,
-            'picture' => $absence->employee ? $absence->employee->picture : null,
-            'employee_name' => $absence->employee ? $absence->employee->employee_name : $absence->full_name,
+            'avatarUrl' => $absence->employee ? $absence->employee->picture : null,
         ]);
 
         return Inertia::render('absence/absence-approve', [
@@ -224,75 +272,6 @@ class AbsenceController extends Controller
                 'is_super_admin' => $isSuperAdmin,
                 'supervised_departments' => $supervisedDepartments,
             ],
-            'auth' => [
-                'user' => [
-                    'id' => $user->id,
-                    'isSupervisor' => $isSupervisor,
-                    'isSuperAdmin' => $isSuperAdmin,
-                ],
-            ],
-        ]);
-    }
-
-    /**
-     * Display employee's own absence requests.
-     */
-    public function employeeIndex()
-    {
-        $employee = Employee::where('employeeid', Session::get('employee_id'))->first();
-        
-        if (!$employee) {
-            Session::forget(['employee_id', 'employee_name']);
-            return redirect()->route('employeelogin');
-        }
-
-        // Get employee's absence requests
-        $absenceRequests = Absence::where('employee_id', $employee->id)
-            ->orderBy('submitted_at', 'desc')
-            ->get()
-            ->map(function ($absence) use ($employee) {
-                $absenceCredits = AbsenceCredit::getOrCreateForEmployee($absence->employee_id);
-                return [
-                    'id' => $absence->id,
-                    'absence_type' => $absence->absence_type,
-                    'from_date' => $absence->from_date->format('Y-m-d'),
-                    'to_date' => $absence->to_date->format('Y-m-d'),
-                    'days' => $absence->days,
-                    'status' => $absence->status,
-                    'reason' => $absence->reason,
-                    'submitted_at' => $absence->submitted_at->format('Y-m-d'),
-                    'approved_at' => $absence->approved_at ? $absence->approved_at->format('Y-m-d') : null,
-                    'approval_comments' => $absence->approval_comments,
-                    'is_partial_day' => $absence->is_partial_day,
-                    'created_at' => $absence->created_at->format('Y-m-d H:i:s'),
-                    'employee_name' => $employee->employee_name,
-                    'picture' => $employee->picture,
-                    'department' => $employee->department,
-                    'employeeid' => $employee->employeeid,
-                    'position' => $employee->position,
-                    'remaining_credits' => $absenceCredits->remaining_credits,
-                    'used_credits' => $absenceCredits->used_credits,
-                    'total_credits' => $absenceCredits->total_credits,
-                ];
-            })->toArray();
-
-        // Calculate absence stats for the employee
-        $totalAbsences = Absence::where('employee_id', $employee->id)->count();
-        $pendingAbsences = Absence::where('employee_id', $employee->id)->where('status', 'pending')->count();
-        $approvedAbsences = Absence::where('employee_id', $employee->id)->where('status', 'approved')->count();
-        $rejectedAbsences = Absence::where('employee_id', $employee->id)->where('status', 'rejected')->count();
-
-        $absenceStats = [
-            'totalAbsences' => $totalAbsences,
-            'pendingAbsences' => $pendingAbsences,
-            'approvedAbsences' => $approvedAbsences,
-            'rejectedAbsences' => $rejectedAbsences,
-        ];
-
-        return Inertia::render('employee-view/request-form/absence/index', [
-            'absenceRequests' => $absenceRequests,
-            'absenceStats' => $absenceStats,
-            'employee' => $employee,
         ]);
     }
 

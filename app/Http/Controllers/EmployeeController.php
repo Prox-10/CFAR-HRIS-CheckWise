@@ -92,6 +92,14 @@ class EmployeeController extends Controller
             ? count($supervisedDepartments)
             : Employee::distinct('department')->count();
 
+        // Calculate work status counts based on filtered data
+        $workStatusCounts = [
+            'Regular' => $employees->where('work_status', 'Regular')->count(),
+            'Add Crew' => $employees->where('work_status', 'Add Crew')->count(),
+            'Probationary' => $employees->where('work_status', 'Probationary')->count(),
+            'Sessional' => $employees->where('work_status', 'Sessional')->count(),
+        ];
+
         // Previous period calculations - also filter by supervisor role
         $prevMonthStart = now()->subMonth()->startOfMonth();
         $prevEmployeeQuery = Employee::where('created_at', '<', now()->startOfMonth());
@@ -113,6 +121,7 @@ class EmployeeController extends Controller
             'prevTotalEmployee' => $prevTotalEmployee,
             'totalDepartment' => $totalDepartment,
             'prevTotalDepartment' => $prevTotalDepartment,
+            'workStatusCounts' => $workStatusCounts,
             'user_permissions' => [
                 'is_supervisor' => $isSupervisor,
                 'is_super_admin' => $isSuperAdmin,

@@ -53,10 +53,13 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
         const echo: any = (window as any).Echo;
         if (!echo) return;
 
+        console.log('Setting up real-time listeners for leave data table');
+
         // Admin listens on global notifications channel for new requests
         const adminChannel = echo.channel('notifications');
         adminChannel
             .listen('.LeaveRequested', (e: any) => {
+                console.log('Received LeaveRequested event on leave data table:', e);
                 // Payload shape from App\\Events\\LeaveRequested
                 // { type, leave_id, employee_id, employee_name, leave_type, leave_start_date, leave_end_date }
                 if (!e || typeof e.leave_id === 'undefined') return;
@@ -73,10 +76,15 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
                     leave_date_approved: null,
                     leave_comments: '',
                     picture: null,
+                    // bring credits from event so the row shows correct values without refresh
+                    remaining_credits: typeof e.remaining_credits === 'number' ? e.remaining_credits : 0,
+                    used_credits: typeof e.used_credits === 'number' ? e.used_credits : 0,
+                    total_credits: typeof e.total_credits === 'number' ? e.total_credits : 12,
                 };
                 setRows((prev) => [newRow, ...prev.filter((r: any) => String(r.id) !== String(e.leave_id))]);
             })
             .listen('.RequestStatusUpdated', (e: any) => {
+                console.log('Received RequestStatusUpdated event on leave data table:', e);
                 if (!String(e.type || '').includes('leave')) return;
                 setRows((prev) =>
                     prev.map((r: any) =>
@@ -85,9 +93,13 @@ export function DataTable<TData, TValue>({ columns, data, employees }: DataTable
                             : r,
                     ),
                 );
+            })
+            .error((error: any) => {
+                console.error('Error subscribing to notifications channel:', error);
             });
 
         return () => {
+            console.log('Cleaning up Echo listeners on leave data table');
             adminChannel.stopListening('.LeaveRequested');
             adminChannel.stopListening('.RequestStatusUpdated');
         };

@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/employee-layout/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { Users } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 import { ViewLeaveModal } from './components/view-leave-modal';
@@ -58,6 +58,46 @@ export default function Index({ leaveRequests, leaveStats, employee }: PageProps
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [selectedLeave, setSelectedLeave] = useState<LeaveRequest | null>(null);
+    const [requests, setRequests] = useState<LeaveRequest[]>(leaveRequests);
+
+    // Update local state when server data changes
+    useEffect(() => {
+        if (leaveRequests && Array.isArray(leaveRequests)) {
+            setRequests(leaveRequests);
+        }
+    }, [leaveRequests]);
+
+    // Set up real-time updates using Echo
+    useEffect(() => {
+        const echo: any = (window as any).Echo;
+        if (!echo || !employee?.id) return;
+
+        console.log('Setting up real-time listeners for employee leave index');
+
+        // Listen for status updates on employee's private channel
+        const employeeChannel = echo.private(`employee.${employee.id}`);
+        employeeChannel
+            .listen('.RequestStatusUpdated', (e: any) => {
+                console.log('Leave status update received:', e);
+                if (String(e.type || '').includes('leave')) {
+                    setRequests((prev) =>
+                        prev.map((request) =>
+                            String(request.id) === String(e.request_id)
+                                ? { ...request, leave_status: String(e.status).charAt(0).toUpperCase() + String(e.status).slice(1).toLowerCase() }
+                                : request,
+                        ),
+                    );
+                }
+            })
+            .error((error: any) => {
+                console.error('Error subscribing to employee channel:', error);
+            });
+
+        return () => {
+            console.log('Cleaning up Echo listeners on employee leave index');
+            employeeChannel.stopListening('.RequestStatusUpdated');
+        };
+    }, [employee?.id]);
 
     // Mock functions for the columns
     const handleEdit = (leave: LeaveRequest) => {
@@ -101,7 +141,7 @@ export default function Index({ leaveRequests, leaveStats, employee }: PageProps
                                 handleEdit,
                                 handleDelete,
                             )}
-                            data={leaveRequests || []}
+                            data={requests || []}
                         />
                     </CardContent>
                 </Card>

@@ -10,3 +10,7 @@ Broadcast::channel('notifications', function ($user) {
 Broadcast::channel('employee.{employeeId}', function ($user, $employeeId) {
     return Auth::check();
 });
+
+Broadcast::channel('supervisor.{supervisorId}', function ($user, $supervisorId) {
+    return Auth::check() && $user->id == $supervisorId;
+});
