@@ -368,7 +368,7 @@ function SidebarHoverLogic(
                             <Tabs orientation="vertical" defaultValue="overview" className="space-y-4">
                                 <div className="mt-2 w-full overflow-x-auto pb-2">
                                     <TabsList className="gap-2">
-                                        <TabsTrigger value="overview">Fuck</TabsTrigger>
+                                        <TabsTrigger value="overview">Overview</TabsTrigger>
                                     </TabsList>
                                 </div>
                                 <TabsContent value="overview" className="space-y-4">
