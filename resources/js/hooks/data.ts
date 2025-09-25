@@ -79,7 +79,7 @@ export const positions: string[] = [
 // Helper function to get positions for a specific department
 export const getPositionsForDepartment = (department: string): string[] => {
     switch (department) {
-        case 'Management & Staff':
+        case 'Management & Staff(Admin)':
             return managementAndStaffPositions;
         case 'Packing Plant':
             return packingPlantPositions;
